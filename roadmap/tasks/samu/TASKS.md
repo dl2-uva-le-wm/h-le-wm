@@ -6,6 +6,14 @@
 - `config/train/hi_lewm.yaml` (new)
 - `config/train/data/*.yaml` (new `hi_` variants preferred)
 
+## Coexistence & Non-Regression Policy
+
+1. Keep base `train.py` path unchanged and runnable.
+2. Put hierarchical training logic in `hi_train.py` and `hi_*` configs only.
+3. Before merge, verify:
+   - base train smoke check
+   - hierarchical train smoke check.
+
 ## Pre-Flight Checks (Validate What Is Already Done)
 
 Run:

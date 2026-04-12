@@ -32,6 +32,18 @@ Relevant baseline files:
 
 Implementation should target these files/paths directly (not a separate `hi-le-wm/` folder unless explicitly created later).
 
+## Coexistence & Non-Regression Policy
+
+Both pipelines must coexist:
+
+1. Base LeWM path (`jepa.py`, `train.py`, base eval configs) must remain runnable.
+2. Hierarchical path (`hi_jepa.py`, `hi_train.py`, `config/*/hi_*.yaml`) must be additive.
+3. Do not replace or silently change base behavior unless explicitly approved.
+4. Every integration PR should include:
+   - one base smoke check
+   - one hierarchical smoke check
+   - explicit note of files touched.
+
 ---
 
 ## 3) Architecture To Implement
@@ -476,4 +488,3 @@ Project is complete only if all are satisfied:
    - forward pass
    - `get_cost` output shape/finite values.
 4. Start first short PushT training run via `hi_train.py` once smoke passes.
-

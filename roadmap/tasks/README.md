@@ -22,6 +22,15 @@ This folder contains independent implementation tracks derived from:
    - seed(s)
    - artifact path(s)
 
+## Coexistence & Non-Regression Policy
+
+1. Keep base LeWM path intact and runnable (`jepa.py`, `train.py`, base eval configs).
+2. Implement hierarchy additively (`hi_jepa.py`, `hi_train.py`, `config/*/hi_*.yaml`).
+3. Do not silently alter base behavior.
+4. For integration PRs, include:
+   - one base smoke check result
+   - one hierarchical smoke check result.
+
 ## Interface Contract (Must Stay Stable)
 
 1. `HiJEPA.get_cost(info_dict, action_candidates) -> (B,S)` tensor.
@@ -30,4 +39,3 @@ This folder contains independent implementation tracks derived from:
    - train: `config/train/hi_lewm.yaml`
    - eval: `config/eval/hi_*.yaml`
 4. `k1`/`k2` tracked in env steps and converted to frame offsets via `frameskip`.
-

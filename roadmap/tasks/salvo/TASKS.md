@@ -5,6 +5,12 @@
 - `roadmap/env_setup.md`
 - `roadmap/tasks/salvo/*`
 
+## Coexistence & Non-Regression Policy
+
+1. Benchmark protocol must always include both base and hierarchical runs.
+2. Keep output artifacts separated by model (`lewm` vs `hi_lewm`).
+3. Any report table must show side-by-side comparability fields.
+
 ## Pre-Flight Checks (Validate What Is Already Done)
 
 Run:

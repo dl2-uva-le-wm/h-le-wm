@@ -5,6 +5,12 @@
 - `hi_jepa.py` (rollout/criterion validation only)
 - `roadmap/tasks/fra/*`
 
+## Coexistence & Non-Regression Policy
+
+1. Validate hierarchical rollout without changing base planner logic.
+2. Keep validation artifacts separate for base vs hierarchical runs.
+3. Before merge, include comparison evidence for both paths.
+
 ## Pre-Flight Checks (Validate What Is Already Done)
 
 Run:

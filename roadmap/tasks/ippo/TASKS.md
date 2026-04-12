@@ -5,6 +5,14 @@
 - `module.py`
 - `roadmap/tasks/ippo/*`
 
+## Coexistence & Non-Regression Policy
+
+1. Add new module classes without changing existing base class behavior.
+2. `ARPredictor` base path must remain valid for original LeWM.
+3. Before merge, verify:
+   - base imports and compile pass
+   - hierarchical classes import/compile pass.
+
 ## Pre-Flight Checks (Validate What Is Already Done)
 
 Run before continuing:

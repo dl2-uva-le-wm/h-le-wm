@@ -5,6 +5,14 @@
 - `hi_jepa.py` (new)
 - `config/eval/hi_*.yaml` (new)
 
+## Coexistence & Non-Regression Policy
+
+1. Do not break base `jepa.py` planning behavior.
+2. Keep all hierarchical logic in `hi_jepa.py` and `hi_*.yaml`.
+3. Before merge, verify:
+   - base eval config still runs
+   - hierarchical eval config runs.
+
 ## Pre-Flight Checks (Validate What Is Already Done)
 
 Run these checks before new edits:
