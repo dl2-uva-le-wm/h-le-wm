@@ -263,6 +263,13 @@ class HiJEPA(nn.Module):
             else:
                 raise ValueError("Invalid midpoint_anchor shape for criterion")
         elif midpoint.ndim == 4:
+            # Allow pre-expanded target only when it matches (B,S,1,D) semantics.
+            if midpoint.shape[0] != pred_emb.shape[0] or midpoint.shape[1] != pred_emb.shape[1]:
+                raise ValueError("midpoint_anchor (4D) must match batch/sample dims of predicted_emb")
+            if midpoint.shape[2] not in (1, pred_emb.shape[2]):
+                raise ValueError("midpoint_anchor (4D) must have time dim 1 or match rollout time")
+            if midpoint.shape[3] != pred_emb.shape[3]:
+                raise ValueError("midpoint_anchor (4D) latent dim must match predicted_emb")
             target = midpoint
         else:
             raise ValueError("midpoint_anchor has unsupported rank")
@@ -306,11 +313,31 @@ class HiJEPA(nn.Module):
             if torch.is_tensor(info_dict[k]):
                 info_dict[k] = info_dict[k].to(device)
 
-        # Phase 0: encode start and goal
-        goal = self.encode({"pixels": info_dict["goal"][:, 0]})  # goal pixels -> (B,Tg,...) with Tg usually 1
-        z_g = goal["emb"][:, 0]  # (B, D)
+        # Phase 0a: build a goal dict in a JEPA-compatible way.
+        # We intentionally mirror the base JEPA behavior:
+        # - start from tensor keys reduced on sample axis ([:, 0])
+        # - route goal pixels through the "pixels" key
+        # - remap goal_* auxiliary keys (e.g., goal_state -> state) when present
+        goal = {k: v[:, 0] for k, v in info_dict.items() if torch.is_tensor(v)}
+        goal["pixels"] = goal["goal"]  # planner goal observation becomes encoder input
 
-        start = self.encode({"pixels": info_dict["pixels"][:, 0, -1:]})  # last context frame -> (B,1,...)
+        for k in list(goal.keys()):
+            if k.startswith("goal_"):
+                goal[k[len("goal_") :]] = goal.pop(k)
+
+        # Action is not needed to encode the goal state and may have incompatible shape.
+        goal.pop("action", None)
+
+        # Phase 0b: encode goal latent.
+        goal = self.encode(goal)  # goal["emb"]: (B, T_goal, D)
+        z_g = goal["emb"][:, -1]  # (B, D) use final goal timestep when T_goal > 1
+
+        # Phase 0c: encode current state from last context frame.
+        # info_dict["pixels"] is expected to be (B, S, H_ctx, ...), so:
+        # - select candidate axis 0 (all candidates share same current context)
+        # - select last context frame via -1:
+        start_pixels = info_dict["pixels"][:, 0, -1:]  # (B, 1, ...)
+        start = self.encode({"pixels": start_pixels})
         z_t = start["emb"][:, 0]  # (B, D)
 
         # Phase 1 + 2: strategic and tactical anchors

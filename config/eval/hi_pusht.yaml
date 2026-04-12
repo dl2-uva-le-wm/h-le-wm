@@ -1,0 +1,15 @@
+defaults:
+  - pusht
+  - _self_
+
+policy: hi_lewm
+
+plan_config:
+  # Short-horizon hierarchical planning (k1 in dataset-frame units).
+  horizon: 1
+  receding_horizon: 1
+  action_block: 5
+
+output:
+  filename: hi_pusht_results.txt
+
