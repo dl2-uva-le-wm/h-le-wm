@@ -5,6 +5,21 @@
 - `roadmap/env_setup.md`
 - `roadmap/tasks/salvo/*`
 
+## Pre-Flight Checks (Validate What Is Already Done)
+
+Run:
+
+```bash
+test -f roadmap/env_setup.md && echo "env_setup.md exists"
+mkdir -p roadmap/tasks/salvo
+ls -la roadmap/tasks/salvo
+```
+
+Mark when verified:
+
+- [ ] env setup doc exists
+- [ ] salvo task folder ready
+
 ## Task 1: Environment/Data Readiness Matrix
 
 Create:
@@ -108,3 +123,16 @@ Template snippet:
   - protocol
   - schema
   - summary table template.
+
+Post-implementation checks:
+
+```bash
+test -f roadmap/tasks/salvo/environment_matrix.md && echo "matrix ok"
+test -f roadmap/tasks/salvo/benchmark_protocol.md && echo "protocol ok"
+test -f roadmap/tasks/salvo/results_schema.json && echo "schema ok"
+test -f roadmap/tasks/salvo/results_template.csv && echo "csv template ok"
+test -f roadmap/tasks/salvo/final_report_table.md && echo "report table ok"
+```
+
+- [ ] all benchmark docs/artifacts generated
+- [ ] protocol fields align with eval runs

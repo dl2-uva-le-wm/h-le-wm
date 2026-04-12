@@ -5,6 +5,22 @@
 - `hi_jepa.py` (rollout/criterion validation only)
 - `roadmap/tasks/fra/*`
 
+## Pre-Flight Checks (Validate What Is Already Done)
+
+Run:
+
+```bash
+test -f hi_jepa.py && echo "hi_jepa.py exists"
+python -m py_compile hi_jepa.py && echo "hi_jepa syntax ok"
+rg -n "def rollout|def criterion|get_cost|midpoint_anchor|strategic_anchor" hi_jepa.py
+```
+
+Mark when verified:
+
+- [ ] rollout/criterion methods exist
+- [ ] midpoint anchor path exists
+- [ ] file compiles before validation scripts
+
 ## Task 1: Rollout Invariant Validation
 
 Create `roadmap/tasks/fra/rollout_validation.py` and verify:
@@ -97,3 +113,15 @@ Store in:
   - shape invariants
   - planner invariants
   - convergence sanity.
+
+Post-validation checks:
+
+```bash
+test -f roadmap/tasks/fra/rollout_validation.py && echo "rollout_validation.py created"
+test -f roadmap/tasks/fra/cem_mpc_checks.md && echo "cem_mpc_checks.md created"
+test -f roadmap/tasks/fra/convergence_snapshot.csv && echo "convergence_snapshot.csv created"
+```
+
+- [ ] validation script produced expected checks
+- [ ] CEM/MPC consistency table filled
+- [ ] convergence artifact saved

@@ -6,6 +6,24 @@
 - `config/train/hi_lewm.yaml` (new)
 - `config/train/data/*.yaml` (new `hi_` variants preferred)
 
+## Pre-Flight Checks (Validate What Is Already Done)
+
+Run:
+
+```bash
+test -f hi_train.py && echo "hi_train.py exists"
+test -f config/train/hi_lewm.yaml && echo "hi_lewm.yaml exists"
+python -m py_compile hi_train.py && echo "hi_train syntax ok"
+rg -n "def hi_lejepa_forward|pred_loss_l1|pred_loss_l2|pred_loss_l3|act_reg_loss" hi_train.py
+rg -n "k1_env|k2_env|macro_action_dim|k1_frames|k2_frames|anchor_mode" config/train/hi_lewm.yaml
+```
+
+Mark when verified:
+
+- [ ] `hi_train.py` exists and compiles
+- [ ] `hi_lewm.yaml` exists and contains key fields
+- [ ] hierarchical loss keys present
+
 ## Task 1: Create `hi_train.py` Entry Point
 
 Copy structure from `train.py`, then replace model + forward logic.
@@ -201,3 +219,13 @@ python hi_train.py data=hi_pusht output_model_name=hi_lewm_smoke trainer.max_epo
   - exact launch command
   - resolved `k1_frames`, `k2_frames`
   - first 20 training-step losses.
+
+Post-implementation checks:
+
+```bash
+python hi_train.py trainer.max_epochs=1 loader.batch_size=2
+```
+
+- [ ] one-epoch smoke run completes
+- [ ] no index-out-of-range errors on `z_t`, `z_k1`, `z_k2`
+- [ ] loss logs include L1/L2/L3 + reg terms

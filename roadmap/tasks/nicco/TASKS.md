@@ -5,6 +5,49 @@
 - `hi_jepa.py` (new)
 - `config/eval/hi_*.yaml` (new)
 
+## Pre-Flight Checks (Validate What Is Already Done)
+
+Run these checks before new edits:
+
+1. File exists and syntax is valid:
+
+```bash
+test -f hi_jepa.py && echo "hi_jepa.py exists"
+python -m py_compile hi_jepa.py && echo "syntax ok"
+```
+
+2. `HiJEPA` core methods are present:
+
+```bash
+rg -n "class HiJEPA|def encode|def predict|def rollout|def criterion|def get_cost" hi_jepa.py
+```
+
+3. 4-phase planning markers exist in `get_cost`:
+
+```bash
+rg -n "Phase 0|Phase 1|Phase 2|Phase 3" hi_jepa.py
+```
+
+4. Midpoint anchor path is wired:
+
+```bash
+rg -n "midpoint_anchor|strategic_anchor|_compute_anchors" hi_jepa.py
+```
+
+5. Shape comments/docstrings are present:
+
+```bash
+rg -n "Args:|Returns:|\\(B, S|\\(B, D|\\(B, T" hi_jepa.py
+```
+
+If all pass, mark:
+
+- [ ] `hi_jepa.py` implemented
+- [ ] syntax check passed
+- [ ] hierarchical phases present
+- [ ] midpoint anchor wiring verified
+- [ ] shape docs/comments present
+
 ## Task 1: Create `HiJEPA` Class Skeleton
 
 Start from `jepa.py` but rename class and wire hierarchical components.
@@ -147,6 +190,16 @@ python eval.py +config_name=hi_pusht
 ```
 
 or equivalent hydra override command used in this repo.
+
+Post-run checks:
+
+```bash
+rg -n "predicted_emb|midpoint_anchor|strategic_anchor" hi_jepa.py
+```
+
+- [ ] evaluation command runs without crash
+- [ ] output results file created
+- [ ] no tensor shape/device mismatch errors
 
 ## Handoff Artifact
 

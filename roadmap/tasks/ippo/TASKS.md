@@ -5,6 +5,22 @@
 - `module.py`
 - `roadmap/tasks/ippo/*`
 
+## Pre-Flight Checks (Validate What Is Already Done)
+
+Run before continuing:
+
+```bash
+python -m py_compile module.py && echo "module syntax ok"
+rg -n "class InverseDynamicsModel|class ConditionedSingleStepPredictor|class ARPredictorAnchored" module.py
+rg -n "def forward\\(" module.py
+```
+
+Mark when verified:
+
+- [ ] module compiles
+- [ ] 3 hierarchical classes exist
+- [ ] forward methods exist for all 3 classes
+
 ## File-Level Goal
 
 Add 3 reusable building blocks in `module.py`:
@@ -187,3 +203,24 @@ Expected output shapes:
 ## Handoff Artifact
 
 - PR description section: `Module APIs` with the 3 class signatures.
+
+Post-implementation checks:
+
+```bash
+python - <<'PY'
+import torch
+from module import InverseDynamicsModel, ConditionedSingleStepPredictor, ARPredictorAnchored
+B,D,A,T = 2,192,64,3
+id3 = InverseDynamicsModel(D, A)
+pred = ConditionedSingleStepPredictor(D, A)
+ar = ARPredictorAnchored(embed_dim=D, num_frames=T, depth=2, heads=4, mlp_dim=256, input_dim=D, hidden_dim=D, output_dim=D, dim_head=32)
+z = torch.randn(B,D); z2 = torch.randn(B,D)
+a = id3(z, z2)
+assert a.shape == (B,A)
+assert pred(z, a).shape == (B,D)
+assert pred(z, a, z_anchor=z2).shape == (B,D)
+x = torch.randn(B,T,D); c = torch.randn(B,T,D)
+assert ar(x, c, z_anchor=z2).shape == (B,T,D)
+print("ippo checks ok")
+PY
+```
