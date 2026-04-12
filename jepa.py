@@ -59,11 +59,27 @@ class JEPA(nn.Module):
     ####################
 
     def rollout(self, info, action_sequence, history_size: int = 3):
-        """Rollout the model given an initial info dict and action sequence.
-        pixels: (B, S, T, C, H, W)
-        action_sequence: (B, S, T, action_dim)
-         - S is the number of action plan samples
-         - T is the time horizon
+        """Roll out latent trajectories for candidate action sequences.
+
+        Starting from the current context in ``info``, this function encodes the
+        initial observations once, replicates that latent context across candidate
+        plans, and autoregressively predicts future latent states conditioned on
+        the provided actions.
+
+        Args:
+            info: Dictionary containing rollout context (must include ``"pixels"``,
+                and typically other fields such as actions/goals depending on
+                caller). ``info["pixels"]`` is expected to be shaped as
+                ``(B, S, H_ctx, C, H, W)`` before flattening, where ``S`` is the
+                number of candidate plans.
+            action_sequence: Candidate action plans of shape
+                ``(B, S, H_plan, action_dim)``.
+            history_size: Number of recent latent/action steps to keep in the
+                autoregressive context window.
+
+        Returns:
+            dict: The input ``info`` dictionary augmented with
+            ``info["predicted_emb"]`` of shape ``(B, S, T_rollout, D)``.
         """
 
         assert "pixels" in info, "pixels not in info_dict"
@@ -126,7 +142,22 @@ class JEPA(nn.Module):
         return cost
 
     def get_cost(self, info_dict: dict, action_candidates: torch.Tensor):
-        """ Compute the cost of action candidates given an info dict with goal and initial state."""
+        """Evaluate candidate action sequences for goal-conditioned planning.
+
+        This method encodes the goal observation into latent space, rolls out the
+        world model from the current context using each candidate action sequence,
+        and returns a terminal latent-space cost per candidate.
+
+        Args:
+            info_dict: Input dictionary containing the current context and goal
+                fields (must include ``"goal"`` and usually ``"pixels"``).
+            action_candidates: Candidate plans with shape
+                ``(B, S, H, action_dim)``, where ``S`` is the number of sampled
+                plans and ``H`` is the planning horizon.
+
+        Returns:
+            torch.Tensor: Cost tensor of shape ``(B, S)``. Lower is better.
+        """
 
         assert "goal" in info_dict, "goal not in info_dict"
 

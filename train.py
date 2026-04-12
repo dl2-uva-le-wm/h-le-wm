@@ -16,7 +16,24 @@ from utils import get_column_normalizer, get_img_preprocessor, ModelObjectCallBa
 
 
 def lejepa_forward(self, batch, stage, cfg):
-    """encode observations, predict next states, compute losses."""
+    """Run one training/validation forward pass for LeWM.
+
+    The function encodes pixel observations and actions into latent embeddings,
+    predicts future latent embeddings from a context window, computes the
+    LeWM objective (prediction MSE + SIGReg anti-collapse regularization), and
+    logs loss values with a stage prefix (e.g. ``train/`` or ``val/``).
+
+    Args:
+        batch: Mini-batch dictionary from the dataloader. Expected to contain at
+            least ``"pixels"`` and ``"action"`` tensors.
+        stage: Logging prefix for metrics (typically ``"train"`` or ``"val"``).
+        cfg: Hydra/OmegaConf configuration object providing model/loss settings
+            such as history length, prediction offset, and SIGReg weight.
+
+    Returns:
+        dict: Output dictionary including latent embeddings and loss terms:
+            ``pred_loss``, ``sigreg_loss``, and total ``loss``.
+    """
 
     ctx_len = cfg.wm.history_size
     n_preds = cfg.wm.num_preds
