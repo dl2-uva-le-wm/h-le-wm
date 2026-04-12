@@ -1,0 +1,47 @@
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# OS / editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Local training/eval artifacts
+wandb/
+outputs/
+lightning_logs/
+data/stablewm/
+*.ckpt
+*.pt
+*.pth
+*.h5
+
+# Local environment variables
+.env
+.env.*
+environment.json

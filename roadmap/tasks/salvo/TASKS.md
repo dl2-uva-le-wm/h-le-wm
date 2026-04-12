@@ -2,14 +2,14 @@
 
 ## Scope Ownership
 
-- `work/env_setup.md`
-- `work/tasks/salvo/*`
+- `roadmap/env_setup.md`
+- `roadmap/tasks/salvo/*`
 
 ## Task 1: Environment/Data Readiness Matrix
 
 Create:
 
-- `work/tasks/salvo/environment_matrix.md`
+- `roadmap/tasks/salvo/environment_matrix.md`
 
 Use this exact template:
 
@@ -32,7 +32,7 @@ Done criteria:
 
 Create:
 
-- `work/tasks/salvo/benchmark_protocol.md`
+- `roadmap/tasks/salvo/benchmark_protocol.md`
 
 Include this fixed protocol snippet:
 
@@ -59,8 +59,8 @@ Done criteria:
 
 Create:
 
-- `work/tasks/salvo/results_schema.json`
-- `work/tasks/salvo/results_template.csv`
+- `roadmap/tasks/salvo/results_schema.json`
+- `roadmap/tasks/salvo/results_template.csv`
 
 JSON schema snippet:
 
@@ -90,7 +90,7 @@ run_id,model,config_path,seed,env,num_eval,success_rate,eval_time_sec,goal_offse
 
 Create:
 
-- `work/tasks/salvo/final_report_table.md`
+- `roadmap/tasks/salvo/final_report_table.md`
 
 Template snippet:
 

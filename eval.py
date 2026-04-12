@@ -9,7 +9,8 @@ import hydra
 import numpy as np
 import stable_pretraining as spt
 import torch
-from omegaconf import DictConfig, OmegaConf
+from hydra.core.hydra_config import HydraConfig
+from omegaconf import DictConfig, OmegaConf, open_dict
 from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 import stable_worldmodel as swm
@@ -45,6 +46,14 @@ def get_dataset(cfg, dataset_name):
         cache_dir=dataset_path,
     )
     return dataset
+
+
+def get_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 @hydra.main(version_base=None, config_path="./config/eval", config_name="pusht")
 def run(cfg: DictConfig):
@@ -83,13 +92,20 @@ def run(cfg: DictConfig):
 
     # -- run evaluation
     policy = cfg.get("policy", "random")
+    device = get_device()
 
     if policy != "random":
         model = swm.policy.AutoCostModel(cfg.policy)
-        model = model.to("cuda")
+        model = model.to(device)
         model = model.eval()
         model.requires_grad_(False)
         model.interpolate_pos_encoding = True
+
+        # Keep solver device aligned with model device on non-CUDA machines.
+        if "device" in cfg.solver:
+            with open_dict(cfg):
+                cfg.solver.device = device
+
         config = swm.PlanConfig(**cfg.plan_config)
         solver = hydra.utils.instantiate(cfg.solver, model=model)
         policy = swm.policy.WorldModelPolicy(
@@ -99,11 +115,9 @@ def run(cfg: DictConfig):
     else:
         policy = swm.policy.RandomPolicy()
 
-    results_path = (
-        Path(swm.data.utils.get_cache_dir(), cfg.policy).parent
-        if cfg.policy != "random"
-        else Path(__file__).parent
-    )
+    run_dir = Path(HydraConfig.get().runtime.output_dir)
+    video_dir = run_dir / "videos"
+    video_dir.mkdir(parents=True, exist_ok=True)
 
     # sample the episodes and the starting indices
     episode_len = get_episodes_length(dataset, ep_indices)
@@ -146,13 +160,13 @@ def run(cfg: DictConfig):
         eval_budget=cfg.eval.eval_budget,
         episodes_idx=eval_episodes.tolist(),
         callables=OmegaConf.to_container(cfg.eval.get("callables"), resolve=True),
-        video_path=results_path,
+        video_path=video_dir,
     )
     end_time = time.time()
     
     print(metrics)
 
-    results_path = results_path / cfg.output.filename
+    results_path = run_dir / cfg.output.filename
     results_path.parent.mkdir(parents=True, exist_ok=True)
 
     with results_path.open("a") as f:

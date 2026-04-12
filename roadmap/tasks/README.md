@@ -2,7 +2,7 @@
 
 This folder contains independent implementation tracks derived from:
 
-- `work/dl2_detailed_implementation_proposal.md`
+- `roadmap/dl2_detailed_implementation_proposal.md`
 
 ## Contributor Nicknames
 

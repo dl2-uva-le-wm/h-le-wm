@@ -3,7 +3,7 @@
 ## Scope Ownership
 
 - `module.py`
-- `work/tasks/ippo/*`
+- `roadmap/tasks/ippo/*`
 
 ## File-Level Goal
 
@@ -151,7 +151,7 @@ Done criteria:
 
 ## Task 4: Smoke Test Script
 
-Create `work/tasks/ippo/smoke_module_test.md` with command and output summary.
+Create `roadmap/tasks/ippo/smoke_module_test.md` with command and output summary.
 
 Suggested command snippet:
 

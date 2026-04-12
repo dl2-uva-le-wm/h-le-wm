@@ -218,7 +218,7 @@ Acceptance criteria:
 
 Files:
 
-- `work/tasks/` (new scripts/checklists)
+- `roadmap/tasks/` (new scripts/checklists)
 - Optional python scripts under `` (if needed)
 
 Tasks:

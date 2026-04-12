@@ -3,11 +3,11 @@
 ## Scope Ownership
 
 - `hi_jepa.py` (rollout/criterion validation only)
-- `work/tasks/fra/*`
+- `roadmap/tasks/fra/*`
 
 ## Task 1: Rollout Invariant Validation
 
-Create `work/tasks/fra/rollout_validation.py` and verify:
+Create `roadmap/tasks/fra/rollout_validation.py` and verify:
 
 1. flatten/unflatten `(B,S)` is lossless
 2. `history_size` truncation is always respected
@@ -33,7 +33,7 @@ Test matrix:
 
 ## Task 2: CEM/MPC Parameter Consistency
 
-Create `work/tasks/fra/cem_mpc_checks.md` with explicit checks:
+Create `roadmap/tasks/fra/cem_mpc_checks.md` with explicit checks:
 
 1. `plan_config.horizon == k1_frames`
 2. `receding_horizon <= horizon`
@@ -57,7 +57,7 @@ Collect one controlled comparison:
 
 Output file:
 
-- `work/tasks/fra/convergence_snapshot.csv`
+- `roadmap/tasks/fra/convergence_snapshot.csv`
 
 CSV schema:
 
@@ -72,11 +72,11 @@ Plot snippet:
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
-df = pd.read_csv("work/tasks/fra/convergence_snapshot.csv")
+df = pd.read_csv("roadmap/tasks/fra/convergence_snapshot.csv")
 plt.plot(df["iteration"], df["flat_best_cost"], label="flat")
 plt.plot(df["iteration"], df["hi_best_cost"], label="hi")
 plt.legend(); plt.xlabel("iteration"); plt.ylabel("best cost")
-plt.savefig("work/tasks/fra/convergence_snapshot.png")
+plt.savefig("roadmap/tasks/fra/convergence_snapshot.png")
 ```
 
 ## Task 4: MPC Edge Cases
@@ -89,11 +89,11 @@ Add explicit notes for:
 
 Store in:
 
-- `work/tasks/fra/mpc_edge_cases.md`
+- `roadmap/tasks/fra/mpc_edge_cases.md`
 
 ## Handoff Artifact
 
-- `work/tasks/fra/invariants_checklist.md` with pass/fail for:
+- `roadmap/tasks/fra/invariants_checklist.md` with pass/fail for:
   - shape invariants
   - planner invariants
   - convergence sanity.

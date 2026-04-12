@@ -1,4 +1,4 @@
-# `nico` Tasks (Hierarchical Planner Integration)
+# `nicco` Tasks (Hierarchical Planner Integration)
 
 ## Scope Ownership
 
@@ -128,7 +128,7 @@ defaults:
 policy: hi_lewm
 
 plan_config:
-  horizon: 1          # set to k1_frames for this dataset/config
+  horizon: 1 # set to k1_frames for this dataset/config
   receding_horizon: 1
   action_block: 5
 
@@ -150,7 +150,7 @@ or equivalent hydra override command used in this repo.
 
 ## Handoff Artifact
 
-Create `work/tasks/nico/runbook.md` with:
+Create `roadmap/tasks/nico/runbook.md` with:
 
 1. config files added
 2. exact eval command per config
