@@ -358,3 +358,21 @@ class ARPredictor(nn.Module):
         x = self.dropout(x)
         x = self.transformer(x, c)
         return x
+   
+    
+class ARPredictorAnchored(ARPredictor):
+    """ARPredictor with optional global anchor conditioning."""
+
+    def __init__(self, *, embed_dim: int, **kwargs):
+        super().__init__(**kwargs)
+        self.embed_dim = embed_dim
+        self.anchor_proj = nn.Linear(embed_dim, embed_dim)
+
+    def forward(self, x: torch.Tensor, c: torch.Tensor, z_anchor: torch.Tensor = None):
+        assert x.ndim == 3 and c.ndim == 3, "x and c must be (B,T,D)"
+        if z_anchor is not None:
+            assert z_anchor.ndim == 2, "z_anchor must be (B,D)"
+            assert z_anchor.shape[0] == x.shape[0], "Batch mismatch on anchor"
+            a = self.anchor_proj(z_anchor).unsqueeze(1).expand(-1, c.shape[1], -1)
+            c = c + a
+        return super().forward(x, c)
