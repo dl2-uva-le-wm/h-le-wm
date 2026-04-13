@@ -240,6 +240,28 @@ class MLP(nn.Module):
         """
         return self.net(x)
 
+class InverseDynamicsModel(nn.Module):
+    """Infer a macro-action from current and target latents."""
+
+    def __init__(self, embed_dim: int, macro_action_dim: int):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.net = nn.Sequential(
+            nn.Linear(2 * embed_dim, 2 * embed_dim),
+            nn.LayerNorm(2 * embed_dim),
+            nn.GELU(),
+            nn.Linear(2 * embed_dim, embed_dim),
+            nn.LayerNorm(embed_dim),
+            nn.GELU(),
+            nn.Linear(embed_dim, macro_action_dim),
+        )
+
+    def forward(self, z_t: torch.Tensor, z_target: torch.Tensor) -> torch.Tensor:
+        assert z_t.ndim == 2 and z_target.ndim == 2, "Expected (B, D) tensors"
+        assert z_t.shape == z_target.shape, "z_t and z_target must match shape"
+        assert z_t.shape[-1] == self.embed_dim, "Unexpected embed dim"
+        x = torch.cat([z_t, z_target], dim=-1)
+        return self.net(x)  # (B, macro_action_dim)
 
 class ARPredictor(nn.Module):
     """Autoregressive predictor for next-step embedding prediction."""
