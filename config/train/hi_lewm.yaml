@@ -1,0 +1,118 @@
+defaults:
+  - _self_
+  - data: pusht
+
+# ---------------------------------------------------------------------------
+# The data config (pusht) must produce sequences of length >= history_size + k2.
+# With the defaults below that means >= 3 + 30 = 33 frames per sample.
+# ---------------------------------------------------------------------------
+
+output_model_name: hi_lewm
+subdir: ${hydra:job.id}
+
+num_workers: 6
+train_split: 0.9
+seed: 3072
+img_size: 224
+patch_size: 14
+encoder_scale: tiny
+dump_object: True
+
+trainer:
+  max_epochs: 100
+  devices: auto
+  accelerator: gpu
+  precision: bf16
+  gradient_clip_val: 1.0
+
+loader:
+  batch_size: 128
+  num_workers: ${num_workers}
+  persistent_workers: True
+  prefetch_factor: 3
+  pin_memory: True
+
+optimizer:
+  type: AdamW
+  lr: 5e-5
+  weight_decay: 1e-3
+
+wandb:
+  enabled: True
+  config:
+    entity: lewm
+    project: hi_lewm
+    name: ${output_model_name}
+    id: ${subdir}
+    resume: allow
+    log_model: False
+
+# ---------------------------------------------------------------------------
+# World model
+# ---------------------------------------------------------------------------
+wm:
+  type: hi_lewm
+  history_size: 3          # context window length (reused from base)
+  num_preds: 1             # Level-1 AR step offset (reused from base)
+  embed_dim: 192           # shared latent space dimension (reused from base)
+
+  # --- NEW: temporal horizon parameters ---
+  # k1: tactical offset — Level-2 predicts z_{t+k1}
+  # k2: strategic offset — Level-3 predicts z_{t+k2}
+  # Constraint: 1 < k1 < k2, and data sequence_length >= history_size + k2
+  k1: 10
+  k2: 30
+
+  # --- NEW: macro-action vector dimension (shared by id2, id3, pred2, pred3) ---
+  # Smaller than embed_dim keeps the ID models compact and the L2 penalty meaningful.
+  macro_action_dim: 64
+
+# ---------------------------------------------------------------------------
+# Level-1 predictor (ARPredictorAnchored) — reused from base LeWM
+# ---------------------------------------------------------------------------
+predictor:
+  depth: 6
+  heads: 16
+  mlp_dim: 2048
+  dim_head: 64
+  dropout: 0.1
+  emb_dropout: 0.0
+
+# ---------------------------------------------------------------------------
+# Level-2 tactical predictor (ConditionedSingleStepPredictor)  — NEW
+# Shallower than pred1: single-step prediction is an easier task.
+# ---------------------------------------------------------------------------
+predictor_l2:
+  depth: 3
+  heads: 8
+  mlp_dim: 1024
+  dim_head: 64
+  dropout: 0.1
+
+# ---------------------------------------------------------------------------
+# Level-3 strategic predictor (ConditionedSingleStepPredictor) — NEW
+# Same capacity as pred2; a deeper network can be used if k2 is very large.
+# ---------------------------------------------------------------------------
+predictor_l3:
+  depth: 3
+  heads: 8
+  mlp_dim: 1024
+  dim_head: 64
+  dropout: 0.1
+
+# ---------------------------------------------------------------------------
+# Loss
+# ---------------------------------------------------------------------------
+loss:
+  # Anti-collapse regularization — reused unchanged from base LeWM.
+  sigreg:
+    weight: 0.09
+    kwargs:
+      knots: 17
+      num_proj: 1024
+
+  # --- NEW: latent-action L2 regularization (Eq. 15) ---
+  # Prevents ID models from shortcut solutions (e.g. copying target state).
+  # alpha is intentionally small: it penalises scale, not direction.
+  inverse_dynamics:
+    weight: 0.01
