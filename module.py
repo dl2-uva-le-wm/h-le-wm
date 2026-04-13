@@ -240,6 +240,7 @@ class MLP(nn.Module):
         """
         return self.net(x)
 
+
 class InverseDynamicsModel(nn.Module):
     """Infer a macro-action from current and target latents."""
 
@@ -262,6 +263,58 @@ class InverseDynamicsModel(nn.Module):
         assert z_t.shape[-1] == self.embed_dim, "Unexpected embed dim"
         x = torch.cat([z_t, z_target], dim=-1)
         return self.net(x)  # (B, macro_action_dim)
+
+
+class ConditionedSingleStepPredictor(nn.Module):
+    """
+    Predict one future latent from [z_current] or [z_current, z_anchor]
+    conditioned by a macro-action through AdaLN blocks.
+    """
+
+    def __init__(
+        self,
+        embed_dim: int,
+        macro_action_dim: int,
+        depth: int = 3,
+        heads: int = 8,
+        mlp_dim: int = 1024,
+        dim_head: int = 64,
+        dropout: float = 0.0,
+    ):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.action_proj = nn.Linear(macro_action_dim, embed_dim)
+        self.transformer = Transformer(
+            input_dim=embed_dim,
+            hidden_dim=embed_dim,
+            output_dim=embed_dim,
+            depth=depth,
+            heads=heads,
+            dim_head=dim_head,
+            mlp_dim=mlp_dim,
+            dropout=dropout,
+            block_class=ConditionalBlock,
+        )
+
+    def forward(
+        self,
+        z_current: torch.Tensor,
+        macro_action: torch.Tensor,
+        z_anchor: torch.Tensor = None,
+    ) -> torch.Tensor:
+        assert z_current.ndim == 2 and macro_action.ndim == 2, "Expected (B, D) and (B, A)"
+        B, D = z_current.shape
+        assert D == self.embed_dim, "Unexpected embed dim in z_current"
+
+        tokens = z_current.unsqueeze(1)  # (B,1,D)
+        if z_anchor is not None:
+            assert z_anchor.shape == z_current.shape, "z_anchor must be (B,D)"
+            tokens = torch.cat([tokens, z_anchor.unsqueeze(1)], dim=1)  # (B,2,D)
+
+        cond = self.action_proj(macro_action).unsqueeze(1).expand_as(tokens)
+        out = self.transformer(tokens, cond)
+        return out[:, 0]  # (B,D)
+
 
 class ARPredictor(nn.Module):
     """Autoregressive predictor for next-step embedding prediction."""
