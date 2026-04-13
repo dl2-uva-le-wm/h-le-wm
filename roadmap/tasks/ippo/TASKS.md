@@ -25,9 +25,9 @@ rg -n "def forward\\(" module.py
 
 Mark when verified:
 
-- [ ] module compiles
-- [ ] 3 hierarchical classes exist
-- [ ] forward methods exist for all 3 classes
+- [x] module compiles
+- [x] 3 hierarchical classes exist
+- [x] forward methods exist for all 3 classes
 
 ## File-Level Goal
 
