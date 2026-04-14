@@ -1,0 +1,35 @@
+name: baseline-integrity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Baseline Integrity
+        run: python scripts/check_baseline_integrity.py
+
+      - name: Wrapper Smoke (dry-run)
+        env:
+          LEWM_WRAPPER_DRY_RUN: "1"
+        run: |
+          python train.py data=pusht
+          python eval.py --config-name=pusht
+          python hi_eval.py --config-name=hi_pusht
+
+      - name: Hierarchy Compile Smoke
+        run: python -m py_compile baseline_adapter.py hier_module.py hi_jepa.py hi_train.py

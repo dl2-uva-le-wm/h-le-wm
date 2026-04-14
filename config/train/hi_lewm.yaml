@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - data: pusht
+  - data: hi_pusht
 
 # ---------------------------------------------------------------------------
 # The data config must produce sequences of length >= history_size + max(k1, k2?).

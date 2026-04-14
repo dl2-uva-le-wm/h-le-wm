@@ -27,13 +27,19 @@ If you find this code useful, please reference it in your paper:
 ```
 
 ## Using the code
-This codebase builds on [stable-worldmodel](https://github.com/galilai-group/stable-worldmodel) for environment management, planning, and evaluation, and [stable-pretraining](https://github.com/galilai-group/stable-pretraining) for training. Together they reduce this repository to its core contribution: the model architecture and training objective.
+This repository is split into:
+
+- frozen baseline LeWM code in `third_party/lewm` (git submodule, pinned commit)
+- local hierarchical extension code (`hi_*`)
+
+Root-level baseline commands (`train.py`, `eval.py`) are wrappers that delegate to the pinned submodule.
 
 **Installation:**
 ```bash
 uv venv --python=3.10
 source .venv/bin/activate
 uv pip install stable-worldmodel[train,env]
+git submodule update --init --recursive
 ```
 
 ## Data
@@ -49,39 +55,46 @@ Place the extracted `.h5` files under `$STABLEWM_HOME` (defaults to `~/.stable-w
 export STABLEWM_HOME=/path/to/your/storage
 ```
 
-Dataset names are specified without the `.h5` extension. For example, `config/train/data/pusht.yaml` references `pusht_expert_train`, which resolves to `$STABLEWM_HOME/pusht_expert_train.h5`.
+Dataset names are specified without the `.h5` extension. For example, `config/train/data/hi_pusht.yaml` references `pusht_expert_train`, which resolves to `$STABLEWM_HOME/pusht_expert_train.h5`.
 
 ## Training
 
-`jepa.py` contains the PyTorch implementation of LeWM. Training is configured via [Hydra](https://hydra.cc/) config files under `config/train/`.
-
-Before training, set your WandB `entity` and `project` in `config/train/lewm.yaml`:
-```yaml
-wandb:
-  config:
-    entity: your_entity
-    project: your_project
-```
-
-To launch training:
+Baseline LeWM (delegated to pinned submodule):
 ```bash
 python train.py data=pusht
 ```
 
-Checkpoints are saved to `$STABLEWM_HOME` upon completion.
+Hierarchical LeWM (local extension):
+```bash
+python hi_train.py
+python hi_train.py wm.num_levels=2
+python hi_train.py wm.num_levels=3
+```
 
-For baseline scripts, see the stable-worldmodel [scripts](https://github.com/galilai-group/stable-worldmodel/tree/main/scripts/train) folder.
+Checkpoints are saved to `$STABLEWM_HOME` upon completion.
 
 ## Planning
 
-Evaluation configs live under `config/eval/`. Set the `policy` field to the checkpoint path **relative to `$STABLEWM_HOME`**, without the `_object.ckpt` suffix:
+Baseline evaluation (delegated to pinned submodule):
+```bash
+python eval.py --config-name=pusht policy=pusht/lewm
+```
+
+Hierarchical evaluation (local wrapper + local hi configs):
+```bash
+python hi_eval.py --config-name=hi_pusht policy=pusht/hi_lewm
+python hi_eval.py --config-name=hi_tworoom policy=tworoom/hi_lewm
+python hi_eval.py --config-name=hi_reacher policy=reacher/hi_lewm
+```
+
+Set `policy` to checkpoint path **relative to `$STABLEWM_HOME`**, without `_object.ckpt` suffix:
 
 ```bash
 # ✓ correct
-python eval.py --config-name=pusht.yaml policy=pusht/lewm
+python eval.py --config-name=pusht policy=pusht/lewm
 
 # ✗ incorrect
-python eval.py --config-name=pusht.yaml policy=pusht/lewm_object.ckpt
+python eval.py --config-name=pusht policy=pusht/lewm_object.ckpt
 ```
 
 ## Pretrained Checkpoints

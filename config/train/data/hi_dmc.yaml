@@ -1,5 +1,5 @@
 dataset:
-  num_steps: ${eval:'${wm.num_preds} + ${wm.history_size}'}
+  num_steps: ${eval:'${wm.history_size} + (${wm.k2} if ${wm.num_levels} == 3 else ${wm.k1})'}
   frameskip: 5
   name: reacher
   keys_to_load:

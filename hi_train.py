@@ -9,16 +9,20 @@ import torch
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import OmegaConf, open_dict
 
+from baseline_adapter import (
+    Embedder,
+    MLP,
+    ModelObjectCallBack,
+    SIGReg,
+    get_column_normalizer,
+    get_img_preprocessor,
+)
 from hi_jepa import HiJEPA
-from module import (
+from hier_module import (
     ARPredictorAnchored,
     ConditionedSingleStepPredictor,
-    Embedder,
     InverseDynamicsModel,
-    MLP,
-    SIGReg,
 )
-from utils import ModelObjectCallBack, get_column_normalizer, get_img_preprocessor
 
 
 def validate_hierarchy_cfg(cfg) -> tuple[int, int, int | None, int]:
