@@ -1,140 +1,146 @@
+# h-le-wm
 
-# LeWorldModel
-### Stable End-to-End Joint-Embedding Predictive Architecture from Pixels
+Hierarchical LeWorldModel workspace with a **frozen upstream baseline** and local hierarchical extensions.
 
-[Lucas Maes*](https://x.com/lucasmaes_), [Quentin Le Lidec*](https://quentinll.github.io/), [Damien Scieur](https://scholar.google.com/citations?user=hNscQzgAAAAJ&hl=fr), [Yann LeCun](https://yann.lecun.com/) and [Randall Balestriero](https://randallbalestriero.github.io/)
+## Repo Model
 
-**Abstract:** Joint Embedding Predictive Architectures (JEPAs) offer a compelling framework for learning world models in compact latent spaces, yet existing methods remain fragile, relying on complex multi-term losses, exponential moving averages, pretrained encoders, or auxiliary supervision to avoid representation collapse. In this work, we introduce LeWorldModel (LeWM), the first JEPA that trains stably end-to-end from raw pixels using only two loss terms: a next-embedding prediction loss and a regularizer enforcing Gaussian-distributed latent embeddings. This reduces tunable loss hyperparameters from six to one compared to the only existing end-to-end alternative. With ~15M parameters trainable on a single GPU in a few hours, LeWM plans up to 48× faster than foundation-model-based world models while remaining competitive across diverse 2D and 3D control tasks. Beyond control, we show that LeWM's latent space encodes meaningful physical structure through probing of physical quantities. Surprise evaluation confirms that the model reliably detects physically implausible events.
+This repo is intentionally split:
 
-<p align="center">
-   <b>[ <a href="https://arxiv.org/pdf/2603.19312v1">Paper</a> | <a href="https://drive.google.com/drive/folders/1r31os0d4-rR0mdHc7OlY_e5nh3XT4r4e?usp=sharing">Checkpoints</a> | <a href="https://huggingface.co/collections/quentinll/lewm">Data</a> | <a href="https://le-wm.github.io/">Website</a> ]</b>
-</p>
+- Baseline LeWM (read-only): `third_party/lewm` (git submodule, pinned commit)
+- Hierarchical code (editable): root `hi_*` files + `config/*/hi_*.yaml`
 
-<br>
+Root wrappers keep the CLI simple:
 
-<p align="center">
-  <img src="assets/lewm.gif" width="80%">
-</p>
+- `python train.py ...` -> runs baseline training in `third_party/lewm`
+- `python eval.py ...` -> runs baseline evaluation in `third_party/lewm`
+- `python hi_train.py ...` -> runs hierarchical training (local)
+- `python hi_eval.py ...` -> runs hierarchical evaluation (local configs)
 
-If you find this code useful, please reference it in your paper:
-```
-@article{maes_lelidec2026lewm,
-  title={LeWorldModel: Stable End-to-End Joint-Embedding Predictive Architecture from Pixels},
-  author={Maes, Lucas and Le Lidec, Quentin and Scieur, Damien and LeCun, Yann and Balestriero, Randall},
-  journal={arXiv preprint},
-  year={2026}
-}
-```
+## Setup
 
-## Using the code
-This repository is split into:
-
-- frozen baseline LeWM code in `third_party/lewm` (git submodule, pinned commit)
-- local hierarchical extension code (`hi_*`)
-
-Root-level baseline commands (`train.py`, `eval.py`) are wrappers that delegate to the pinned submodule.
-
-**Installation:**
 ```bash
+git clone https://github.com/NiccoloCase/h-le-wm.git
+cd h-le-wm
+git submodule update --init --recursive
+
 uv venv --python=3.10
 source .venv/bin/activate
 uv pip install stable-worldmodel[train,env]
-git submodule update --init --recursive
 ```
 
-## Data
+## Datasets
 
-Datasets use the HDF5 format for fast loading. Download the data from [HuggingFace](https://huggingface.co/collections/quentinll/lewm) and decompress with:
+Use the helper script (recommended):
 
 ```bash
-tar --zstd -xvf archive.tar.zst
+source scripts/setup_datasets.sh --datasets pusht,tworooms,reacher,cube
 ```
 
-Place the extracted `.h5` files under `$STABLEWM_HOME` (defaults to `~/.stable-wm/`). You can override this path:
+Or set a custom data root:
+
 ```bash
-export STABLEWM_HOME=/path/to/your/storage
+source scripts/setup_datasets.sh --home /absolute/path/to/stablewm_data --datasets pusht
 ```
 
-Dataset names are specified without the `.h5` extension. For example, `config/train/data/hi_pusht.yaml` references `pusht_expert_train`, which resolves to `$STABLEWM_HOME/pusht_expert_train.h5`.
+## Baseline Commands (Frozen Upstream)
 
-## Training
+Train baseline LeWM:
 
-Baseline LeWM (delegated to pinned submodule):
 ```bash
 python train.py data=pusht
 ```
 
-Hierarchical LeWM (local extension):
-```bash
-python hi_train.py
-python hi_train.py wm.num_levels=2
-python hi_train.py wm.num_levels=3
-```
+Evaluate baseline LeWM:
 
-Checkpoints are saved to `$STABLEWM_HOME` upon completion.
-
-## Planning
-
-Baseline evaluation (delegated to pinned submodule):
 ```bash
 python eval.py --config-name=pusht policy=pusht/lewm
 ```
 
-Hierarchical evaluation (local wrapper + local hi configs):
+You can pass any Hydra overrides through wrappers exactly as usual.
+
+## Hierarchical Commands
+
+### Train
+
+Default (3 levels, `hi_lewm` config):
+
+```bash
+python hi_train.py
+```
+
+2-level run (lighter):
+
+```bash
+python hi_train.py wm.num_levels=2 wm.k1=10 data=hi_pusht output_model_name=hi_lewm_l2
+```
+
+3-level run:
+
+```bash
+python hi_train.py wm.num_levels=3 wm.k1=10 wm.k2=30 data=hi_pusht output_model_name=hi_lewm_l3
+```
+
+### Evaluate
+
+PushT:
+
 ```bash
 python hi_eval.py --config-name=hi_pusht policy=pusht/hi_lewm
+```
+
+TwoRoom:
+
+```bash
 python hi_eval.py --config-name=hi_tworoom policy=tworoom/hi_lewm
+```
+
+Reacher:
+
+```bash
 python hi_eval.py --config-name=hi_reacher policy=reacher/hi_lewm
 ```
 
-Set `policy` to checkpoint path **relative to `$STABLEWM_HOME`**, without `_object.ckpt` suffix:
+Example 2-level eval command:
 
 ```bash
-# ✓ correct
-python eval.py --config-name=pusht policy=pusht/lewm
-
-# ✗ incorrect
-python eval.py --config-name=pusht policy=pusht/lewm_object.ckpt
+python hi_eval.py --config-name=hi_pusht policy=pusht/hi_lewm wm.num_levels=2
 ```
 
-## Pretrained Checkpoints
+## Integrity and Safety
 
-Pre-trained checkpoints are available on [Google Drive](https://drive.google.com/drive/folders/1r31os0d4-rR0mdHc7OlY_e5nh3XT4r4e). Download the checkpoint archive and place the extracted files under `$STABLEWM_HOME/`.
+Check baseline isolation:
 
-<div align="center">
-
-| Method | two-room | pusht | cube | reacher |
-|:---:|:---:|:---:|:---:|:---:|
-| pldm | ✓ | ✓ | ✓ | ✓ |
-| lejepa | ✓ | ✓ | ✓ | ✓ |
-| ivl | ✓ | ✓ | ✓ | — |
-| iql | ✓ | ✓ | ✓ | — |
-| gcbc | ✓ | ✓ | ✓ | — |
-| dinowm | ✓ | ✓ | — | — |
-| dinowm_noprop | ✓ | ✓ | ✓ | ✓ |
-
-</div>
-
-## Loading a checkpoint
-
-Each tar archive contains two files per checkpoint:
-- `<name>_object.ckpt` — a serialized Python object for convenient loading; this is what `eval.py` and the `stable_worldmodel` API use
-- `<name>_weight.ckpt` — a weights-only checkpoint (`state_dict`) for cases where you want to load weights into your own model instance
-
-To load the object checkpoint via the `stable_worldmodel` API:
-
-```python
-import stable_worldmodel as swm
-
-# Load the cost model (for MPC)
-cost = swm.policy.AutoCostModel('pusht/lewm')
+```bash
+python scripts/check_baseline_integrity.py
 ```
 
-This function accepts:
-- `run_name` — checkpoint path **relative to `$STABLEWM_HOME`**, without the `_object.ckpt` suffix
-- `cache_dir` — optional override for the checkpoint root (defaults to `$STABLEWM_HOME`)
+What it verifies:
 
-The returned module is in `eval` mode with its PyTorch weights accessible via `.state_dict()`.
+- submodule exists and is configured
+- submodule HEAD matches locked hash in `BASELINE_LOCK.md`
+- submodule has no local tracked changes
+- baseline-owned files are not reintroduced at repo root
 
-## Contact & Contributions
-Feel free to open [issues](https://github.com/lucas-maes/le-wm/issues)! For questions or collaborations, please contact `lucas.maes@mila.quebec`
+See lock/pinning policy in `BASELINE_LOCK.md`.
+
+## Updating Baseline (Explicit Only)
+
+Only do this intentionally:
+
+```bash
+git -C third_party/lewm fetch origin
+git -C third_party/lewm checkout <new_commit>
+python scripts/check_baseline_integrity.py --allow-pointer-update
+```
+
+Then update `BASELINE_LOCK.md` with the new hash + rationale.
+
+## Handy Wrapper Smoke (No Real Run)
+
+```bash
+LEWM_WRAPPER_DRY_RUN=1 python train.py data=pusht
+LEWM_WRAPPER_DRY_RUN=1 python eval.py --config-name=pusht
+LEWM_WRAPPER_DRY_RUN=1 python hi_eval.py --config-name=hi_pusht
+```
+
+These commands print delegated baseline calls without launching training/evaluation.

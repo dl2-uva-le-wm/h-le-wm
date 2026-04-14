@@ -32,4 +32,4 @@ jobs:
           python hi_eval.py --config-name=hi_pusht
 
       - name: Hierarchy Compile Smoke
-        run: python -m py_compile baseline_adapter.py hier_module.py hi_jepa.py hi_train.py
+        run: python -m py_compile baseline_adapter.py hi_module.py hi_jepa.py hi_train.py

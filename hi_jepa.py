@@ -178,10 +178,18 @@ class HiJEPA(nn.Module):
     def get_cost(self, info_dict: dict, action_candidates: torch.Tensor):
         assert "goal" in info_dict, "goal not in info_dict"
 
-        device = next(self.parameters()).device
+        ref_param = next(self.parameters())
+        device = ref_param.device
+        model_dtype = ref_param.dtype if ref_param.is_floating_point() else torch.float32
         for k in list(info_dict.keys()):
             if torch.is_tensor(info_dict[k]):
                 info_dict[k] = info_dict[k].to(device)
+
+        # Normalize solver output to model device/dtype to avoid rollout mismatches.
+        action_candidates = action_candidates.to(device)
+        if not action_candidates.is_floating_point():
+            action_candidates = action_candidates.float()
+        action_candidates = action_candidates.to(dtype=model_dtype)
 
         goal = {k: v[:, 0] for k, v in info_dict.items() if torch.is_tensor(v)}
         goal["pixels"] = goal["goal"]

@@ -18,7 +18,7 @@ from baseline_adapter import (
     get_img_preprocessor,
 )
 from hi_jepa import HiJEPA
-from hier_module import (
+from hi_module import (
     ARPredictorAnchored,
     ConditionedSingleStepPredictor,
     InverseDynamicsModel,

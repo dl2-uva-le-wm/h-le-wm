@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-
 from baseline_adapter import ARPredictor, ConditionalBlock, Transformer
 
 
@@ -34,7 +33,7 @@ class InverseDynamicsModel(nn.Module):
 
 
 class ConditionedSingleStepPredictor(nn.Module):
-    """Single-step latent predictor conditioned by a macro-action."""
+    """Single-step predictor used at Level-2 (tactical) and Level-3 (strategic)."""
 
     def __init__(
         self,
@@ -49,6 +48,7 @@ class ConditionedSingleStepPredictor(nn.Module):
         super().__init__()
         self.embed_dim = embed_dim
         self.action_proj = nn.Linear(macro_action_dim, embed_dim)
+        self.anchor_proj = nn.Linear(embed_dim, embed_dim)
         self.transformer = Transformer(
             input_dim=embed_dim,
             hidden_dim=embed_dim,
@@ -72,17 +72,19 @@ class ConditionedSingleStepPredictor(nn.Module):
         assert d == self.embed_dim, "Unexpected embed dim in z_current"
 
         tokens = z_current.unsqueeze(1)
+
+        cond = self.action_proj(macro_action)
         if z_anchor is not None:
             assert z_anchor.shape == z_current.shape, "z_anchor must be (B,D)"
-            tokens = torch.cat([tokens, z_anchor.unsqueeze(1)], dim=1)
+            cond = cond + self.anchor_proj(z_anchor)
 
-        cond = self.action_proj(macro_action).unsqueeze(1).expand_as(tokens)
+        cond = cond.unsqueeze(1).expand_as(tokens)
         out = self.transformer(tokens, cond)
         return out[:, 0]
 
 
 class ARPredictorAnchored(ARPredictor):
-    """Baseline ARPredictor with optional global anchor conditioning."""
+    """Anchored autoregressive predictor used at Level-1 (reactive rollout)."""
 
     def __init__(self, *, embed_dim: int, **kwargs):
         super().__init__(**kwargs)
