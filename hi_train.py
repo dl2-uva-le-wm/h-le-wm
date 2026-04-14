@@ -18,129 +18,109 @@ from module import (
     MLP,
     SIGReg,
 )
-from utils import get_column_normalizer, get_img_preprocessor, ModelObjectCallBack
+from utils import ModelObjectCallBack, get_column_normalizer, get_img_preprocessor
 
 
-# ---------------------------------------------------------------------------
-# Training forward pass
-# ---------------------------------------------------------------------------
+def validate_hierarchy_cfg(cfg) -> tuple[int, int, int | None, int]:
+    """Validate hierarchy settings and return (num_levels, k1, k2, max_offset)."""
+    wm_cfg = cfg.wm
+    num_levels = int(wm_cfg.get("num_levels", 3))
+    if num_levels not in (2, 3):
+        raise ValueError(f"wm.num_levels must be 2 or 3, got {num_levels}")
+
+    if "k1" not in wm_cfg:
+        raise ValueError("wm.k1 is required")
+    k1 = int(wm_cfg.k1)
+    if k1 <= 0:
+        raise ValueError(f"wm.k1 must be > 0, got {k1}")
+
+    k2 = None
+    if num_levels == 3:
+        if "k2" not in wm_cfg:
+            raise ValueError("wm.k2 is required when wm.num_levels=3")
+        k2 = int(wm_cfg.k2)
+        if k2 <= k1:
+            raise ValueError(f"wm.k2 must be > wm.k1 for 3 levels, got k1={k1}, k2={k2}")
+
+    max_offset = k2 if num_levels == 3 else k1
+    return num_levels, k1, k2, max_offset
+
 
 def hi_lejepa_forward(self, batch, stage, cfg):
-    """One training/validation step for the Hierarchical LeWM.
+    """Training/validation step for 2-level or 3-level hierarchical LeWM."""
+    num_levels, k1, k2, max_offset = validate_hierarchy_cfg(cfg)
 
-    Encodes the full observation sequence, extracts ground-truth target
-    embeddings at offsets +n_preds, +k1, and +k2 from the last context frame,
-    then computes the joint hierarchical loss (proposal Eq. 16).
-
-    Loss breakdown
-    --------------
-    l3_pred_loss : MSE( pred3(z_t, id3(z_t, z_{t+k2})),           z_{t+k2} )
-    l2_pred_loss : MSE( pred2(z_t, id2(z_t, z_{t+k1}), z3_pred),  z_{t+k1} )
-    l1_pred_loss : MSE( pred1_AR(ctx, act | z2_anchor),            tgt_l1   )
-    sigreg_loss  : SIGReg applied once to shared encoder batch Z
-    act_reg_loss : ||a2||^2 + ||a3||^2   (latent-action L2 penalty)
-
-    Args:
-        batch : dict — "pixels" (B, T, ...) and "action" (B, T, A_raw).
-                T must satisfy T >= ctx_len + k2.
-        stage : str  — "train" or "val" (metric log prefix).
-        cfg   : OmegaConf node with wm.{history_size, num_preds, k1, k2}
-                and loss.{sigreg, inverse_dynamics}.
-
-    Returns:
-        dict : output dict enriched with all computed loss tensors.
-    """
     ctx_len = cfg.wm.history_size
-    n_preds = cfg.wm.num_preds           # AR step offset for Level-1 (typically 1)
-    k1      = cfg.wm.k1                  # tactical horizon
-    k2      = cfg.wm.k2                  # strategic horizon
-    lambd   = cfg.loss.sigreg.weight
-    alpha   = cfg.loss.inverse_dynamics.weight
+    n_preds = cfg.wm.num_preds
+    lambd = cfg.loss.sigreg.weight
+    alpha = cfg.loss.inverse_dynamics.weight
 
-    # Replace NaN actions at sequence boundaries with 0.
     batch["action"] = torch.nan_to_num(batch["action"], 0.0)
 
-    # -- Encode the full sequence --------------------------------------------
-    output  = self.model.encode(batch)
-    emb     = output["emb"]       # (B, T, D)
-    act_emb = output["act_emb"]   # (B, T, A)
+    output = self.model.encode(batch)
+    emb = output["emb"]
+    act_emb = output["act_emb"]
 
-    T     = emb.size(1)
-    t_idx = ctx_len - 1           # index of the last context frame
+    T = emb.size(1)
+    t_idx = ctx_len - 1
+    if T < ctx_len + max_offset:
+        raise ValueError(
+            f"Sequence length {T} is too short for ctx_len={ctx_len} + max_offset={max_offset}. "
+            f"Set data.sequence_length >= {ctx_len + max_offset}."
+        )
 
-    assert T >= ctx_len + k2, (
-        f"Sequence length {T} is too short for ctx_len={ctx_len} + k2={k2}. "
-        f"Set data.sequence_length >= {ctx_len + k2}."
-    )
+    z_t = emb[:, t_idx]
+    z_tk1 = emb[:, t_idx + k1]
+    z_goal = emb[:, -1]
 
-    # -- Ground-truth target embeddings -------------------------------------
-    z_t   = emb[:, t_idx]                  # (B, D) — current latent state
-    z_tk1 = emb[:, t_idx + k1]             # (B, D) — tactical target
-    z_tk2 = emb[:, t_idx + k2]             # (B, D) — strategic target
+    a2 = self.model.id2(z_t, z_tk1)
 
-    # -- Level 3 — Strategic Extrapolation ----------------------------------
-    # ID3 infers the macro-action that bridges z_t -> z_{t+k2};
-    # pred3 materialises the long-range anchor prediction.
-    a3      = self.model.id3(z_t, z_tk2)   # (B, A3)
-    z3_pred = self.model.pred3(z_t, a3)    # (B, D)
-    output["l3_pred_loss"] = (z3_pred - z_tk2).pow(2).mean()
+    if num_levels == 3:
+        assert k2 is not None
+        if self.model.id3 is None or self.model.pred3 is None:
+            raise RuntimeError("num_levels=3 requires id3/pred3 on model")
 
-    # -- Level 2 — Tactical Interpolation -----------------------------------
-    # ID2 infers the macro-action that bridges z_t -> z_{t+k1};
-    # pred2 interpolates the midpoint, constrained by the detached L3 anchor
-    # (mirrors inference-time behaviour where only z3_pred is available).
-    a2      = self.model.id2(z_t, z_tk1)                              # (B, A2)
-    z2_pred = self.model.pred2(z_t, a2, z_anchor=z3_pred.detach())    # (B, D)
+        z_tk2 = emb[:, t_idx + k2]
+        a3 = self.model.id3(z_t, z_tk2)
+        z3_pred = self.model.pred3(z_t, a3)
+        output["l3_pred_loss"] = (z3_pred - z_tk2).pow(2).mean()
+
+        l2_anchor = z3_pred.detach()
+        output["act_reg_loss"] = a2.pow(2).mean() + a3.pow(2).mean()
+    else:
+        # 2-level mode: Level-2 is goal-anchored directly.
+        l2_anchor = z_goal.detach()
+        output["act_reg_loss"] = a2.pow(2).mean()
+
+    z2_pred = self.model.pred2(z_t, a2, z_anchor=l2_anchor)
     output["l2_pred_loss"] = (z2_pred - z_tk1).pow(2).mean()
 
-    # -- Level 1 — Reactive Step Prediction ---------------------------------
-    # AR predictor over the context window, globally conditioned on the
-    # detached tactical midpoint anchor z2_pred.
-    # AR supervision: pred[:, i] is trained to match emb[:, i + n_preds].
-    ctx_emb = emb[:, :ctx_len]                        # (B, ctx_len, D)
-    ctx_act = act_emb[:, :ctx_len]                    # (B, ctx_len, A)
-    tgt_l1  = emb[:, n_preds : ctx_len + n_preds]     # (B, ctx_len, D)
-    pred_l1 = self.model.predict(                     # (B, ctx_len, D)
-        ctx_emb, ctx_act, z_anchor=z2_pred.detach()
-    )
+    ctx_emb = emb[:, :ctx_len]
+    ctx_act = act_emb[:, :ctx_len]
+    tgt_l1 = emb[:, n_preds : ctx_len + n_preds]
+    pred_l1 = self.model.predict(ctx_emb, ctx_act, z_anchor=z2_pred.detach())
     output["l1_pred_loss"] = (pred_l1 - tgt_l1).pow(2).mean()
 
-    # -- Anti-Collapse Regularization (once, shared encoder) ----------------
-    # Applied exactly once — key simplification over bottom-up hierarchies.
-    output["sigreg_loss"] = self.sigreg(emb.transpose(0, 1))  # (T, B, D)
+    output["sigreg_loss"] = self.sigreg(emb.transpose(0, 1))
 
-    # -- Latent Action Regularization ---------------------------------------
-    # Prevents ID models from degenerate shortcut solutions.
-    #Notice that this is a BATCH mean so we divide also by D
-    output["act_reg_loss"] = a2.pow(2).mean() + a3.pow(2).mean()
-
-    # -- Total Objective (Eq. 16) -------------------------------------------
     output["loss"] = (
         output["l1_pred_loss"]
         + output["l2_pred_loss"]
-        + output["l3_pred_loss"]
         + lambd * output["sigreg_loss"]
         + alpha * output["act_reg_loss"]
     )
+    if num_levels == 3:
+        output["loss"] = output["loss"] + output["l3_pred_loss"]
 
-    losses_dict = {
-        f"{stage}/{k}": v.detach()
-        for k, v in output.items()
-        if "loss" in k
-    }
+    losses_dict = {f"{stage}/{k}": v.detach() for k, v in output.items() if "loss" in k}
     self.log_dict(losses_dict, on_step=True, sync_dist=True)
     return output
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
 @hydra.main(version_base=None, config_path="./config/train", config_name="hi_lewm")
 def run(cfg):
-    #########################
-    ## dataset             ##
-    #########################
+    num_levels, _k1, _k2, _max_offset = validate_hierarchy_cfg(cfg)
+
     dataset = swm.data.HDF5Dataset(**cfg.data.dataset, transform=None)
     transforms = [
         get_img_preprocessor(source="pixels", target="pixels", img_size=cfg.img_size)
@@ -169,9 +149,6 @@ def run(cfg):
         val_set, **cfg.loader, shuffle=False, drop_last=False
     )
 
-    ##############################
-    ## model construction       ##
-    ##############################
     encoder = spt.backbone.utils.vit_hf(
         cfg.encoder_scale,
         patch_size=cfg.patch_size,
@@ -180,27 +157,20 @@ def run(cfg):
         use_mask_token=False,
     )
 
-    hidden_dim        = encoder.config.hidden_size
-    embed_dim         = cfg.wm.get("embed_dim", hidden_dim)
+    hidden_dim = encoder.config.hidden_size
+    embed_dim = cfg.wm.get("embed_dim", hidden_dim)
     effective_act_dim = cfg.data.dataset.frameskip * cfg.wm.action_dim
-    # Macro-action dim shared by all ID models and single-step predictors.
-    macro_action_dim  = cfg.wm.get("macro_action_dim", embed_dim)
+    macro_action_dim = cfg.wm.get("macro_action_dim", embed_dim)
 
-    # -- Level 1: Anchored autoregressive predictor (reactive) ---------------
-    # ARPredictorAnchored extends ARPredictor with an optional global z_anchor
-    # that is added to the action-embedding condition c before each AR step.
     pred1 = ARPredictorAnchored(
-        embed_dim=embed_dim,             # sizes the anchor projection layer
+        embed_dim=embed_dim,
         num_frames=cfg.wm.history_size,
         input_dim=embed_dim,
         hidden_dim=hidden_dim,
         output_dim=hidden_dim,
-        **cfg.predictor,                 # depth, heads, mlp_dim, dim_head, …
+        **cfg.predictor,
     )
 
-    # -- Level 2: Tactical single-step predictor ----------------------------
-    # ConditionedSingleStepPredictor takes (z_current, macro_action, z_anchor)
-    # and predicts one future latent via AdaLN-conditioned Transformer.
     pred_l2_cfg = cfg.get(
         "predictor_l2",
         {"depth": 3, "heads": 8, "mlp_dim": 1024, "dim_head": 64},
@@ -211,25 +181,22 @@ def run(cfg):
         **pred_l2_cfg,
     )
 
-    # -- Level 3: Strategic single-step predictor ---------------------------
-    # Same architecture as pred2 but trained for the longer k2 horizon;
-    # no higher-level anchor (top of the hierarchy).
-    pred_l3_cfg = cfg.get(
-        "predictor_l3",
-        {"depth": 3, "heads": 8, "mlp_dim": 1024, "dim_head": 64},
-    )
-    pred3 = ConditionedSingleStepPredictor(
-        embed_dim=embed_dim,
-        macro_action_dim=macro_action_dim,
-        **pred_l3_cfg,
-    )
-
-    # -- Inverse Dynamics Models --------------------------------------------
-    # Each ID model takes (z_current, z_target) -> macro_action_vector.
     id2 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
-    id3 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
 
-    # -- Shared components (action encoder + projection heads) --------------
+    pred3 = None
+    id3 = None
+    if num_levels == 3:
+        pred_l3_cfg = cfg.get(
+            "predictor_l3",
+            {"depth": 3, "heads": 8, "mlp_dim": 1024, "dim_head": 64},
+        )
+        pred3 = ConditionedSingleStepPredictor(
+            embed_dim=embed_dim,
+            macro_action_dim=macro_action_dim,
+            **pred_l3_cfg,
+        )
+        id3 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
+
     action_encoder = Embedder(input_dim=effective_act_dim, emb_dim=embed_dim)
 
     projector = MLP(
@@ -246,7 +213,6 @@ def run(cfg):
         norm_fn=torch.nn.BatchNorm1d,
     )
 
-    # -- Assemble HiJEPA ----------------------------------------------------
     world_model = HiJEPA(
         encoder=encoder,
         pred1=pred1,
@@ -254,6 +220,7 @@ def run(cfg):
         pred3=pred3,
         id2=id2,
         id3=id3,
+        num_levels=num_levels,
         action_encoder=action_encoder,
         projector=projector,
         pred_proj=predictor_proj,
@@ -276,10 +243,7 @@ def run(cfg):
         optim=optimizers,
     )
 
-    ##########################
-    ## training             ##
-    ##########################
-    run_id  = cfg.get("subdir") or ""
+    run_id = cfg.get("subdir") or ""
     run_dir = Path(swm.data.utils.get_cache_dir(), run_id)
 
     logger = None
@@ -313,7 +277,6 @@ def run(cfg):
     )
 
     manager()
-    return
 
 
 if __name__ == "__main__":

@@ -3,6 +3,8 @@ defaults:
   - _self_
 
 policy: hi_lewm
+wm:
+  num_levels: 3
 
 plan_config:
   # Short-horizon hierarchical planning (k1 in dataset-frame units).
@@ -12,4 +14,3 @@ plan_config:
 
 output:
   filename: hi_tworoom_results.txt
-

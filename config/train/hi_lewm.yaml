@@ -3,8 +3,8 @@ defaults:
   - data: pusht
 
 # ---------------------------------------------------------------------------
-# The data config (pusht) must produce sequences of length >= history_size + k2.
-# With the defaults below that means >= 3 + 30 = 33 frames per sample.
+# The data config must produce sequences of length >= history_size + max(k1, k2?).
+# For num_levels=2, max offset is k1. For num_levels=3, max offset is k2.
 # ---------------------------------------------------------------------------
 
 output_model_name: hi_lewm
@@ -52,14 +52,15 @@ wandb:
 # ---------------------------------------------------------------------------
 wm:
   type: hi_lewm
+  num_levels: 3          # supported values: 2 or 3
   history_size: 3          # context window length (reused from base)
   num_preds: 1             # Level-1 AR step offset (reused from base)
   embed_dim: 192           # shared latent space dimension (reused from base)
 
   # --- NEW: temporal horizon parameters ---
   # k1: tactical offset — Level-2 predicts z_{t+k1}
-  # k2: strategic offset — Level-3 predicts z_{t+k2}
-  # Constraint: 1 < k1 < k2, and data sequence_length >= history_size + k2
+  # k2: strategic offset — Level-3 predicts z_{t+k2} (required only for num_levels=3)
+  # Constraint: k1 > 0, and if num_levels=3 then k2 > k1.
   k1: 10
   k2: 30
 
