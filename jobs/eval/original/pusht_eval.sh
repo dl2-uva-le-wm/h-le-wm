@@ -45,14 +45,38 @@ POLICY="${POLICY:-pusht/lewm}"
 CONFIG_NAME="${CONFIG_NAME:-pusht.yaml}"
 HF_URL="${HF_URL:-https://huggingface.co/quentinll/lewm-pusht/tree/main}"
 
-REPO_ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
-cd "${REPO_ROOT}"
+resolve_repo_root() {
+  local c p
+  for c in \
+    "${PROJECT_ROOT:-}" \
+    "${SLURM_SUBMIT_DIR:-}" \
+    "${PWD:-}" \
+    "${HOME}/h-lewm" \
+    "${HOME}/h-le-wm" \
+    "/gpfs/home2/${USER}/h-lewm" \
+    "/gpfs/home2/${USER}/h-le-wm" \
+    "/gpfs/home3/${USER}/h-lewm" \
+    "/gpfs/home3/${USER}/h-le-wm"; do
+    [[ -z "${c}" ]] && continue
+    for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
+      if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
+        if [[ -f "${p}/third_party/lewm/eval.py" ]]; then
+          echo "${p}"
+          return 0
+        fi
+      fi
+    done
+  done
+  return 1
+}
 
-if [[ ! -f "third_party/lewm/eval.py" ]]; then
-  echo "ERROR: third_party/lewm/eval.py not found in ${REPO_ROOT}" >&2
-  echo "Submit from repo root or pass PROJECT_ROOT=/path/to/h-le-wm" >&2
+if ! REPO_ROOT="$(resolve_repo_root)"; then
+  echo "ERROR: Could not locate repo root with third_party/lewm/eval.py" >&2
+  echo "Checked: PROJECT_ROOT='${PROJECT_ROOT:-}', SLURM_SUBMIT_DIR='${SLURM_SUBMIT_DIR:-}', PWD='${PWD:-}', HOME='${HOME:-}'" >&2
   exit 2
 fi
+
+cd "${REPO_ROOT}"
 
 mkdir -p jobs/eval/original/out
 mkdir -p "${STABLEWM_HOME}"
