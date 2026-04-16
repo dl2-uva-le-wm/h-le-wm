@@ -9,4 +9,3 @@ dependencies:
   - cudnn=8.9
   - pip:
       - "stable-worldmodel[train,env]"
-      - "torch::torch-cuda"

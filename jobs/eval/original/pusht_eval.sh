@@ -20,8 +20,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=jobs/eval/original/out/pusht_eval_%j.out
-#SBATCH --error=jobs/eval/original/out/pusht_eval_%j.err
+#SBATCH --output=pusht_eval_%j.out
+#SBATCH --error=pusht_eval_%j.err
 
 set -eo pipefail
 
@@ -30,7 +30,15 @@ module load 2025
 module load Anaconda3/2025.06-1
 
 eval "$(conda shell.bash hook)"
-conda activate lewm
+if conda env list | grep -E '(^|[[:space:]])lewm-gpu([[:space:]]|$)' >/dev/null 2>&1; then
+  conda activate lewm-gpu
+elif conda env list | grep -E '(^|[[:space:]])lewm([[:space:]]|$)' >/dev/null 2>&1; then
+  conda activate lewm
+else
+  echo "ERROR: Could not find conda environment 'lewm-gpu' or 'lewm'" >&2
+  echo "Run jobs/setup/setup_env.sh first, or create the environment from environment-gpu.yml" >&2
+  exit 2
+fi
 
 export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 POLICY="${POLICY:-pusht/lewm}"
