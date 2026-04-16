@@ -1,8 +1,8 @@
-15:47:58.122 | INFO    (1119114, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
-15:47:58.123 | INFO    (1119114, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
-15:47:58.123 | INFO    (1119114, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
-15:47:58.123 | INFO    (1119114, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
-15:47:58.123 | INFO    (1119114, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+16:27:26.416 | INFO    (99697, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+16:27:26.417 | INFO    (99697, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+16:27:26.417 | INFO    (99697, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
+16:27:26.417 | INFO    (99697, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+16:27:26.417 | INFO    (99697, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
   512.         512.        ]
  [512.         512.         512.         512.           6.28318531
   512.         512.        ]
@@ -102,7 +102,7 @@
   512.         512.        ]
  [512.         512.         512.         512.           6.28318531
   512.         512.        ]], (50, 7), float64))
-15:47:58.124 | INFO    (1119114, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+16:27:26.418 | INFO    (99697, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
 agent:
     angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
     color: Box(0, 255, (3,), uint8)
@@ -125,22 +125,24 @@ goal:
     scale: Box(20.0, 60.0, (), float32)
 rendering:
     render_goal: Discrete(2)
-[2026-04-16 15:48:58,813][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
-[2026-04-16 15:49:46,103][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
-[2026-04-16 15:50:31,352][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
-1869611 valid starting points found for evaluation.
-[ 150187  159883  201656  209210  216281  221571  305393  388512  429216
-  472611  532318  645504  829098  867812  941648 1015425 1028336 1038327
- 1043460 1054182 1054375 1175223 1206116 1237214 1279178 1299073 1475334
- 1504936 1529287 1582218 1627801 1635424 1673952 1715192 1768147 1775706
- 1805133 1816073 1823056 1832756 1920150 1933212 1962500 2005033 2005680
- 2069969 2083086 2164264 2263297 2275346]
-CEM solve time: 124.0411 seconds
-CEM solve time: 123.2061 seconds
+[2026-04-16 16:28:16,004][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-16 16:29:00,965][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-16 16:29:37,473][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+1402587 valid starting points found for evaluation.
+[ 152058  161663  202992  210277  218526  225388  314786  392296  433886
+  475270  535767  643926  830451  870515  944111 1020671 1032444 1041717
+ 1046713 1057641 1057849 1186372 1217077 1246861 1285999 1306243 1474257
+ 1505660 1529012 1579839 1624789 1632838 1670248 1708328 1763677 1769886
+ 1797952 1810949 1818746 1827346 1915975 1930963 1962943 2004416 2004969
+ 2060828 2075277 2162042 2255432 2266306]
+CEM solve time: 125.2712 seconds
+CEM solve time: 124.7116 seconds
+CEM solve time: 124.8440 seconds
+CEM solve time: 124.7834 seconds
 Video saved to /scratch-shared/scur0511/stablewm_data/pusht
-{'success_rate': 96.0, 'episode_successes': array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
-        True,  True, False,  True,  True,  True,  True,  True,  True,
-        True, False,  True,  True,  True,  True,  True,  True,  True,
-        True,  True,  True,  True,  True,  True,  True,  True,  True,
-        True,  True,  True,  True,  True,  True,  True,  True,  True,
-        True,  True,  True,  True,  True]), 'seeds': None}
+{'success_rate': 57.99999999999999, 'episode_successes': array([ True, False, False, False, False, False,  True,  True,  True,
+        True,  True,  True, False, False, False,  True,  True, False,
+       False, False, False,  True,  True,  True,  True, False,  True,
+       False,  True, False,  True,  True, False,  True,  True, False,
+        True, False,  True,  True,  True, False, False,  True,  True,
+       False,  True,  True,  True,  True]), 'seeds': None}
