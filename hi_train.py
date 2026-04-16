@@ -77,8 +77,6 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     z_tk1 = emb[:, t_idx + k1]
     z_goal = emb[:, -1]
 
-    a2 = self.model.id2(z_t, z_tk1)
-
     if num_levels == 3:
         assert k2 is not None
         if self.model.id3 is None or self.model.pred3 is None:
@@ -89,10 +87,13 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         z3_pred = self.model.pred3(z_t, a3)
         output["l3_pred_loss"] = (z3_pred - z_tk2).pow(2).mean()
 
+        # Align with inference semantics: id2 consumes strategic anchor (z3), not gt midpoint.
+        a2 = self.model.id2(z_t, z3_pred.detach())
         l2_anchor = z3_pred.detach()
         output["act_reg_loss"] = a2.pow(2).mean() + a3.pow(2).mean()
     else:
-        # 2-level mode: Level-2 is goal-anchored directly.
+        # Align with inference semantics: in 2-level mode id2 consumes goal latent.
+        a2 = self.model.id2(z_t, z_goal.detach())
         l2_anchor = z_goal.detach()
         output["act_reg_loss"] = a2.pow(2).mean()
 
