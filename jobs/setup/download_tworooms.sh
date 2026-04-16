@@ -11,9 +11,6 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --time=02:00:00
-#SBATCH --chdir=jobs/setup
-#SBATCH --output=out/download_tworooms_%j.out
-#SBATCH --error=out/download_tworooms_%j.err
 
 set -eo pipefail
 
@@ -27,19 +24,31 @@ if conda env list | grep -E '(^|[[:space:]])lewm([[:space:]]|$)' >/dev/null 2>&1
 fi
 
 resolve_repo_root() {
-  local c
-  for c in "${PROJECT_ROOT:-}" "${SLURM_SUBMIT_DIR:-}" "${HOME}/h-le-wm"; do
-    if [[ -n "${c}" && -f "${c}/scripts/setup_datasets.sh" ]]; then
-      echo "${c}"
-      return 0
-    fi
+  local c p
+  for c in \
+    "${PROJECT_ROOT:-}" \
+    "${SLURM_SUBMIT_DIR:-}" \
+    "${PWD:-}" \
+    "${HOME}/h-lewm" \
+    "${HOME}/h-le-wm" \
+    "/gpfs/home2/${USER}/h-lewm" \
+    "/gpfs/home2/${USER}/h-le-wm"; do
+    [[ -z "${c}" ]] && continue
+    for p in "${c}" "${c}/.." "${c}/../.."; do
+      if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
+        if [[ -f "${p}/scripts/setup_datasets.sh" ]]; then
+          echo "${p}"
+          return 0
+        fi
+      fi
+    done
   done
   return 1
 }
 
 if ! REPO_ROOT="$(resolve_repo_root)"; then
   echo "ERROR: Could not locate repo root with scripts/setup_datasets.sh" >&2
-  echo "Checked: PROJECT_ROOT='${PROJECT_ROOT:-}', SLURM_SUBMIT_DIR='${SLURM_SUBMIT_DIR:-}', HOME/h-le-wm='${HOME}/h-le-wm'" >&2
+  echo "Checked: PROJECT_ROOT='${PROJECT_ROOT:-}', SLURM_SUBMIT_DIR='${SLURM_SUBMIT_DIR:-}', PWD='${PWD:-}', HOME='${HOME:-}'" >&2
   exit 2
 fi
 
