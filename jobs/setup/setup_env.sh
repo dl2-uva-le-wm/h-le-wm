@@ -6,7 +6,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
 #SBATCH --time=04:00:00
-#SBATCH --output=install_env.out
+#SBATCH --chdir=jobs/setup
+#SBATCH --output=out/install_env_%j.out
+#SBATCH --error=out/install_env_%j.err
 
 module purge
 module load 2025
