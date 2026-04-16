@@ -65,8 +65,8 @@ wm:
   # Strict break:
   # - num_levels=2 ignores k1 (warning emitted if k1 != 0).
   # - num_levels=3 requires k1 > 0 and k2 > k1.
-  k1: 10
-  k2: 30
+  k1: 6
+  k2: 15
 
   # --- NEW: macro-action vector dimension (shared by id2, id3, pred2, pred3) ---
   # Smaller than embed_dim keeps the ID models compact and the L2 penalty meaningful.
