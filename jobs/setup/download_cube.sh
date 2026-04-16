@@ -19,7 +19,9 @@ module load 2025
 module load Anaconda3/2025.06-1
 
 eval "$(conda shell.bash hook)"
-if conda env list | grep -E '(^|[[:space:]])lewm([[:space:]]|$)' >/dev/null 2>&1; then
+if conda env list | grep -E '(^|[[:space:]])lewm-gpu([[:space:]]|$)' >/dev/null 2>&1; then
+  conda activate lewm-gpu
+elif conda env list | grep -E '(^|[[:space:]])lewm([[:space:]]|$)' >/dev/null 2>&1; then
   conda activate lewm
 fi
 
