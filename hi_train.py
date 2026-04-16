@@ -1,5 +1,6 @@
 from functools import partial
 from pathlib import Path
+import warnings
 
 import hydra
 import lightning as pl
@@ -25,28 +26,43 @@ from hi_module import (
 )
 
 
-def validate_hierarchy_cfg(cfg) -> tuple[int, int, int | None, int]:
+def validate_hierarchy_cfg(
+    cfg, *, emit_warnings: bool = False
+) -> tuple[int, int | None, int, int]:
     """Validate hierarchy settings and return (num_levels, k1, k2, max_offset)."""
     wm_cfg = cfg.wm
     num_levels = int(wm_cfg.get("num_levels", 3))
     if num_levels not in (2, 3):
         raise ValueError(f"wm.num_levels must be 2 or 3, got {num_levels}")
 
-    if "k1" not in wm_cfg:
-        raise ValueError("wm.k1 is required")
-    k1 = int(wm_cfg.k1)
-    if k1 <= 0:
-        raise ValueError(f"wm.k1 must be > 0, got {k1}")
+    if "k2" not in wm_cfg:
+        raise ValueError(
+            "wm.k2 is required for both wm.num_levels=2 and wm.num_levels=3 "
+            "(strict break: 2-level now means L3->L1)."
+        )
+    k2 = int(wm_cfg.k2)
+    if k2 <= 0:
+        raise ValueError(f"wm.k2 must be > 0, got {k2}")
 
-    k2 = None
     if num_levels == 3:
-        if "k2" not in wm_cfg:
-            raise ValueError("wm.k2 is required when wm.num_levels=3")
-        k2 = int(wm_cfg.k2)
+        if "k1" not in wm_cfg:
+            raise ValueError("wm.k1 is required when wm.num_levels=3")
+        k1 = int(wm_cfg.k1)
+        if k1 <= 0:
+            raise ValueError(f"wm.k1 must be > 0, got {k1}")
         if k2 <= k1:
             raise ValueError(f"wm.k2 must be > wm.k1 for 3 levels, got k1={k1}, k2={k2}")
+    else:
+        k1_cfg = int(wm_cfg.get("k1", 0))
+        if emit_warnings and k1_cfg != 0:
+            warnings.warn(
+                "wm.k1 is ignored when wm.num_levels=2 (L3->L1 topology). "
+                "Set wm.k1=0 to silence this warning.",
+                stacklevel=2,
+            )
+        k1 = None
 
-    max_offset = k2 if num_levels == 3 else k1
+    max_offset = k2
     return num_levels, k1, k2, max_offset
 
 
@@ -74,48 +90,46 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         )
 
     z_t = emb[:, t_idx]
-    z_tk1 = emb[:, t_idx + k1]
-    z_goal = emb[:, -1]
+    z_tk2 = emb[:, t_idx + k2]
+
+    if self.model.id3 is None or self.model.pred3 is None:
+        raise RuntimeError("Both num_levels=2 and num_levels=3 require id3/pred3 on model")
+
+    a3 = self.model.id3(z_t, z_tk2)
+    z3_pred = self.model.pred3(z_t, a3)
+    output["l3_pred_loss"] = (z3_pred - z_tk2).pow(2).mean()
 
     if num_levels == 3:
-        assert k2 is not None
-        if self.model.id3 is None or self.model.pred3 is None:
-            raise RuntimeError("num_levels=3 requires id3/pred3 on model")
+        assert k1 is not None
+        if self.model.id2 is None or self.model.pred2 is None:
+            raise RuntimeError("num_levels=3 requires id2/pred2 on model")
 
-        z_tk2 = emb[:, t_idx + k2]
-        a3 = self.model.id3(z_t, z_tk2)
-        z3_pred = self.model.pred3(z_t, a3)
-        output["l3_pred_loss"] = (z3_pred - z_tk2).pow(2).mean()
-
-        # Align with inference semantics: id2 consumes strategic anchor (z3), not gt midpoint.
+        z_tk1 = emb[:, t_idx + k1]
         a2 = self.model.id2(z_t, z3_pred.detach())
-        l2_anchor = z3_pred.detach()
+        z2_pred = self.model.pred2(z_t, a2, z_anchor=z3_pred.detach())
+        output["l2_pred_loss"] = (z2_pred - z_tk1).pow(2).mean()
         output["act_reg_loss"] = a2.pow(2).mean() + a3.pow(2).mean()
+        l1_anchor = z2_pred.detach()
     else:
-        # Align with inference semantics: in 2-level mode id2 consumes goal latent.
-        a2 = self.model.id2(z_t, z_goal.detach())
-        l2_anchor = z_goal.detach()
-        output["act_reg_loss"] = a2.pow(2).mean()
-
-    z2_pred = self.model.pred2(z_t, a2, z_anchor=l2_anchor)
-    output["l2_pred_loss"] = (z2_pred - z_tk1).pow(2).mean()
+        output["act_reg_loss"] = a3.pow(2).mean()
+        l1_anchor = z3_pred.detach()
 
     ctx_emb = emb[:, :ctx_len]
     ctx_act = act_emb[:, :ctx_len]
     tgt_l1 = emb[:, n_preds : ctx_len + n_preds]
-    pred_l1 = self.model.predict(ctx_emb, ctx_act, z_anchor=z2_pred.detach())
+    pred_l1 = self.model.predict(ctx_emb, ctx_act, z_anchor=l1_anchor)
     output["l1_pred_loss"] = (pred_l1 - tgt_l1).pow(2).mean()
 
     output["sigreg_loss"] = self.sigreg(emb.transpose(0, 1))
 
     output["loss"] = (
         output["l1_pred_loss"]
-        + output["l2_pred_loss"]
+        + output["l3_pred_loss"]
         + lambd * output["sigreg_loss"]
         + alpha * output["act_reg_loss"]
     )
     if num_levels == 3:
-        output["loss"] = output["loss"] + output["l3_pred_loss"]
+        output["loss"] = output["loss"] + output["l2_pred_loss"]
 
     losses_dict = {f"{stage}/{k}": v.detach() for k, v in output.items() if "loss" in k}
     self.log_dict(losses_dict, on_step=True, sync_dist=True)
@@ -124,7 +138,7 @@ def hi_lejepa_forward(self, batch, stage, cfg):
 
 @hydra.main(version_base=None, config_path="./config/train", config_name="hi_lewm")
 def run(cfg):
-    num_levels, _k1, _k2, _max_offset = validate_hierarchy_cfg(cfg)
+    num_levels, _k1, _k2, _max_offset = validate_hierarchy_cfg(cfg, emit_warnings=True)
 
     dataset = swm.data.HDF5Dataset(**cfg.data.dataset, transform=None)
     transforms = [
@@ -176,31 +190,30 @@ def run(cfg):
         **cfg.predictor,
     )
 
-    pred_l2_cfg = cfg.get(
-        "predictor_l2",
-        {"depth": 3, "heads": 8, "mlp_dim": 1024, "dim_head": 64},
-    )
-    pred2 = ConditionedSingleStepPredictor(
-        embed_dim=embed_dim,
-        macro_action_dim=macro_action_dim,
-        **pred_l2_cfg,
-    )
-
-    id2 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
-
-    pred3 = None
-    id3 = None
+    pred2 = None
+    id2 = None
     if num_levels == 3:
-        pred_l3_cfg = cfg.get(
-            "predictor_l3",
+        pred_l2_cfg = cfg.get(
+            "predictor_l2",
             {"depth": 3, "heads": 8, "mlp_dim": 1024, "dim_head": 64},
         )
-        pred3 = ConditionedSingleStepPredictor(
+        pred2 = ConditionedSingleStepPredictor(
             embed_dim=embed_dim,
             macro_action_dim=macro_action_dim,
-            **pred_l3_cfg,
+            **pred_l2_cfg,
         )
-        id3 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
+        id2 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
+
+    pred_l3_cfg = cfg.get(
+        "predictor_l3",
+        {"depth": 3, "heads": 8, "mlp_dim": 1024, "dim_head": 64},
+    )
+    pred3 = ConditionedSingleStepPredictor(
+        embed_dim=embed_dim,
+        macro_action_dim=macro_action_dim,
+        **pred_l3_cfg,
+    )
+    id3 = InverseDynamicsModel(embed_dim=embed_dim, macro_action_dim=macro_action_dim)
 
     action_encoder = Embedder(input_dim=effective_act_dim, emb_dim=embed_dim)
 
@@ -221,12 +234,12 @@ def run(cfg):
     world_model = HiJEPA(
         encoder=encoder,
         pred1=pred1,
+        action_encoder=action_encoder,
         pred2=pred2,
         pred3=pred3,
         id2=id2,
         id3=id3,
         num_levels=num_levels,
-        action_encoder=action_encoder,
         projector=projector,
         pred_proj=predictor_proj,
     )

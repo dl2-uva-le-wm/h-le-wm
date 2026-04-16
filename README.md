@@ -71,7 +71,7 @@ python hi_train.py
 2-level run (lighter):
 
 ```bash
-python hi_train.py wm.num_levels=2 wm.k1=10 data=hi_pusht output_model_name=hi_lewm_l2
+python hi_train.py wm.num_levels=2 wm.k1=0 wm.k2=20 data=hi_pusht output_model_name=hi_lewm_l2
 ```
 
 3-level run:
@@ -79,6 +79,8 @@ python hi_train.py wm.num_levels=2 wm.k1=10 data=hi_pusht output_model_name=hi_l
 ```bash
 python hi_train.py wm.num_levels=3 wm.k1=10 wm.k2=30 data=hi_pusht output_model_name=hi_lewm_l3
 ```
+
+2-level semantics are `L3 -> L1` (L2 removed). `k2` is required; `k1` is ignored.
 
 ### Evaluate
 

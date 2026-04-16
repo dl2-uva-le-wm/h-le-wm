@@ -1,6 +1,6 @@
 dataset:
   name: ogbench/cube_single_expert
-  num_steps: ${eval:'${wm.history_size} + (${wm.k2} if ${wm.num_levels} == 3 else ${wm.k1})'}
+  num_steps: ${eval:'${wm.history_size} + ${wm.k2}'}
   frameskip: 5
   keys_to_load:
     - pixels

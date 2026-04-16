@@ -16,9 +16,9 @@ class HiJEPA(nn.Module):
         self,
         encoder,
         pred1,
-        pred2,
-        id2,
         action_encoder,
+        pred2=None,
+        id2=None,
         pred3=None,
         id3=None,
         num_levels: int = 3,
@@ -29,8 +29,12 @@ class HiJEPA(nn.Module):
         self.num_levels = int(num_levels)
         if self.num_levels not in (2, 3):
             raise ValueError(f"num_levels must be 2 or 3, got {self.num_levels}")
-        if self.num_levels == 3 and (pred3 is None or id3 is None):
-            raise ValueError("num_levels=3 requires both pred3 and id3")
+        if pred3 is None or id3 is None:
+            raise ValueError("Both num_levels=2 and num_levels=3 require pred3 and id3")
+        if self.num_levels == 3 and (pred2 is None or id2 is None):
+            raise ValueError("num_levels=3 requires both pred2 and id2")
+        if self.num_levels == 2 and (pred2 is not None or id2 is not None):
+            raise ValueError("num_levels=2 forbids pred2/id2 modules (L3->L1 topology)")
 
         self.encoder = encoder
         self.pred1 = pred1
@@ -45,6 +49,10 @@ class HiJEPA(nn.Module):
     def _require_level3(self):
         if self.pred3 is None or self.id3 is None:
             raise RuntimeError("Level-3 modules (pred3/id3) are required but not available")
+
+    def _require_level2(self):
+        if self.pred2 is None or self.id2 is None:
+            raise RuntimeError("Level-2 modules (pred2/id2) are required but not available")
 
     def encode(self, info):
         pixels = info["pixels"].float()
@@ -66,19 +74,27 @@ class HiJEPA(nn.Module):
         preds = rearrange(preds, "(b t) d -> b t d", b=emb.size(0))
         return preds
 
-    def _compute_midpoint_anchor(self, z_t, z_g):
-        """Compute midpoint anchor for rollout from current and goal latents."""
+    def _compute_planning_anchor(self, z_t, z_g):
+        """Compute rollout anchor from current and goal latents."""
         if self.num_levels == 3:
+            self._require_level2()
             self._require_level3()
             a3 = self.id3(z_t, z_g)
             z3 = self.pred3(z_t, a3)
             a2 = self.id2(z_t, z3)
             z2 = self.pred2(z_t, a2, z_anchor=z3)
-            return {"a3_vec": a3, "z3_anchor": z3, "a2_vec": a2, "z2_anchor": z2}
+            return {
+                "a3_vec": a3,
+                "z3_anchor": z3,
+                "a2_vec": a2,
+                "z2_anchor": z2,
+                "planning_anchor": z2,
+            }
 
-        a2 = self.id2(z_t, z_g)
-        z2 = self.pred2(z_t, a2, z_anchor=z_g)
-        return {"a2_vec": a2, "z2_anchor": z2}
+        self._require_level3()
+        a3 = self.id3(z_t, z_g)
+        z3 = self.pred3(z_t, a3)
+        return {"a3_vec": a3, "z3_anchor": z3, "planning_anchor": z3}
 
     def rollout(self, info, action_sequence, history_size: int = 3):
         assert "pixels" in info, "pixels not in info_dict"
@@ -206,9 +222,9 @@ class HiJEPA(nn.Module):
         start = self.encode({"pixels": start_pixels})
         z_t = start["emb"][:, 0]
 
-        anchors = self._compute_midpoint_anchor(z_t, z_g)
-        info_dict["midpoint_anchor"] = anchors["z2_anchor"]
-        info_dict["goal_emb"] = anchors["z2_anchor"]
+        anchors = self._compute_planning_anchor(z_t, z_g)
+        info_dict["midpoint_anchor"] = anchors["planning_anchor"]
+        info_dict["goal_emb"] = anchors["planning_anchor"]
 
         if "z3_anchor" in anchors:
             info_dict["strategic_anchor"] = anchors["z3_anchor"]
