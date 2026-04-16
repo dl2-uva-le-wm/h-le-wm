@@ -13,9 +13,17 @@ the 'module load <package__name>' command. If you are uncertain if a package is
 already available 
 on the system, please use 'module avail' or 'module spider' to search for it.
 ============================================================================================== 
+<<<<<<<< HEAD:epoch_25_healthcheck_e2e_lower_level_22460285.err
 /home/scur0200/.conda/envs/lewm-gpu/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import resource_stream, resource_exists
 /home/scur0200/.conda/envs/lewm-gpu/lib/python3.10/site-packages/gymnasium/spaces/box.py:424: UserWarning: [33mWARN: Casting input x to numpy array.[0m
   gym.logger.warn("Casting input x to numpy array.")
 /home/scur0200/.conda/envs/lewm-gpu/lib/python3.10/site-packages/gymnasium/utils/passive_env_checker.py:158: UserWarning: [33mWARN: The obs returned by the `step()` method is not within the observation space.[0m
+========
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/gymnasium/spaces/box.py:424: UserWarning: [33mWARN: Casting input x to numpy array.[0m
+  gym.logger.warn("Casting input x to numpy array.")
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/gymnasium/utils/passive_env_checker.py:158: UserWarning: [33mWARN: The obs returned by the `step()` method is not within the observation space.[0m
+>>>>>>>> a9e5d46 (pusht eval):jobs/eval/original/out/pusht_eval_21931008.err
   logger.warn(f"{pre} is not within the observation space.")
