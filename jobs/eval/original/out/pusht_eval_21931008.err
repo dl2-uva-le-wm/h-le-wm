@@ -13,5 +13,9 @@ the 'module load <package__name>' command. If you are uncertain if a package is
 already available 
 on the system, please use 'module avail' or 'module spider' to search for it.
 ============================================================================================== 
-ERROR: Could not locate repo root with third_party/lewm/eval.py
-Checked: PROJECT_ROOT='', SLURM_SUBMIT_DIR='/gpfs/home3/scur0511/h-le-wm/jobs/eval/original', PWD='/gpfs/home3/scur0511/h-le-wm/jobs/eval/original', HOME='/home/scur0511'
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/gymnasium/spaces/box.py:424: UserWarning: [33mWARN: Casting input x to numpy array.[0m
+  gym.logger.warn("Casting input x to numpy array.")
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/gymnasium/utils/passive_env_checker.py:158: UserWarning: [33mWARN: The obs returned by the `step()` method is not within the observation space.[0m
+  logger.warn(f"{pre} is not within the observation space.")
