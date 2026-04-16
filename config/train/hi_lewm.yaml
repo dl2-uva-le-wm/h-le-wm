@@ -3,8 +3,10 @@ defaults:
   - data: hi_pusht
 
 # ---------------------------------------------------------------------------
-# The data config must produce sequences of length >= history_size + max(k1, k2?).
-# For num_levels=2, max offset is k1. For num_levels=3, max offset is k2.
+# The data config must produce sequences of length >= history_size + k2.
+# Strict break:
+# - num_levels=2 uses L3->L1 and ignores k1.
+# - num_levels=3 uses full L3->L2->L1 and requires k2 > k1.
 # ---------------------------------------------------------------------------
 
 output_model_name: hi_lewm
@@ -57,16 +59,12 @@ wm:
   num_preds: 1 # Level-1 AR step offset (reused from base)
   embed_dim: 192 # shared latent space dimension (reused from base)
 
-  # --- NEW: temporal horizon parameters ---
-  # k1: tactical offset — Level-2 predicts z_{t+k1}
-  # k2: strategic offset — Level-3 predicts z_{t+k2} (required only for num_levels=3)
-  # Constraint: k1 > 0, and if num_levels=3 then k2 > k1.
-
-  # K1 and K2 are the real model frames
-  # So we have to consider the skipframe to get the real number of skipped video frames
-  # Example:
-  # k1=10 means “10 model frames ahead”
-  # With frameskip=5, that is 10*5 = 50 env steps.
+  # --- Temporal horizon parameters (model-frame offsets) ---
+  # k2: strategic offset — used in both num_levels=2 and num_levels=3.
+  # k1: tactical offset — used only when num_levels=3.
+  # Strict break:
+  # - num_levels=2 ignores k1 (warning emitted if k1 != 0).
+  # - num_levels=3 requires k1 > 0 and k2 > k1.
   k1: 10
   k2: 30
 
@@ -86,7 +84,7 @@ predictor:
   emb_dropout: 0.0
 
 # ---------------------------------------------------------------------------
-# Level-2 tactical predictor (ConditionedSingleStepPredictor)  — NEW
+# Level-2 tactical predictor (ConditionedSingleStepPredictor) — used only when num_levels=3
 # Shallower than pred1: single-step prediction is an easier task.
 # ---------------------------------------------------------------------------
 predictor_l2:
