@@ -52,15 +52,21 @@ wandb:
 # ---------------------------------------------------------------------------
 wm:
   type: hi_lewm
-  num_levels: 3          # supported values: 2 or 3
-  history_size: 3          # context window length (reused from base)
-  num_preds: 1             # Level-1 AR step offset (reused from base)
-  embed_dim: 192           # shared latent space dimension (reused from base)
+  num_levels: 3 # supported values: 2 or 3
+  history_size: 3 # context window length (reused from base)
+  num_preds: 1 # Level-1 AR step offset (reused from base)
+  embed_dim: 192 # shared latent space dimension (reused from base)
 
   # --- NEW: temporal horizon parameters ---
   # k1: tactical offset — Level-2 predicts z_{t+k1}
   # k2: strategic offset — Level-3 predicts z_{t+k2} (required only for num_levels=3)
   # Constraint: k1 > 0, and if num_levels=3 then k2 > k1.
+
+  # K1 and K2 are the real model frames
+  # So we have to consider the skipframe to get the real number of skipped video frames
+  # Example:
+  # k1=10 means “10 model frames ahead”
+  # With frameskip=5, that is 10*5 = 50 env steps.
   k1: 10
   k2: 30
 
