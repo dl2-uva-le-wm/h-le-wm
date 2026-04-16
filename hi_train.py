@@ -136,6 +136,12 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     return output
 
 
+def summarize_params(module: torch.nn.Module) -> tuple[int, int]:
+    total = sum(p.numel() for p in module.parameters())
+    trainable = sum(p.numel() for p in module.parameters() if p.requires_grad)
+    return total, trainable
+
+
 @hydra.main(version_base=None, config_path="./config/train", config_name="hi_lewm")
 def run(cfg):
     num_levels, _k1, _k2, _max_offset = validate_hierarchy_cfg(cfg, emit_warnings=True)
@@ -243,6 +249,8 @@ def run(cfg):
         projector=projector,
         pred_proj=predictor_proj,
     )
+    total_params, trainable_params = summarize_params(world_model)
+    print(f"[hi_train] model params total={total_params:,} trainable={trainable_params:,}")
 
     optimizers = {
         "model_opt": {
