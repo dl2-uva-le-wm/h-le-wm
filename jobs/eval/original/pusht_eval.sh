@@ -20,9 +20,9 @@
 
 set -eo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../.." >/dev/null 2>&1 && pwd)"
-mkdir -p "${SCRIPT_DIR}/out"
+SUBMIT_DIR="${SLURM_SUBMIT_DIR:-$PWD}"
+REPO_ROOT="$(cd -- "${SUBMIT_DIR}/../../.." >/dev/null 2>&1 && pwd)"
+mkdir -p "${SUBMIT_DIR}/out"
 
 module purge
 module load 2025
