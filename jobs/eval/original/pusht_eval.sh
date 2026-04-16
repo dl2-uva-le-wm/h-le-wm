@@ -6,13 +6,8 @@
 #   third_party/lewm/eval.py
 #
 # Usage:
-#   sbatch jobs/eval/original/pusht_eval.sh
-#
-# Optional overrides:
-#   sbatch --export=ALL,PROJECT_ROOT=$PWD jobs/eval/original/pusht_eval.sh
-#   sbatch --export=ALL,POLICY=pusht/lewm jobs/eval/original/pusht_eval.sh
-#   sbatch --export=ALL,STABLEWM_HOME=/scratch-shared/$USER/stablewm_data jobs/eval/original/pusht_eval.sh
-#   sbatch --export=ALL,HF_URL=https://huggingface.co/quentinll/lewm-pusht/tree/main jobs/eval/original/pusht_eval.sh
+#   cd jobs/eval/original
+#   sbatch pusht_eval.sh
 
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
@@ -20,10 +15,14 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=jobs/eval/original/out/pusht_eval_%j.out
-#SBATCH --error=jobs/eval/original/out/pusht_eval_%j.err
+#SBATCH --output=out/pusht_eval_%j.out
+#SBATCH --error=out/pusht_eval_%j.err
 
 set -eo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../.." >/dev/null 2>&1 && pwd)"
+mkdir -p "${SCRIPT_DIR}/out"
 
 module purge
 module load 2025
@@ -45,18 +44,14 @@ POLICY="${POLICY:-pusht/lewm}"
 CONFIG_NAME="${CONFIG_NAME:-pusht.yaml}"
 HF_URL="${HF_URL:-https://huggingface.co/quentinll/lewm-pusht/tree/main}"
 
-REPO_ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 cd "${REPO_ROOT}"
 
 if [[ ! -f "third_party/lewm/eval.py" ]]; then
-  echo "ERROR: third_party/lewm/eval.py not found in ${REPO_ROOT}" >&2
-  echo "Submit from repo root or pass PROJECT_ROOT=/path/to/h-le-wm" >&2
+  echo "ERROR: third_party/lewm/eval.py not found at ${REPO_ROOT}" >&2
+  echo "Expected script layout: jobs/eval/original/pusht_eval.sh" >&2
   exit 2
 fi
 
-cd "${REPO_ROOT}"
-
-mkdir -p "${SCRIPT_DIR}/out"
 mkdir -p "${STABLEWM_HOME}"
 
 CKPT_OBJECT_PATH="${STABLEWM_HOME}/${POLICY}_object.ckpt"
