@@ -274,8 +274,30 @@ def run(cfg):
 
     logger = None
     if cfg.wandb.enabled:
-        logger = WandbLogger(**cfg.wandb.config)
-        logger.log_hyperparams(OmegaConf.to_container(cfg))
+        wandb_cfg = OmegaConf.to_container(cfg.wandb.config, resolve=True)
+        if wandb_cfg.get("entity") in (None, ""):
+            wandb_cfg.pop("entity", None)
+
+        logger = WandbLogger(**wandb_cfg)
+        try:
+            logger.log_hyperparams(OmegaConf.to_container(cfg, resolve=True))
+        except Exception as exc:
+            # Common cluster failure mode: an explicit but invalid entity slug.
+            if (
+                wandb_cfg.get("entity")
+                and "entity" in str(exc).lower()
+                and "not found" in str(exc).lower()
+            ):
+                bad_entity = wandb_cfg["entity"]
+                warnings.warn(
+                    f"W&B entity '{bad_entity}' not found; retrying with default logged-in entity.",
+                    stacklevel=2,
+                )
+                wandb_cfg.pop("entity", None)
+                logger = WandbLogger(**wandb_cfg)
+                logger.log_hyperparams(OmegaConf.to_container(cfg, resolve=True))
+            else:
+                raise
 
     run_dir.mkdir(parents=True, exist_ok=True)
     with open(run_dir / "config.yaml", "w") as f:

@@ -32,6 +32,8 @@ export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 cd ../../..
 
 echo "STABLEWM_HOME=${STABLEWM_HOME}"
+echo "W&B entity: default from login (no explicit override)"
+echo "W&B project: ${WANDB_PROJECT:-hi_lewm}"
 echo "Launching: num_levels=2, k2=5 (d=25)"
 
 python hi_train.py \
@@ -39,4 +41,6 @@ python hi_train.py \
   wm.k1=0 \
   wm.k2=5 \
   data=hi_pusht \
+  wandb.config.entity=null \
+  wandb.config.project="${WANDB_PROJECT:-hi_lewm}" \
   output_model_name=hi_lewm_l2_d25
