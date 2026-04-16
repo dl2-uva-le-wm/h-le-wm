@@ -1,0 +1,12 @@
+name: lewm-gpu
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - zstd
+  - cuda-toolkit=12.1
+  - cudnn=8.9
+  - pip:
+      - "stable-worldmodel[train,env]"
+      - "torch::torch-cuda"
