@@ -12,8 +12,9 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --time=02:00:00
 #SBATCH --output=download_tworooms_%j.out
+#SBATCH --error=download_tworooms_%j.err
 
-set -euo pipefail
+set -eo pipefail
 
 module purge
 module load 2025
