@@ -20,8 +20,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=jobs/eval/original/out/pusht_eval_%j.out
-#SBATCH --error=jobs/eval/original/out/pusht_eval_%j.err
+#SBATCH --output=out/pusht_eval_%j.out
+#SBATCH --error=out/pusht_eval_%j.err
 
 set -eo pipefail
 
@@ -37,16 +37,16 @@ POLICY="${POLICY:-pusht/lewm}"
 CONFIG_NAME="${CONFIG_NAME:-pusht.yaml}"
 HF_URL="${HF_URL:-https://huggingface.co/quentinll/lewm-pusht/tree/main}"
 
-REPO_ROOT="${PROJECT_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../.." >/dev/null 2>&1 && pwd)"
 cd "${REPO_ROOT}"
-
 if [[ ! -f "third_party/lewm/eval.py" ]]; then
-  echo "ERROR: third_party/lewm/eval.py not found in ${REPO_ROOT}" >&2
-  echo "Submit from repo root or pass PROJECT_ROOT=/path/to/h-le-wm" >&2
+  echo "ERROR: third_party/lewm/eval.py not found at ${REPO_ROOT}" >&2
+  echo "Expected script layout: jobs/eval/original/pusht_eval.sh" >&2
   exit 2
 fi
 
-mkdir -p jobs/eval/original/out
+mkdir -p "${SCRIPT_DIR}/out"
 mkdir -p "${STABLEWM_HOME}"
 
 CKPT_OBJECT_PATH="${STABLEWM_HOME}/${POLICY}_object.ckpt"
