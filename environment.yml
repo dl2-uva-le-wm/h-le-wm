@@ -8,3 +8,4 @@ dependencies:
   - zstd
   - pip:
       - "stable-worldmodel[train,env]"
+      - pytest

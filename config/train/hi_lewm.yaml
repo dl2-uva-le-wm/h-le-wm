@@ -2,14 +2,7 @@ defaults:
   - _self_
   - data: hi_pusht
 
-# ---------------------------------------------------------------------------
-# The data config must produce sequences of length >= history_size + k2.
-# Strict break:
-# - num_levels=2 uses L3->L1 and ignores k1.
-# - num_levels=3 uses full L3->L2->L1 and requires k2 > k1.
-# ---------------------------------------------------------------------------
-
-output_model_name: hi_lewm
+output_model_name: hi_lewm_h2
 subdir: ${hydra:job.id}
 
 num_workers: 6
@@ -49,32 +42,51 @@ wandb:
     resume: allow
     log_model: False
 
-# ---------------------------------------------------------------------------
-# World model
-# ---------------------------------------------------------------------------
 wm:
   type: hi_lewm
-  num_levels: 3 # supported values: 2 or 3
-  history_size: 3 # context window length (reused from base)
-  num_preds: 1 # Level-1 AR step offset (reused from base)
-  embed_dim: 192 # shared latent space dimension (reused from base)
+  history_size: 3
+  num_preds: 1
+  embed_dim: 192
 
-  # --- Temporal horizon parameters (model-frame offsets) ---
-  # k2: strategic offset — used in both num_levels=2 and num_levels=3.
-  # k1: tactical offset — used only when num_levels=3.
-  # Strict break:
-  # - num_levels=2 ignores k1 (warning emitted if k1 != 0).
-  # - num_levels=3 requires k1 > 0 and k2 > k1.
-  k1: 6
-  k2: 15
+  high_level:
+    enabled: True
+    latent_action_dim: ${wm.embed_dim}
+    macro_to_condition_proj: auto # (D_l -> D_z), one of: auto, identity, linear
+    waypoints:
+      num: 5
+      strategy: random_sorted # one of: random_middle, random_sorted, fixed_stride
+      min_stride: 1
+      max_span: 15
+      stride: -1 # set >0 only when strategy=fixed_stride; otherwise ignored with warning
+      beta_alpha: 2.0
+      beta_beta: 2.0
 
-  # --- NEW: macro-action vector dimension (shared by id2, id3, pred2, pred3) ---
-  # Smaller than embed_dim keeps the ID models compact and the L2 penalty meaningful.
-  macro_action_dim: 64
+pretrained_low_level:
+  enabled: True
+  source_policy: lewm
+  checkpoint:
+    search_dir: null
+    path: null
+    selection_mode: latest # one of: latest, best, epoch, explicit_path
+    epoch: 1
+  freeze:
+    encoder: True
+    low_level_predictor: True
+    low_level_action_encoder: True
+    projector: True
+    pred_proj: True
 
-# ---------------------------------------------------------------------------
-# Level-1 predictor (ARPredictorAnchored) — reused from base LeWM
-# ---------------------------------------------------------------------------
+training:
+  train_low_level: False
+
+latent_action_encoder:
+  model_dim: ${wm.embed_dim}
+  num_layers: 2
+  num_heads: 4
+  mlp_dim: 768
+  dropout: 0.1
+  max_seq_len: ${wm.high_level.waypoints.max_span}
+
 predictor:
   depth: 6
   heads: 16
@@ -83,41 +95,23 @@ predictor:
   dropout: 0.1
   emb_dropout: 0.0
 
-# ---------------------------------------------------------------------------
-# Level-2 tactical predictor (ConditionedSingleStepPredictor) — used only when num_levels=3
-# Shallower than pred1: single-step prediction is an easier task.
-# ---------------------------------------------------------------------------
-predictor_l2:
-  depth: 3
-  heads: 8
-  mlp_dim: 1024
+predictor_high:
+  depth: 6
+  heads: 16
+  mlp_dim: 2048
   dim_head: 64
   dropout: 0.1
+  emb_dropout: 0.0
 
-# ---------------------------------------------------------------------------
-# Level-3 strategic predictor (ConditionedSingleStepPredictor) — NEW
-# Same capacity as pred2; a deeper network can be used if k2 is very large.
-# ---------------------------------------------------------------------------
-predictor_l3:
-  depth: 3
-  heads: 8
-  mlp_dim: 1024
-  dim_head: 64
-  dropout: 0.1
-
-# ---------------------------------------------------------------------------
-# Loss
-# ---------------------------------------------------------------------------
 loss:
-  # Anti-collapse regularization — reused unchanged from base LeWM.
+  alpha: 0.0
+  beta: 1.0
   sigreg:
-    weight: 0.09
+    weight: 0.0
     kwargs:
       knots: 17
       num_proj: 1024
 
-  # --- NEW: latent-action L2 regularization (Eq. 15) ---
-  # Prevents ID models from shortcut solutions (e.g. copying target state).
-  # alpha is intentionally small: it penalises scale, not direction.
-  inverse_dynamics:
-    weight: 0.01
+checkpointing:
+  object_dump:
+    epoch_interval: 1

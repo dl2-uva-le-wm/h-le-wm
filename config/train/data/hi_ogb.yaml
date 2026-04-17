@@ -1,6 +1,6 @@
 dataset:
   name: ogbench/cube_single_expert
-  num_steps: ${eval:'${wm.history_size} + ${wm.k2}'}
+  num_steps: ${eval:'${wm.history_size} + ${wm.high_level.waypoints.max_span}'}
   frameskip: 5
   keys_to_load:
     - pixels

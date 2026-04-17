@@ -1,5 +1,5 @@
 dataset:
-  num_steps: ${eval:'${wm.history_size} + ${wm.k2}'}
+  num_steps: ${eval:'${wm.history_size} + ${wm.high_level.waypoints.max_span}'}
   frameskip: 5
   name: pusht_expert_train
   keys_to_load:
