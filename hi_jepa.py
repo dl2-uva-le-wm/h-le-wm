@@ -29,6 +29,30 @@ class HiJEPA(nn.Module):
         self.macro_to_condition = macro_to_condition
         self.projector = projector or nn.Identity()
         self.pred_proj = pred_proj or nn.Identity()
+        self._freeze_flags = {
+            "encoder": False,
+            "low_predictor": False,
+            "action_encoder": False,
+            "projector": False,
+            "pred_proj": False,
+        }
+
+    def _set_requires_grad(self, module: nn.Module, requires_grad: bool):
+        for p in module.parameters():
+            p.requires_grad_(requires_grad)
+
+    def _enforce_frozen_eval_mode(self):
+        """Keep frozen low-level modules in eval mode during training."""
+        if self._freeze_flags["encoder"]:
+            self.encoder.eval()
+        if self._freeze_flags["low_predictor"]:
+            self.low_predictor.eval()
+        if self._freeze_flags["action_encoder"]:
+            self.action_encoder.eval()
+        if self._freeze_flags["projector"]:
+            self.projector.eval()
+        if self._freeze_flags["pred_proj"]:
+            self.pred_proj.eval()
 
     def freeze_low_level(
         self,
@@ -39,22 +63,36 @@ class HiJEPA(nn.Module):
         freeze_projector: bool = True,
         freeze_pred_proj: bool = True,
     ):
-        def _set_requires_grad(module: nn.Module, requires_grad: bool):
-            for p in module.parameters():
-                p.requires_grad_(requires_grad)
+        self._freeze_flags["encoder"] = bool(freeze_encoder)
+        self._freeze_flags["low_predictor"] = bool(freeze_low_predictor)
+        self._freeze_flags["action_encoder"] = bool(freeze_action_encoder)
+        self._freeze_flags["projector"] = bool(freeze_projector)
+        self._freeze_flags["pred_proj"] = bool(freeze_pred_proj)
 
-        if freeze_encoder:
-            _set_requires_grad(self.encoder, False)
-        if freeze_low_predictor:
-            _set_requires_grad(self.low_predictor, False)
-        if freeze_action_encoder:
-            _set_requires_grad(self.action_encoder, False)
-        if freeze_projector:
-            _set_requires_grad(self.projector, False)
-        if freeze_pred_proj:
-            _set_requires_grad(self.pred_proj, False)
+        self._set_requires_grad(self.encoder, not self._freeze_flags["encoder"])
+        self._set_requires_grad(self.low_predictor, not self._freeze_flags["low_predictor"])
+        self._set_requires_grad(self.action_encoder, not self._freeze_flags["action_encoder"])
+        self._set_requires_grad(self.projector, not self._freeze_flags["projector"])
+        self._set_requires_grad(self.pred_proj, not self._freeze_flags["pred_proj"])
+        self._enforce_frozen_eval_mode()
 
-    def encode(self, info: dict) -> dict:
+    def train(self, mode: bool = True):
+        super().train(mode)
+        self._enforce_frozen_eval_mode()
+        return self
+
+    def encode(self, info: dict, *, encode_actions: bool = True) -> dict:
+        """Encode observation sequence (and optionally low-level action sequence).
+
+        Args:
+            info: Batch dict containing at least ``pixels`` and optionally ``action``.
+            encode_actions: If True and ``action`` exists, compute ``act_emb``.
+
+        Returns:
+            ``info`` augmented with:
+                - ``emb``: (B, T, D_z)
+                - ``act_emb``: (B, T, D_z), only when requested
+        """
         pixels = info["pixels"].float()
         b = pixels.size(0)
         pixels = rearrange(pixels, "b t ... -> (b t) ...")
@@ -63,7 +101,7 @@ class HiJEPA(nn.Module):
         emb = self.projector(pixels_emb)
         info["emb"] = rearrange(emb, "(b t) d -> b t d", b=b)
 
-        if "action" in info:
+        if encode_actions and "action" in info:
             info["act_emb"] = self.action_encoder(info["action"])
         return info
 

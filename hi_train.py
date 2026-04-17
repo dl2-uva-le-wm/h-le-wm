@@ -565,7 +565,8 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         Output dict containing losses and diagnostics.
     """
     batch["action"] = torch.nan_to_num(batch["action"], 0.0)
-    output = self.model.encode(batch)
+    train_low_level = bool(cfg.training.get("train_low_level", False))
+    output = self.model.encode(batch, encode_actions=train_low_level)
 
     emb = output["emb"]  # (B, T, D_z)
     actions = batch["action"]  # (B, T, A)
@@ -594,7 +595,6 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
     output["l2_pred_loss"] = (z_pred - z_target).pow(2).mean()
 
-    train_low_level = bool(cfg.training.get("train_low_level", False))
     if train_low_level:
         ctx_len = int(cfg.wm.history_size)
         n_preds = int(cfg.wm.num_preds)
