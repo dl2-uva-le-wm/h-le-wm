@@ -646,6 +646,63 @@ def summarize_params(module: torch.nn.Module) -> tuple[int, int]:
     return total, trainable
 
 
+def log_param_breakdown(model: HiJEPA):
+    """Print parameter distribution across core modules."""
+    parts = [
+        ("state_encoder", model.encoder),
+        ("p1_low_predictor", model.low_predictor),
+        ("p1_action_encoder", model.action_encoder),
+        ("projector", model.projector),
+        ("pred_proj", model.pred_proj),
+        ("p2_high_predictor", model.high_predictor),
+        ("p2_latent_action_encoder", model.latent_action_encoder),
+        ("p2_macro_to_condition", model.macro_to_condition),
+    ]
+
+    total_all, trainable_all = summarize_params(model)
+    print("[hi_train] parameter breakdown:")
+    for name, module in parts:
+        total, trainable = summarize_params(module)
+        pct = (100.0 * total / total_all) if total_all > 0 else 0.0
+        print(
+            f"  - {name:24s} total={total:>12,} trainable={trainable:>12,} "
+            f"share={pct:6.2f}%"
+        )
+    print(
+        f"[hi_train] total params: {total_all:,} | trainable params: {trainable_all:,} "
+        f"({(100.0 * trainable_all / total_all) if total_all > 0 else 0.0:.2f}% trainable)"
+    )
+
+
+def validate_high_level_config(cfg):
+    """Validate high-level config consistency before model construction."""
+    history_size = int(cfg.wm.history_size)
+    num_steps = int(cfg.data.dataset.num_steps)
+    max_span = int(cfg.wm.high_level.waypoints.max_span)
+    max_seq_len = int(cfg.latent_action_encoder.max_seq_len)
+
+    if num_steps <= history_size:
+        raise ValueError(
+            "data.dataset.num_steps must be > wm.history_size to allow future waypoint transitions."
+        )
+
+    max_available_span = min(max_span, num_steps - history_size)
+    if max_available_span <= 0:
+        raise ValueError(
+            "No positive waypoint span available. Increase data.dataset.num_steps or reduce "
+            "wm.high_level.waypoints.max_span / wm.history_size."
+        )
+
+    if max_seq_len < max_available_span:
+        raise ValueError(
+            "latent_action_encoder.max_seq_len is too small for waypoint sampling. "
+            f"Need max_seq_len >= {max_available_span} (effective max span), "
+            f"got {max_seq_len}. "
+            "Set latent_action_encoder.max_seq_len to wm.high_level.waypoints.max_span "
+            "or larger."
+        )
+
+
 @hydra.main(version_base=None, config_path="./config/train", config_name="hi_lewm")
 def run(cfg):
     """Main training entrypoint for high-level predictor training.
@@ -661,6 +718,8 @@ def run(cfg):
         - By default, encoder + low-level modules are frozen.
         - Default objective emphasizes high-level loss (``beta``) for PushT-focused runs.
     """
+    validate_high_level_config(cfg)
+
     dataset = swm.data.HDF5Dataset(**cfg.data.dataset, transform=None)
     transforms = [
         get_img_preprocessor(source="pixels", target="pixels", img_size=cfg.img_size)
@@ -799,16 +858,44 @@ def run(cfg):
     )
 
     freeze_cfg = cfg.pretrained_low_level.freeze
-    world_model.freeze_low_level(
-        freeze_encoder=bool(freeze_cfg.get("encoder", True)),
-        freeze_low_predictor=bool(freeze_cfg.get("low_level_predictor", True)),
-        freeze_action_encoder=bool(freeze_cfg.get("low_level_action_encoder", True)),
-        freeze_projector=bool(freeze_cfg.get("projector", True)),
-        freeze_pred_proj=bool(freeze_cfg.get("pred_proj", True)),
-    )
+    freeze_encoder = bool(freeze_cfg.get("encoder", True))
+    freeze_low_predictor = bool(freeze_cfg.get("low_level_predictor", True))
+    freeze_action_encoder = bool(freeze_cfg.get("low_level_action_encoder", True))
+    freeze_projector = bool(freeze_cfg.get("projector", True))
+    freeze_pred_proj = bool(freeze_cfg.get("pred_proj", True))
 
-    total_params, trainable_params = summarize_params(world_model)
-    print(f"[hi_train] model params total={total_params:,} trainable={trainable_params:,}")
+    if bool(cfg.pretrained_low_level.enabled):
+        world_model.freeze_low_level(
+            freeze_encoder=freeze_encoder,
+            freeze_low_predictor=freeze_low_predictor,
+            freeze_action_encoder=freeze_action_encoder,
+            freeze_projector=freeze_projector,
+            freeze_pred_proj=freeze_pred_proj,
+        )
+    else:
+        if any(
+            (
+                freeze_encoder,
+                freeze_low_predictor,
+                freeze_action_encoder,
+                freeze_projector,
+                freeze_pred_proj,
+            )
+        ):
+            warnings.warn(
+                "pretrained_low_level.enabled=False, so pretrained freeze settings are ignored. "
+                "Low-level modules remain trainable.",
+                stacklevel=2,
+            )
+        world_model.freeze_low_level(
+            freeze_encoder=False,
+            freeze_low_predictor=False,
+            freeze_action_encoder=False,
+            freeze_projector=False,
+            freeze_pred_proj=False,
+        )
+
+    log_param_breakdown(world_model)
 
     optimizers = {
         "model_opt": {
