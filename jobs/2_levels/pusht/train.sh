@@ -16,11 +16,32 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../.." >/dev/null 2>&1 && pwd)"
+resolve_repo_root() {
+  local c p
+  for c in \
+    "${PROJECT_ROOT:-}" \
+    "${SLURM_SUBMIT_DIR:-}" \
+    "${PWD:-}" \
+    "${HOME}/h-le-wm" \
+    "${HOME}/h-lewm" \
+    "/gpfs/home2/${USER}/h-le-wm" \
+    "/gpfs/home2/${USER}/h-lewm"; do
+    [[ -z "${c}" ]] && continue
+    for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
+      if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
+        if [[ -f "${p}/hi_train.py" && -f "${p}/config/train/hi_lewm.yaml" ]]; then
+          echo "${p}"
+          return 0
+        fi
+      fi
+    done
+  done
+  return 1
+}
 
-if [[ ! -f "${REPO_ROOT}/hi_train.py" ]]; then
-  echo "ERROR: Could not locate repo root from script dir: ${SCRIPT_DIR}" >&2
+if ! REPO_ROOT="$(resolve_repo_root)"; then
+  echo "ERROR: Could not locate repo root." >&2
+  echo "Checked PROJECT_ROOT='${PROJECT_ROOT:-}', SLURM_SUBMIT_DIR='${SLURM_SUBMIT_DIR:-}', PWD='${PWD:-}'" >&2
   exit 2
 fi
 
