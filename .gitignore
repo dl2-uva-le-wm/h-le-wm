@@ -45,3 +45,6 @@ data/stablewm/
 .env
 .env.*
 environment.json
+
+
+*_frozen.txt
