@@ -10,6 +10,10 @@
 
 set -eo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../../.." >/dev/null 2>&1 && pwd)"
+mkdir -p "${SCRIPT_DIR}/out"
+
 module purge
 module load 2025
 module load Anaconda3/2025.06-1
