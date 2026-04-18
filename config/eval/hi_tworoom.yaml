@@ -13,8 +13,49 @@ world:
 seed: 42
 policy: hi_lewm
 
-wm:
-  num_levels: 3
+planning:
+  mode: hierarchical # one of: hierarchical, flat
+  high:
+    replan_interval: 5
+    solver:
+      _target_: stable_worldmodel.solver.CEMSolver
+      model: ???
+      batch_size: 1
+      num_samples: 300
+      var_scale: 1.0
+      n_steps: 20
+      topk: 10
+      device: "cuda"
+      seed: ${seed}
+    plan_config:
+      horizon: 2
+      receding_horizon: 1
+      action_block: 1
+    latent_prior:
+      enabled: True
+      num_chunks: 2048
+      min_chunks_for_stats: 64
+      chunk_len: 5
+      lower_q: 5.0
+      upper_q: 95.0
+      margin_ratio: 0.05
+      clamp_abs: 3.0
+      fallback_abs: 1.0
+  low:
+    solver:
+      _target_: stable_worldmodel.solver.CEMSolver
+      model: ???
+      batch_size: 1
+      num_samples: 300
+      var_scale: 1.0
+      n_steps: 30
+      topk: 10
+      device: "cuda"
+      seed: ${seed}
+    plan_config:
+      horizon: 5
+      receding_horizon: 1
+      action_block: 5
 
 dataset:
   stats: ${eval.dataset_name}
