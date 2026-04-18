@@ -16,6 +16,33 @@ from hi_policy import HierarchicalWorldModelPolicy, calibrate_latent_prior
 os.environ["MUJOCO_GL"] = "egl"
 
 
+def sample_eval_row_indices(valid_indices: np.ndarray, num_eval: int, seed: int) -> np.ndarray:
+    """Sample unique dataset row indices used as evaluation starts.
+
+    Args:
+        valid_indices: 1D array of dataset rows eligible as start points.
+        num_eval: Number of evaluation starts to sample.
+        seed: RNG seed.
+
+    Returns:
+        Sorted 1D array of sampled dataset row indices.
+    """
+    valid_indices = np.asarray(valid_indices)
+    if valid_indices.ndim != 1:
+        raise ValueError("valid_indices must be a 1D array.")
+    if num_eval <= 0:
+        raise ValueError("num_eval must be > 0.")
+    if len(valid_indices) < num_eval:
+        raise ValueError(
+            "Not enough valid starting points for evaluation: "
+            f"requested {num_eval}, found {len(valid_indices)}."
+        )
+
+    g = np.random.default_rng(seed)
+    sampled_positions = g.choice(len(valid_indices), size=num_eval, replace=False)
+    return np.sort(valid_indices[sampled_positions])
+
+
 def img_transform(cfg):
     transform = transforms.Compose(
         [
@@ -177,16 +204,13 @@ def run(cfg: DictConfig):
     valid_indices = np.nonzero(valid_mask)[0]
     print(valid_mask.sum(), "valid starting points found for evaluation.")
 
-    g = np.random.default_rng(cfg.seed)
-    random_episode_indices = g.choice(
-        len(valid_indices) - 1, size=cfg.eval.num_eval, replace=False
+    sampled_indices = sample_eval_row_indices(
+        valid_indices=valid_indices,
+        num_eval=int(cfg.eval.num_eval),
+        seed=int(cfg.seed),
     )
-    random_episode_indices = np.sort(valid_indices[random_episode_indices])
-    eval_episodes = dataset.get_row_data(random_episode_indices)[col_name]
-    eval_start_idx = dataset.get_row_data(random_episode_indices)["step_idx"]
-
-    if len(eval_episodes) < cfg.eval.num_eval:
-        raise ValueError("Not enough episodes with sufficient length for evaluation.")
+    eval_episodes = dataset.get_row_data(sampled_indices)[col_name]
+    eval_start_idx = dataset.get_row_data(sampled_indices)["step_idx"]
 
     world.set_policy(policy)
 

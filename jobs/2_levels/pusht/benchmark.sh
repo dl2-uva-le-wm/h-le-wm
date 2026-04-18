@@ -121,7 +121,8 @@ CMD=(
   pretrained_low_level.freeze.low_level_predictor=True
   pretrained_low_level.freeze.low_level_action_encoder=True
   pretrained_low_level.freeze.projector=True
-  pretrained_low_level.freeze.pred_proj=True
+  pretrained_low_level.freeze.low_pred_proj=True
+  pretrained_low_level.freeze.high_pred_proj=False
   loss.alpha=0.0
   loss.beta=1.0
 )

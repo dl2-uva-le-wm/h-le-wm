@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import sys
+from copy import deepcopy
 
 import numpy as np
 import torch
@@ -76,6 +77,15 @@ class MeanLatentActionEncoder(nn.Module):
         return self.output_proj(pooled)
 
 
+class ScaleProjection(nn.Module):
+    def __init__(self, scale: float):
+        super().__init__()
+        self.scale = float(scale)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x * self.scale
+
+
 def make_test_hijepa(dim: int = 4) -> HiJEPA:
     return HiJEPA(
         encoder=DummyVisionEncoder(dim),
@@ -85,8 +95,85 @@ def make_test_hijepa(dim: int = 4) -> HiJEPA:
         latent_action_encoder=MeanLatentActionEncoder(dim, dim),
         macro_to_condition=nn.Identity(),
         projector=nn.Identity(),
-        pred_proj=nn.Identity(),
+        low_pred_proj=nn.Identity(),
+        high_pred_proj=nn.Identity(),
     )
+
+
+def test_split_projection_heads_are_used_independently():
+    dim = 4
+    model = HiJEPA(
+        encoder=DummyVisionEncoder(dim),
+        low_predictor=AdditivePredictor(dim),
+        action_encoder=IdentityActionEncoder(dim),
+        high_predictor=AdditivePredictor(dim),
+        latent_action_encoder=MeanLatentActionEncoder(dim, dim),
+        macro_to_condition=nn.Identity(),
+        projector=nn.Identity(),
+        low_pred_proj=ScaleProjection(2.0),
+        high_pred_proj=ScaleProjection(5.0),
+    )
+
+    emb = torch.ones(2, 3, dim)
+    cond = torch.zeros(2, 3, dim)
+    low_out = model.predict_low(emb, cond)
+    high_out = model.predict_high(emb, cond)
+
+    assert torch.allclose(low_out, emb * 2.0)
+    assert torch.allclose(high_out, emb * 5.0)
+
+
+def test_copy_init_projection_weights_are_equal_but_not_shared():
+    dim = 4
+    low_proj = nn.Linear(dim, dim, bias=True)
+    with torch.no_grad():
+        low_proj.weight.uniform_(-0.1, 0.1)
+        low_proj.bias.uniform_(-0.1, 0.1)
+    high_proj = deepcopy(low_proj)
+
+    model = HiJEPA(
+        encoder=DummyVisionEncoder(dim),
+        low_predictor=AdditivePredictor(dim),
+        action_encoder=IdentityActionEncoder(dim),
+        high_predictor=AdditivePredictor(dim),
+        latent_action_encoder=MeanLatentActionEncoder(dim, dim),
+        macro_to_condition=nn.Identity(),
+        projector=nn.Identity(),
+        low_pred_proj=low_proj,
+        high_pred_proj=high_proj,
+    )
+
+    assert torch.allclose(model.low_pred_proj.weight, model.high_pred_proj.weight)
+    assert torch.allclose(model.low_pred_proj.bias, model.high_pred_proj.bias)
+    assert model.low_pred_proj.weight.data_ptr() != model.high_pred_proj.weight.data_ptr()
+    assert model.low_pred_proj.bias.data_ptr() != model.high_pred_proj.bias.data_ptr()
+
+
+def test_freezing_low_projection_keeps_high_projection_trainable():
+    dim = 4
+    model = HiJEPA(
+        encoder=DummyVisionEncoder(dim),
+        low_predictor=AdditivePredictor(dim),
+        action_encoder=IdentityActionEncoder(dim),
+        high_predictor=AdditivePredictor(dim),
+        latent_action_encoder=MeanLatentActionEncoder(dim, dim),
+        macro_to_condition=nn.Identity(),
+        projector=nn.Identity(),
+        low_pred_proj=nn.Linear(dim, dim),
+        high_pred_proj=nn.Linear(dim, dim),
+    )
+
+    model.freeze_low_level(
+        freeze_encoder=False,
+        freeze_low_predictor=False,
+        freeze_action_encoder=False,
+        freeze_projector=False,
+        freeze_low_pred_proj=True,
+        freeze_high_pred_proj=False,
+    )
+
+    assert not any(p.requires_grad for p in model.low_pred_proj.parameters())
+    assert all(p.requires_grad for p in model.high_pred_proj.parameters())
 
 
 def test_hijepa_rollout_shapes():
