@@ -1,0 +1,840 @@
+Repo root: /gpfs/home3/scur0511/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0511/stablewm_data
+W&B entity: <default from login>
+W&B project: hi_lewm
+Benchmark run name: hi_lewm_p2_bench
+Benchmark max_steps: 500
+Benchmark limit_val_batches: 0
+Pretrained ckpt: /scratch-shared/scur0511/stablewm_data/pusht/lewm_object.ckpt
+Launching benchmark command:
+  python  hi_train.py  data=hi_pusht  output_model_name=hi_lewm_p2_bench  wandb.config.entity=null  wandb.config.project=hi_lewm  trainer.max_epochs=9999  +trainer.max_steps=500  +trainer.limit_val_batches=0  training.train_low_level=False  pretrained_low_level.enabled=True  pretrained_low_level.checkpoint.selection_mode=explicit_path  pretrained_low_level.checkpoint.path=/scratch-shared/scur0511/stablewm_data/pusht/lewm_object.ckpt  pretrained_low_level.freeze.encoder=True  pretrained_low_level.freeze.low_level_predictor=True  pretrained_low_level.freeze.low_level_action_encoder=True  pretrained_low_level.freeze.projector=True  pretrained_low_level.freeze.pred_proj=True  loss.alpha=0.0  loss.beta=1.0
+[2026-04-18 11:39:23,289][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-18 11:39:51,725][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-18 11:40:20,513][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[hi_train] loaded pretrained low-level object: /scratch-shared/scur0511/stablewm_data/pusht/lewm_object.ckpt
+[hi_train] parameter breakdown:
+  - state_encoder            total=   5,501,376 trainable=           0 share= 18.49%
+  - p1_low_predictor         total=  10,791,360 trainable=           0 share= 36.26%
+  - p1_action_encoder        total=     156,206 trainable=           0 share=  0.52%
+  - projector                total=     792,768 trainable=           0 share=  2.66%
+  - pred_proj                total=     792,768 trainable=           0 share=  2.66%
+  - p2_high_predictor        total=  10,791,552 trainable=  10,791,552 share= 36.26%
+  - p2_latent_action_encoder total=     932,160 trainable=     932,160 share=  3.13%
+  - p2_macro_to_condition    total=           0 trainable=           0 share=  0.00%
+[hi_train] total params: 29,758,190 | trainable params: 11,723,712 (39.40% trainable)
+11:40:21.304 | INFO    (3111876, stable_pretraining.data.module) | Setting up DataModule
+11:40:21.315 | INFO    (3111876, stable_pretraining.module) | Initializing Module configuration...
+11:40:21.315 | WARNING (3111876, stable_pretraining.module) | No hyperparameters provided - hyperparameter logging is disabled.
+11:40:21.317 | INFO    (3111876, stable_pretraining.module) | Setting custom forward method.
+11:40:21.317 | INFO    (3111876, stable_pretraining.module) | Setting attribute: self.model = <class 'hi_jepa.HiJEPA'>
+11:40:21.317 | INFO    (3111876, stable_pretraining.module) | Setting attribute: self.sigreg = <class '_baseline_lewm_module.SIGReg'>
+11:40:21.317 | INFO    (3111876, stable_pretraining.module) | Setting attribute: self.optim = <class 'dict'>
+11:40:21.317 | INFO    (3111876, stable_pretraining.module) | No metrics configuration provided - automatic metric tracking is disabled.
+11:40:23.384 | INFO    (3111876, stable_pretraining.callbacks.env_info) | EnvironmentDumpCallback initialized (filename=environment.json, async=True)
+11:40:23.384 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:40:23.384 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Initializing CPUOffloadCallback
+11:40:23.384 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Configuration:
+11:40:23.385 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Offload keys: ['state_dict', 'optimizer_states', 'lr_schedulers']
+11:40:23.385 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Log all skipped objects: False
+11:40:23.385 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Will show first/last 10 skipped objects only
+11:40:23.386 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ CUDA available: 1 GPU(s) detected
+11:40:23.565 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - GPU 0: NVIDIA A100-SXM4-40GB (42.4 GB)
+11:40:23.565 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback initialized successfully
+11:40:23.565 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:40:23.568 | WARNING (3111876, stable_pretraining.manager) | User didn't specify seed, runs won't be exactly reproducible!
+11:40:23.569 | INFO    (3111876, stable_pretraining.manager) | 📁📁📁 CURRENT WORKING DIR: /gpfs/home3/scur0511/h-le-wm 📁📁📁
+11:40:23.569 | INFO    (3111876, stable_pretraining.manager) | 🌱🌱🌱 SEEDING EVERYTHING with self.seed=None 🌱🌱🌱
+11:40:23.583 | INFO    (3111876, stable_pretraining.manager) | 📈📈📈 Using Wandb 📈📈📈
+11:40:23.583 | INFO    (3111876, stable_pretraining.manager) | 		a Wandb™ config is provided, not uploading Hydra's:
+11:40:23.583 | INFO    (3111876, stable_pretraining.manager) | 📈📈📈 WandbLogger setup 📈📈📈
+11:40:23.584 | INFO    (3111876, stable_pretraining.manager) | 📈📈📈 init={'name': 'hi_lewm_p2_bench', 'project': 'hi_lewm', 'dir': '.', 'id': None, 'resume': 'allow', 'anonymous': None} 📈📈📈
+11:40:23.584 | INFO    (3111876, stable_pretraining.manager) | 	● 👂👂👂 SIGNALS HANDLERS 👂👂👂
+11:40:23.584 | INFO    (3111876, stable_pretraining.manager) | 		- SIGUSR1: `0`
+11:40:23.584 | INFO    (3111876, stable_pretraining.manager) | 		- SIGUSR2: `0`
+11:40:23.585 | INFO    (3111876, stable_pretraining.manager) | 		- SIGCONT: `0`
+11:40:23.585 | INFO    (3111876, stable_pretraining.manager) | 		- SIGTERM: `0`
+11:40:23.585 | INFO    (3111876, stable_pretraining.manager) | 	● 📞📞📞 CALLBACKS 📞📞📞
+11:40:23.585 | INFO    (3111876, stable_pretraining.manager) | 		 - we found 14 callbacks
+11:40:23.585 | INFO    (3111876, stable_pretraining.manager) | 	● 📞📞📞 CHECKPOINTING SETUP 📞📞📞
+11:40:23.586 | WARNING (3111876, stable_pretraining.manager) | 		 Checkpoint mismatch: `manager.ckpt_path` (/gpfs/scratch1/shared/scur0511/stablewm_data/hi_lewm_p2_bench_weights.ckpt) was provided, but no matching `ModelCheckpoint` callback was found.
+11:40:23.586 | WARNING (3111876, stable_pretraining.manager) | 		 Automatically creating a `ModelCheckpoint` to save to the specified path to prevent data loss.
+11:40:23.587 | WARNING (3111876, stable_pretraining.manager) | 		 - Automatic `ModelCheckpoint` callback has been added to the trainer.
+11:40:23.587 | WARNING (3111876, stable_pretraining.manager) | /gpfs/scratch1/shared/scur0511/stablewm_data/hi_lewm_p2_bench_weights.ckpt specified, but does not exist, using None for now!
+11:40:23.587 | INFO    (3111876, stable_pretraining.manager) | 📣📣📣 CALLING trainer.fit with ckpt_path=None 📣📣📣
+11:40:23.742 | INFO    (3111876, stable_pretraining.data.module) | dataset for fit loaded!  ✅
+11:40:23.742 | INFO    (3111876, stable_pretraining.data.module) | 	● setup was done by user
+11:40:23.743 | INFO    (3111876, stable_pretraining.callbacks.env_info) | ======================================================================
+11:40:23.743 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 🔍 Starting environment configuration dump...
+11:40:23.743 | INFO    (3111876, stable_pretraining.callbacks.env_info) | ======================================================================
+11:40:23.744 | INFO    (3111876, stable_pretraining.callbacks.env_info) | EnvironmentDumpCallback  log_dir=PosixPath('/gpfs/home3/scur0511/h-le-wm')
+11:40:23.744 | INFO    (3111876, stable_pretraining.callbacks.env_info) | ⚡ Running environment dump in background thread (non-blocking)
+11:40:23.744 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 📁 Log directory: /gpfs/home3/scur0511/h-le-wm
+11:40:23.744 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 📊 Collecting environment information...
+11:40:23.745 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) | ✓ Background thread started successfully
+11:40:23.745 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ Python 3.10.20
+11:40:23.745 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | 	 linking trainer to DataModule! 🔧
+11:40:23.745 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ System: Linux 5.14.0-570.84.1.el9_6.x86_64 (x86_64)
+11:40:23.746 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Setting up SklearnCheckpoint callback!
+11:40:23.746 | INFO    (3111876, stable_pretraining.callbacks.env_info) |      Hostname: gcn34.local.snellius.surf.nl
+11:40:23.746 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Sklearn Modules:
+11:40:23.747 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | 
+┏━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┓
+┃ Module   ┃ Name   ┃ Type   ┃
+┣━━━━━━━━━━╋━━━━━━━━╋━━━━━━━━┫
+┗━━━━━━━━━━┻━━━━━━━━┻━━━━━━━━┛
+11:40:23.748 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Setting up WandbCheckpoint callback!
+11:40:23.749 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | PyTorch Modules:
+11:40:23.749 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:23.786 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | \n+-----------------------------------------------------------------+----------------------+--------------------------+--------------------------+---------+
+| Module                                                          | Trainable parameters | Non Trainable parameters | Uninitialized parameters | Buffers |
++-----------------------------------------------------------------+----------------------+--------------------------+--------------------------+---------+
+|                                                                 |             11723712 |                 18034478 |                        0 |    8245 |
+| callbacks_modules                                               |                    0 |                        0 |                        0 |       0 |
+| callbacks_metrics                                               |                    0 |                        0 |                        0 |       0 |
+| model                                                           |             11723712 |                 18034478 |                        0 |    8194 |
+| model.encoder                                                   |                    0 |                  5501376 |                        0 |       0 |
+| model.encoder.embeddings                                        |                    0 |                   162624 |                        0 |       0 |
+| model.encoder.embeddings.patch_embeddings                       |                    0 |                   113088 |                        0 |       0 |
+| model.encoder.embeddings.patch_embeddings.projection            |                    0 |                   113088 |                        0 |       0 |
+| model.encoder.embeddings.dropout                                |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder                                           |                    0 |                  5338368 |                        0 |       0 |
+| model.encoder.encoder.layer                                     |                    0 |                  5338368 |                        0 |       0 |
+| model.encoder.encoder.layer.0                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.0.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.0.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.0.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.0.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.0.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.0.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.0.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.0.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.0.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.1                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.1.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.1.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.1.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.1.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.1.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.1.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.1.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.1.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.1.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.2                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.2.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.2.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.2.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.2.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.2.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.2.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.2.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.2.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.2.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.3                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.3.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.3.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.3.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.3.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.3.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.3.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.3.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.3.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.3.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.4                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.4.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.4.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.4.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.4.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.4.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.4.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.4.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.4.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.4.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.5                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.5.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.5.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.5.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.5.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.5.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.5.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.5.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.5.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.5.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.6                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.6.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.6.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.6.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.6.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.6.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.6.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.6.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.6.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.6.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.7                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.7.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.7.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.7.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.7.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.7.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.7.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.7.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.7.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.7.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.8                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.8.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.8.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.8.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.8.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.8.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.8.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.8.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.8.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.8.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.9                                   |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention                         |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.attention               |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.attention.query         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.attention.key           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.attention.value         |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.output                  |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.output.dense            |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.9.attention.output.dropout          |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.9.intermediate                      |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.9.intermediate.dense                |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.9.intermediate.intermediate_act_fn  |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.9.output                            |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.9.output.dense                      |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.9.output.dropout                    |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.9.layernorm_before                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.9.layernorm_after                   |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.10                                  |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention                        |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.attention              |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.attention.query        |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.attention.key          |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.attention.value        |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.output                 |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.output.dense           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.10.attention.output.dropout         |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.10.intermediate                     |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.10.intermediate.dense               |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.10.intermediate.intermediate_act_fn |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.10.output                           |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.10.output.dense                     |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.10.output.dropout                   |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.10.layernorm_before                 |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.10.layernorm_after                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.11                                  |                    0 |                   444864 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention                        |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.attention              |                    0 |                   111168 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.attention.query        |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.attention.key          |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.attention.value        |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.output                 |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.output.dense           |                    0 |                    37056 |                        0 |       0 |
+| model.encoder.encoder.layer.11.attention.output.dropout         |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.11.intermediate                     |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.11.intermediate.dense               |                    0 |                   148224 |                        0 |       0 |
+| model.encoder.encoder.layer.11.intermediate.intermediate_act_fn |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.11.output                           |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.11.output.dense                     |                    0 |                   147648 |                        0 |       0 |
+| model.encoder.encoder.layer.11.output.dropout                   |                    0 |                        0 |                        0 |       0 |
+| model.encoder.encoder.layer.11.layernorm_before                 |                    0 |                      384 |                        0 |       0 |
+| model.encoder.encoder.layer.11.layernorm_after                  |                    0 |                      384 |                        0 |       0 |
+| model.encoder.layernorm                                         |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor                                             |                    0 |                 10791360 |                        0 |       0 |
+| model.low_predictor.dropout                                     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer                                 |                    0 |                 10790784 |                        0 |       0 |
+| model.low_predictor.transformer.norm                            |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers                          |                    0 |                 10790400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0                        |                    0 |                  1798400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn                   |                    0 |                   787008 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn.norm              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn.attend            |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn.to_qkv            |                    0 |                   589824 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn.to_out            |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn.to_out.0          |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.attn.to_out.1          |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp                    |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net                |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net.0              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net.1              |                    0 |                   395264 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net.2              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net.3              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net.4              |                    0 |                   393408 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.mlp.net.5              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.norm1                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.norm2                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.adaLN_modulation       |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.adaLN_modulation.0     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.0.adaLN_modulation.1     |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1                        |                    0 |                  1798400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn                   |                    0 |                   787008 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn.norm              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn.attend            |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn.to_qkv            |                    0 |                   589824 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn.to_out            |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn.to_out.0          |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.attn.to_out.1          |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp                    |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net                |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net.0              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net.1              |                    0 |                   395264 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net.2              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net.3              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net.4              |                    0 |                   393408 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.mlp.net.5              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.norm1                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.norm2                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.adaLN_modulation       |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.adaLN_modulation.0     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.1.adaLN_modulation.1     |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2                        |                    0 |                  1798400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn                   |                    0 |                   787008 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn.norm              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn.attend            |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn.to_qkv            |                    0 |                   589824 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn.to_out            |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn.to_out.0          |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.attn.to_out.1          |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp                    |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net                |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net.0              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net.1              |                    0 |                   395264 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net.2              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net.3              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net.4              |                    0 |                   393408 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.mlp.net.5              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.norm1                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.norm2                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.adaLN_modulation       |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.adaLN_modulation.0     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.2.adaLN_modulation.1     |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3                        |                    0 |                  1798400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn                   |                    0 |                   787008 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn.norm              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn.attend            |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn.to_qkv            |                    0 |                   589824 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn.to_out            |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn.to_out.0          |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.attn.to_out.1          |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp                    |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net                |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net.0              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net.1              |                    0 |                   395264 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net.2              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net.3              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net.4              |                    0 |                   393408 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.mlp.net.5              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.norm1                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.norm2                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.adaLN_modulation       |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.adaLN_modulation.0     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.3.adaLN_modulation.1     |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4                        |                    0 |                  1798400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn                   |                    0 |                   787008 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn.norm              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn.attend            |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn.to_qkv            |                    0 |                   589824 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn.to_out            |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn.to_out.0          |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.attn.to_out.1          |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp                    |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net                |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net.0              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net.1              |                    0 |                   395264 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net.2              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net.3              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net.4              |                    0 |                   393408 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.mlp.net.5              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.norm1                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.norm2                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.adaLN_modulation       |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.adaLN_modulation.0     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.4.adaLN_modulation.1     |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5                        |                    0 |                  1798400 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn                   |                    0 |                   787008 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn.norm              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn.attend            |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn.to_qkv            |                    0 |                   589824 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn.to_out            |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn.to_out.0          |                    0 |                   196800 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.attn.to_out.1          |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp                    |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net                |                    0 |                   789056 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net.0              |                    0 |                      384 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net.1              |                    0 |                   395264 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net.2              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net.3              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net.4              |                    0 |                   393408 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.mlp.net.5              |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.norm1                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.norm2                  |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.adaLN_modulation       |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.adaLN_modulation.0     |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.layers.5.adaLN_modulation.1     |                    0 |                   222336 |                        0 |       0 |
+| model.low_predictor.transformer.input_proj                      |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.cond_proj                       |                    0 |                        0 |                        0 |       0 |
+| model.low_predictor.transformer.output_proj                     |                    0 |                        0 |                        0 |       0 |
+| model.action_encoder                                            |                    0 |                   156206 |                        0 |       0 |
+| model.action_encoder.patch_embed                                |                    0 |                      110 |                        0 |       0 |
+| model.action_encoder.embed                                      |                    0 |                   156096 |                        0 |       0 |
+| model.action_encoder.embed.0                                    |                    0 |                     8448 |                        0 |       0 |
+| model.action_encoder.embed.1                                    |                    0 |                        0 |                        0 |       0 |
+| model.action_encoder.embed.2                                    |                    0 |                   147648 |                        0 |       0 |
+| model.high_predictor                                            |             10791552 |                        0 |                        0 |       0 |
+| model.high_predictor.dropout                                    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer                                |             10790784 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.norm                           |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers                         |             10790400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0                       |              1798400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn                  |               787008 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn.norm             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn.attend           |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn.to_qkv           |               589824 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn.to_out           |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn.to_out.0         |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.attn.to_out.1         |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp                   |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net               |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net.0             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net.1             |               395264 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net.2             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net.3             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net.4             |               393408 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.mlp.net.5             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.norm1                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.norm2                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.adaLN_modulation      |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.adaLN_modulation.0    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.0.adaLN_modulation.1    |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1                       |              1798400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn                  |               787008 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn.norm             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn.attend           |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn.to_qkv           |               589824 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn.to_out           |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn.to_out.0         |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.attn.to_out.1         |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp                   |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net               |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net.0             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net.1             |               395264 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net.2             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net.3             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net.4             |               393408 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.mlp.net.5             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.norm1                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.norm2                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.adaLN_modulation      |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.adaLN_modulation.0    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.1.adaLN_modulation.1    |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2                       |              1798400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn                  |               787008 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn.norm             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn.attend           |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn.to_qkv           |               589824 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn.to_out           |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn.to_out.0         |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.attn.to_out.1         |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp                   |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net               |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net.0             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net.1             |               395264 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net.2             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net.3             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net.4             |               393408 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.mlp.net.5             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.norm1                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.norm2                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.adaLN_modulation      |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.adaLN_modulation.0    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.2.adaLN_modulation.1    |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3                       |              1798400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn                  |               787008 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn.norm             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn.attend           |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn.to_qkv           |               589824 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn.to_out           |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn.to_out.0         |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.attn.to_out.1         |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp                   |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net               |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net.0             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net.1             |               395264 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net.2             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net.3             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net.4             |               393408 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.mlp.net.5             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.norm1                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.norm2                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.adaLN_modulation      |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.adaLN_modulation.0    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.3.adaLN_modulation.1    |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4                       |              1798400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn                  |               787008 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn.norm             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn.attend           |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn.to_qkv           |               589824 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn.to_out           |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn.to_out.0         |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.attn.to_out.1         |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp                   |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net               |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net.0             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net.1             |               395264 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net.2             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net.3             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net.4             |               393408 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.mlp.net.5             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.norm1                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.norm2                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.adaLN_modulation      |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.adaLN_modulation.0    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.4.adaLN_modulation.1    |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5                       |              1798400 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn                  |               787008 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn.norm             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn.attend           |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn.to_qkv           |               589824 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn.to_out           |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn.to_out.0         |               196800 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.attn.to_out.1         |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp                   |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net               |               789056 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net.0             |                  384 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net.1             |               395264 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net.2             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net.3             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net.4             |               393408 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.mlp.net.5             |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.norm1                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.norm2                 |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.adaLN_modulation      |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.adaLN_modulation.0    |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.layers.5.adaLN_modulation.1    |               222336 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.input_proj                     |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.cond_proj                      |                    0 |                        0 |                        0 |       0 |
+| model.high_predictor.transformer.output_proj                    |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder                                     |               932160 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.input_proj                          |                 2112 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder                             |               889728 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers                      |               889728 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0                    |               444864 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.self_attn          |               148224 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.self_attn.out_proj |                37056 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.linear1            |               148224 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.dropout            |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.linear2            |               147648 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.norm1              |                  384 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.norm2              |                  384 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.dropout1           |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.0.dropout2           |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1                    |               444864 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.self_attn          |               148224 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.self_attn.out_proj |                37056 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.linear1            |               148224 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.dropout            |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.linear2            |               147648 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.norm1              |                  384 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.norm2              |                  384 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.dropout1           |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.encoder.layers.1.dropout2           |                    0 |                        0 |                        0 |       0 |
+| model.latent_action_encoder.output_proj                         |                37056 |                        0 |                        0 |       0 |
+| model.macro_to_condition                                        |                    0 |                        0 |                        0 |       0 |
+| model.projector                                                 |                    0 |                   792768 |                        0 |    4097 |
+| model.projector.net                                             |                    0 |                   792768 |                        0 |    4097 |
+| model.projector.net.0                                           |                    0 |                   395264 |                        0 |       0 |
+| model.projector.net.1                                           |                    0 |                     4096 |                        0 |    4097 |
+| model.projector.net.2                                           |                    0 |                        0 |                        0 |       0 |
+| model.projector.net.3                                           |                    0 |                   393408 |                        0 |       0 |
+| model.pred_proj                                                 |                    0 |                   792768 |                        0 |    4097 |
+| model.pred_proj.net                                             |                    0 |                   792768 |                        0 |    4097 |
+| model.pred_proj.net.0                                           |                    0 |                   395264 |                        0 |       0 |
+| model.pred_proj.net.1                                           |                    0 |                     4096 |                        0 |    4097 |
+| model.pred_proj.net.2                                           |                    0 |                        0 |                        0 |       0 |
+| model.pred_proj.net.3                                           |                    0 |                   393408 |                        0 |       0 |
+| sigreg                                                          |                    0 |                        0 |                        0 |      51 |
++-----------------------------------------------------------------+----------------------+--------------------------+--------------------------+---------+
+11:40:23.786 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | ---- SLURM INFO ---- 🔧
+11:40:23.787 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Job ID: 21975932
+11:40:23.787 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Task ID: N/A
+11:40:23.787 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Job Name: hi_l2_pusht_bench
+11:40:23.787 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Nodes: 1
+11:40:23.787 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Tasks: 1
+11:40:23.788 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | CPUs per node: 18
+11:40:23.788 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | CPUs per task: 9
+11:40:23.788 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Memory per node: N/A
+11:40:23.788 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Memory per CPU: N/A
+11:40:23.788 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Time limit: N/A
+11:40:23.788 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Partition: gpu_a100
+11:40:23.789 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Node List: gcn34
+11:40:23.789 | INFO    (3111876, stable_pretraining.callbacks.trainer_info) | Submit Directory: /gpfs/home3/scur0511/h-le-wm/jobs/2_levels/pusht
+11:40:23.789 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Setup called for stage 'fit'
+11:40:23.789 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Trainer rank: 0/1
+11:40:23.789 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Strategy: SingleDeviceStrategy
+11:40:23.790 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Strategy 'SingleDeviceStrategy' is compatible with CPU offload
+11:40:23.790 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ CPUOffloadCallback ENABLED for strategy 'SingleDeviceStrategy'
+11:40:23.790 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - This rank will handle checkpoint saving and CPU offload
+11:40:23.835 | INFO    (3111876, stable_pretraining.module) | Configuring optimizers and learning rate schedulers...
+11:40:23.835 | INFO    (3111876, stable_pretraining.module) | 	Optimizer specified by Dict with keys ['model_opt']... 🔧
+11:40:23.840 | INFO    (3111876, stable_pretraining.module) | 
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Optimizer   ┃ Pattern   ┃   Matched Modules ┃   Param Tensors ┃   Total Params ┃   RequiresGrad Tensors ┃
+┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ model_opt   ┃ model     ┃               525 ┃             408 ┃       29758190 ┃                    111 ┃
+┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━┛
+11:40:23.840 | INFO    (3111876, stable_pretraining.optim.lr_scheduler) | 	User provided a dict
+11:40:24.053 | INFO    (3111876, stable_pretraining.module) | Configured optimizer 'model_opt' (modules=525, param_tensors=408, total_params=29758190) with LinearWarmupCosineAnnealingLR scheduler.
+11:40:24.060 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:24.065 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:24.067 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:24.069 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+┏━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃   ┃ Name              ┃ Type       ┃ Params ┃ Mode  ┃ FLOPs ┃
+┡━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 0 │ callbacks_modules │ ModuleDict │      0 │ train │     0 │
+│ 1 │ callbacks_metrics │ ModuleDict │      0 │ train │     0 │
+│ 2 │ model             │ HiJEPA     │ 29.8 M │ train │     0 │
+│ 3 │ sigreg            │ SIGReg     │      0 │ train │     0 │
+└───┴───────────────────┴────────────┴────────┴───────┴───────┘
+Trainable params: 11.7 M                                                        
+Non-trainable params: 18.0 M                                                    
+Total params: 29.8 M                                                            
+Total estimated model params size (MB): 119                                     
+Modules in train mode: 164                                                      
+Modules in eval mode: 364                                                       
+Total FLOPs: 0                                                                  
+11:40:24.091 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:24.096 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Training started
+11:40:24.096 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:24.097 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:24.099 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Model statistics:
+11:40:24.099 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total parameters: 29,758,190
+11:40:24.099 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Trainable parameters: 11,723,712
+11:40:24.100 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Model size (bf16): ~0.06 GB
+11:40:24.100 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Estimated checkpoint size (with optimizer): ~0.18 GB
+11:40:24.100 | INFO    (3111876, stable_pretraining.module) | Double checking optimizers!
+11:40:24.100 | INFO    (3111876, stable_pretraining.module) | `self.optimizers() gave us 1 optimizers
+11:40:24.100 | WARNING (3111876, stable_pretraining.module) | No clip val found for optimizer default_0
+11:40:24.101 | WARNING (3111876, stable_pretraining.module) | -> we will use the Trainer's value of 1.0
+11:40:24.101 | WARNING (3111876, stable_pretraining.module) | No clip algorithm found for optimizer default_0
+11:40:24.101 | WARNING (3111876, stable_pretraining.module) | -> we will use the Trainer's value of None
+11:40:24.101 | SUCCESS (3111876, stable_pretraining.module) | We are done checking your optimizers! Here is the summary:
++------------+-----------+----------------+-----------+-----------+
+| Opt. Index | Opt. name |      opt       | clip val. | clip alg. |
++------------+-----------+----------------+-----------+-----------+
+|     0      | default_0 | LightningAdamW |    1.0    |    None   |
++------------+-----------+----------------+-----------+-----------+
+11:40:24.585 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ Packages: 176 packages collected in 0.84s
+11:40:24.618 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ NVIDIA Driver: 590.48.01
+11:40:24.711 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ Git: v2 @ c42b542c
+11:40:24.711 | INFO    (3111876, stable_pretraining.callbacks.env_info) |      Remote: https://github.com/dl2-uva-le-wm/h-le-wm.git
+11:40:24.712 | WARNING (3111876, stable_pretraining.callbacks.env_info) |      ⚠️  Working directory has uncommitted changes!
+11:40:24.712 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ SLURM Job: 21975932
+11:40:24.712 | INFO    (3111876, stable_pretraining.callbacks.env_info) |      Name: hi_l2_pusht_bench
+11:40:24.712 | INFO    (3111876, stable_pretraining.callbacks.env_info) |      Partition: gpu_a100
+11:40:24.713 | INFO    (3111876, stable_pretraining.callbacks.env_info) |      Nodes: 1
+11:40:24.713 | INFO    (3111876, stable_pretraining.callbacks.env_info) |      Tasks: 1
+11:40:24.714 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) |   ✓ Environment: 4 relevant variables captured
+11:40:24.714 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 🔄 Serializing environment data...
+11:40:24.714 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 📋 File exists, using version 1: environment_v1.json
+11:40:24.715 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 📋 File exists, using version 1: requirements_frozen_v1.txt
+11:40:24.715 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 📁 Save directory: /gpfs/home3/scur0511/h-le-wm
+11:40:24.716 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 💾 Writing environment to temp file...
+11:40:24.778 | INFO    (3111876, stable_pretraining.callbacks.env_info) | 💾 Moving to: environment_v1.json
+11:40:24.781 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) | ✓ Environment file saved (10.5 KB)
+11:40:24.783 | SUCCESS (3111876, stable_pretraining.callbacks.env_info) | ✓ Requirements file saved (3.2 KB)
+11:40:45.709 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:45.712 | INFO    (3111876, stable_pretraining.callbacks.unused_parameters) | [LogUnusedParametersOnce] Registered hooks on 111 leaf parameters.
+11:40:46.759 | WARNING (3111876, stable_pretraining.module) | You are calling self.parameters which also gives callbacks parameters, to remove then, pass `with_callbacks=False`
+11:40:46.761 | INFO    (3111876, stable_pretraining.callbacks.unused_parameters) | [LogUnusedParametersOnce] All tracked parameters received gradients on the first backward pass.
+11:40:46.761 | INFO    (3111876, stable_pretraining.callbacks.unused_parameters) | [LogUnusedParametersOnce] Hooks removed, callback disabled.
+11:58:27.331 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Checking for non PyTorch modules to save... 🔧
+11:58:27.334 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Checking for Wandb params to save... 🔧
+11:58:27.334 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Saving Wandb params {'id': 'dxuh50yn'}
+11:58:27.335 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Checking for Wandb params to save... Done!
+11:58:27.335 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:58:27.335 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Starting checkpoint CPU offload (#1)
+11:58:27.335 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Global step: 500
+11:58:27.335 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Epoch: 0
+11:58:27.336 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Checkpoint contains 11 keys: ['callbacks', 'epoch', 'global_step', 'hparams_name', 'hyper_parameters', 'loops', 'lr_schedulers', 'optimizer_states', 'pytorch-lightning_version', 'state_dict', 'wandb']
+11:58:27.340 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | GPU memory before offload:
+11:58:27.340 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Allocated: 0.23 GB
+11:58:27.340 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Reserved: 3.60 GB
+11:58:27.341 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Processing checkpoint key: 'state_dict'
+11:58:27.429 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Completed 'state_dict' in 0.09s
+11:58:27.430 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Processing checkpoint key: 'optimizer_states'
+11:58:27.499 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Completed 'optimizer_states' in 0.07s
+11:58:27.499 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Processing checkpoint key: 'lr_schedulers'
+11:58:27.500 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Completed 'lr_schedulers' in 0.00s
+11:58:27.500 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | Skipped 431 custom object(s)
+11:58:27.500 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | First 10 skipped objects:
+11:58:27.500 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].lr'
+11:58:27.501 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].betas[0]'
+11:58:27.501 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].betas[1]'
+11:58:27.501 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].eps'
+11:58:27.502 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].weight_decay'
+11:58:27.502 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].amsgrad'
+11:58:27.502 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].maximize'
+11:58:27.502 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - NoneType at 'optimizer_states[0].param_groups[0].foreach'
+11:58:27.502 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].capturable'
+11:58:27.503 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].differentiable'
+11:58:27.503 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | ... (411 more skipped) ...
+11:58:27.503 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | Last 10 skipped objects:
+11:58:27.503 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0].warmup_steps'
+11:58:27.503 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0].max_steps'
+11:58:27.503 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0].warmup_start_lr'
+11:58:27.504 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0].eta_min'
+11:58:27.504 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0].base_lrs[0]'
+11:58:27.504 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0].last_epoch'
+11:58:27.505 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0]._step_count'
+11:58:27.505 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'lr_schedulers[0]._is_initial'
+11:58:27.505 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'lr_schedulers[0]._get_lr_called_within_step'
+11:58:27.505 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0]._last_lr[0]'
+11:58:27.505 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | To see all 431 skipped objects, set log_skipped=True
+11:58:27.506 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | GPU memory after offload:
+11:58:27.506 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Allocated: 0.23 GB
+11:58:27.506 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Reserved: 3.60 GB
+11:58:27.507 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | GPU memory freed: 0.00 GB
+11:58:27.507 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Checkpoint #1 completed in 0.17s
+11:58:27.507 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Successfully processed keys: ['state_dict', 'optimizer_states', 'lr_schedulers']
+11:58:27.507 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Cumulative stats:
+11:58:27.507 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total checkpoints saved: 1
+11:58:27.508 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total time in offload: 0.17s
+11:58:27.508 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total memory freed: 0.00 GB
+11:58:27.508 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Average time per checkpoint: 0.17s
+11:58:27.509 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:58:28.264 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Checking for non PyTorch modules to save... 🔧
+11:58:28.264 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Checking for Wandb params to save... 🔧
+11:58:28.265 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Saving Wandb params {'id': 'dxuh50yn'}
+11:58:28.265 | INFO    (3111876, stable_pretraining.callbacks.checkpoint_sklearn) | Checking for Wandb params to save... Done!
+11:58:28.265 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:58:28.265 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Starting checkpoint CPU offload (#2)
+11:58:28.266 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Global step: 500
+11:58:28.266 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Epoch: 0
+11:58:28.266 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Checkpoint contains 11 keys: ['callbacks', 'epoch', 'global_step', 'hparams_name', 'hyper_parameters', 'loops', 'lr_schedulers', 'optimizer_states', 'pytorch-lightning_version', 'state_dict', 'wandb']
+11:58:28.267 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | GPU memory before offload:
+11:58:28.267 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Allocated: 0.23 GB
+11:58:28.267 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Reserved: 3.60 GB
+11:58:28.267 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Processing checkpoint key: 'state_dict'
+11:58:28.313 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Completed 'state_dict' in 0.05s
+11:58:28.314 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Processing checkpoint key: 'optimizer_states'
+11:58:28.333 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Completed 'optimizer_states' in 0.02s
+11:58:28.333 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Processing checkpoint key: 'lr_schedulers'
+11:58:28.333 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | ✓ Completed 'lr_schedulers' in 0.00s
+11:58:28.333 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | Skipped 431 custom object(s)
+11:58:28.334 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | First 10 skipped objects:
+11:58:28.334 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].lr'
+11:58:28.334 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].betas[0]'
+11:58:28.334 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].betas[1]'
+11:58:28.334 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].eps'
+11:58:28.335 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'optimizer_states[0].param_groups[0].weight_decay'
+11:58:28.335 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].amsgrad'
+11:58:28.335 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].maximize'
+11:58:28.335 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - NoneType at 'optimizer_states[0].param_groups[0].foreach'
+11:58:28.335 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].capturable'
+11:58:28.336 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'optimizer_states[0].param_groups[0].differentiable'
+11:58:28.336 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | ... (411 more skipped) ...
+11:58:28.336 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) | Last 10 skipped objects:
+11:58:28.337 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0].warmup_steps'
+11:58:28.337 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0].max_steps'
+11:58:28.337 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0].warmup_start_lr'
+11:58:28.337 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0].eta_min'
+11:58:28.337 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0].base_lrs[0]'
+11:58:28.338 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0].last_epoch'
+11:58:28.338 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - int at 'lr_schedulers[0]._step_count'
+11:58:28.338 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'lr_schedulers[0]._is_initial'
+11:58:28.338 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - bool at 'lr_schedulers[0]._get_lr_called_within_step'
+11:58:28.338 | WARNING (3111876, stable_pretraining.callbacks.cpu_offload) |   - float at 'lr_schedulers[0]._last_lr[0]'
+11:58:28.339 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | To see all 431 skipped objects, set log_skipped=True
+11:58:28.339 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | GPU memory after offload:
+11:58:28.339 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Allocated: 0.23 GB
+11:58:28.340 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Reserved: 3.60 GB
+11:58:28.340 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | GPU memory freed: 0.00 GB
+11:58:28.340 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Checkpoint #2 completed in 0.07s
+11:58:28.340 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Successfully processed keys: ['state_dict', 'optimizer_states', 'lr_schedulers']
+11:58:28.341 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Cumulative stats:
+11:58:28.341 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total checkpoints saved: 2
+11:58:28.341 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total time in offload: 0.25s
+11:58:28.341 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total memory freed: 0.00 GB
+11:58:28.341 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Average time per checkpoint: 0.12s
+11:58:28.342 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:58:28.559 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+11:58:28.559 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Training completed
+11:58:28.559 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | Final statistics:
+11:58:28.559 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total checkpoints saved: 2
+11:58:28.559 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total time in offload: 0.25s
+11:58:28.560 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Total GPU memory freed: 0.00 GB
+11:58:28.560 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Average time per checkpoint: 0.12s
+11:58:28.560 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) |   - Average memory freed per checkpoint: 0.00 GB
+11:58:28.560 | SUCCESS (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: All checkpoints saved successfully
+11:58:28.561 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | ============================================================
+Epoch 0/9998 ━╸                  500/5081 0:18:13 • 2:47:55 0.45it/s v_num: 50yn
+11:58:38.027 | INFO    (3111876, stable_pretraining.callbacks.cpu_offload) | CPUOffloadCallback: Teardown called for stage 'fit'
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33mhi_lewm_p2_bench[0m at: [34mhttps://wandb.ai/caselli-niccolo-developer-university-of-amsterdam/hi_lewm/runs/dxuh50yn[0m
+Benchmark finished in 1211s for 500 train steps.
+Approx throughput: 0.41 steps/s (2.42 s/step)
