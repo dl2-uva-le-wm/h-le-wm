@@ -14,6 +14,7 @@ import stable_worldmodel as swm
 import torch
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import OmegaConf, open_dict
+from torch.utils.data import default_collate
 
 from baseline_adapter import (
     ARPredictor,
@@ -285,6 +286,73 @@ def build_action_chunks_batched(
     return chunks, mask
 
 
+def is_p2_frozen_optimization_enabled(cfg) -> bool:
+    """Return whether P2-frozen optimized input pipeline should be enabled."""
+    if bool(cfg.training.get("train_low_level", False)):
+        return False
+    if float(cfg.loss.sigreg.weight) > 0.0:
+        return False
+    if not bool(cfg.pretrained_low_level.get("enabled", False)):
+        return False
+
+    freeze_cfg = cfg.pretrained_low_level.freeze
+    required_frozen = (
+        bool(freeze_cfg.get("encoder", True)),
+        bool(freeze_cfg.get("low_level_predictor", True)),
+        bool(freeze_cfg.get("low_level_action_encoder", True)),
+        bool(freeze_cfg.get("projector", True)),
+        bool(freeze_cfg.get("low_pred_proj", True)),
+    )
+    return all(required_frozen)
+
+
+def build_p2_frozen_waypoint_collate(cfg, pixel_preprocessor):
+    """Build collate_fn that preprocesses only sampled waypoint pixel frames."""
+    if pixel_preprocessor is None:
+        raise ValueError("pixel_preprocessor is required for P2 frozen waypoint collate.")
+
+    num_waypoints = int(cfg.wm.high_level.waypoints.num)
+
+    def collate(samples):
+        if len(samples) == 0:
+            raise ValueError("Cannot collate an empty batch.")
+
+        seq_len = int(samples[0]["action"].shape[0])
+        waypoints, _ = sample_waypoints(
+            cfg,
+            batch_size=len(samples),
+            seq_len=seq_len,
+            device="cpu",
+        )
+
+        processed = []
+        for i, sample in enumerate(samples):
+            item = dict(sample)
+            wp = waypoints[i]
+            pixels = item["pixels"]
+            if torch.is_tensor(pixels):
+                selected = pixels.index_select(
+                    0,
+                    wp.to(device=pixels.device, dtype=torch.long),
+                )
+            else:
+                selected = pixels[wp.cpu().numpy()]
+
+            pixel_out = pixel_preprocessor({"pixels": selected})
+            item["pixels"] = pixel_out["pixels"]
+            item["waypoints"] = wp.clone()
+            processed.append(item)
+
+        batch = default_collate(processed)
+        if batch["pixels"].shape[1] != num_waypoints:
+            raise RuntimeError(
+                f"Expected waypoint pixel length={num_waypoints}, got {batch['pixels'].shape[1]}"
+            )
+        return batch
+
+    return collate
+
+
 def hi_lejepa_forward(self, batch, stage, cfg):
     """Single train/val step for high-level predictor training.
 
@@ -405,6 +473,70 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     return output
 
 
+def hi_lejepa_forward_p2_frozen(self, batch, stage, cfg):
+    """Train/val step for P2-only runs with frozen low-level modules.
+
+    Assumes:
+        - ``batch['pixels']`` already contains only sampled waypoint frames ``(B, N, C, H, W)``
+        - ``batch['waypoints']`` contains original sequence indices ``(B, N)``
+        - low-level loss and SIGReg are disabled
+    """
+    batch["action"] = torch.nan_to_num(batch["action"], 0.0)
+    actions = batch["action"]  # (B, T, A)
+    b, _t, _a = actions.shape
+    device = actions.device
+
+    if "waypoints" not in batch:
+        raise RuntimeError("P2-frozen forward requires precomputed `batch['waypoints']`.")
+    waypoints = batch["waypoints"].to(device=device, dtype=torch.long)
+    if waypoints.ndim != 2 or waypoints.size(0) != b:
+        raise ValueError("waypoints must be shape (B, N) and match action batch size.")
+
+    output = self.model.encode({"pixels": batch["pixels"]}, encode_actions=False)
+    z_waypoints = output["emb"]  # (B, N, D_z)
+    if z_waypoints.size(1) != waypoints.size(1):
+        raise RuntimeError("Waypoint pixel count and waypoint index count do not match.")
+
+    z_context = z_waypoints[:, :-1]  # (B, N-1, D_z)
+    z_target = z_waypoints[:, 1:]  # (B, N-1, D_z)
+
+    starts = waypoints[:, :-1]
+    ends = waypoints[:, 1:]
+    chunk_actions, chunk_mask = build_action_chunks_batched(actions, starts, ends)
+    _, k, l_max, act_dim = chunk_actions.shape
+    flat_actions = chunk_actions.reshape(b * k, l_max, act_dim)
+    flat_mask = chunk_mask.reshape(b * k, l_max)
+    flat_macro = self.model.encode_macro_actions(flat_actions, flat_mask)  # (B*K, D_l)
+    macro_actions = flat_macro.reshape(b, k, -1)  # (B, N-1, D_l)
+
+    z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
+    output["l2_pred_loss"] = (z_pred - z_target).pow(2).mean()
+    output["l1_pred_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
+    output["sigreg_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
+
+    alpha = float(cfg.loss.get("alpha", 0.0))
+    beta = float(cfg.loss.get("beta", 1.0))
+    output["loss"] = alpha * output["l1_pred_loss"] + beta * output["l2_pred_loss"]
+
+    gaps = waypoints[:, 1:] - waypoints[:, :-1]
+    output["waypoint_gap_mean"] = gaps.float().mean()
+    output["waypoint_gap_max"] = gaps.float().max()
+    output["macro_action_norm"] = macro_actions.norm(dim=-1).mean()
+
+    metric_keys = (
+        "loss",
+        "l1_pred_loss",
+        "l2_pred_loss",
+        "sigreg_loss",
+        "waypoint_gap_mean",
+        "waypoint_gap_max",
+        "macro_action_norm",
+    )
+    metrics = {f"{stage}/{k}": output[k].detach() for k in metric_keys}
+    self.log_dict(metrics, on_step=True, sync_dist=True)
+    return output
+
+
 def clone_projection_head(module: torch.nn.Module) -> torch.nn.Module:
     """Return a trainable deep copy of a projection head module."""
     return deepcopy(module)
@@ -492,10 +624,21 @@ def run(cfg):
     """
     validate_high_level_config(cfg)
 
+    use_p2_frozen_optimization = is_p2_frozen_optimization_enabled(cfg)
+    if use_p2_frozen_optimization:
+        print("[hi_train] enabling P2 frozen input optimization (waypoint-only pixel preprocessing).")
+
     dataset = swm.data.HDF5Dataset(**cfg.data.dataset, transform=None)
-    transforms = [
-        get_img_preprocessor(source="pixels", target="pixels", img_size=cfg.img_size)
-    ]
+    pixel_preprocessor = None
+    transforms = []
+    if use_p2_frozen_optimization:
+        pixel_preprocessor = get_img_preprocessor(
+            source="pixels",
+            target="pixels",
+            img_size=cfg.img_size,
+        )
+    else:
+        transforms.append(get_img_preprocessor(source="pixels", target="pixels", img_size=cfg.img_size))
 
     with open_dict(cfg):
         for col in cfg.data.dataset.keys_to_load:
@@ -505,7 +648,7 @@ def run(cfg):
             transforms.append(normalizer)
             setattr(cfg.wm, f"{col}_dim", dataset.get_dim(col))
 
-    transform = spt.data.transforms.Compose(*transforms)
+    transform = spt.data.transforms.Compose(*transforms) if transforms else None
     dataset.transform = transform
 
     rnd_gen = torch.Generator().manual_seed(cfg.seed)
@@ -513,11 +656,15 @@ def run(cfg):
         dataset, lengths=[cfg.train_split, 1 - cfg.train_split], generator=rnd_gen
     )
 
+    loader_kwargs = dict(cfg.loader)
+    if use_p2_frozen_optimization:
+        loader_kwargs["collate_fn"] = build_p2_frozen_waypoint_collate(cfg, pixel_preprocessor)
+
     train = torch.utils.data.DataLoader(
-        train_set, **cfg.loader, shuffle=True, drop_last=True, generator=rnd_gen
+        train_set, **loader_kwargs, shuffle=True, drop_last=True, generator=rnd_gen
     )
     val = torch.utils.data.DataLoader(
-        val_set, **cfg.loader, shuffle=False, drop_last=False
+        val_set, **loader_kwargs, shuffle=False, drop_last=False
     )
 
     effective_act_dim = int(cfg.data.dataset.frameskip) * int(cfg.wm.action_dim)
@@ -690,11 +837,15 @@ def run(cfg):
         },
     }
 
+    selected_forward = (
+        hi_lejepa_forward_p2_frozen if use_p2_frozen_optimization else hi_lejepa_forward
+    )
+
     data_module = spt.data.DataModule(train=train, val=val)
     world_model = spt.Module(
         model=world_model,
         sigreg=SIGReg(**cfg.loss.sigreg.kwargs),
-        forward=partial(hi_lejepa_forward, cfg=cfg),
+        forward=partial(selected_forward, cfg=cfg),
         optim=optimizers,
     )
 

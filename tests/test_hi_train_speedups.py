@@ -9,6 +9,7 @@ from copy import deepcopy
 import pytest
 import torch
 from torch import nn
+from torch.utils.data import default_collate
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -27,7 +28,10 @@ def _load_hi_train_functions():
         "gather_waypoint_embeddings",
         "build_action_chunks",
         "build_action_chunks_batched",
+        "is_p2_frozen_optimization_enabled",
+        "build_p2_frozen_waypoint_collate",
         "hi_lejepa_forward",
+        "hi_lejepa_forward_p2_frozen",
         "clone_projection_head",
     }
     chunks = []
@@ -35,7 +39,7 @@ def _load_hi_train_functions():
         if isinstance(node, ast.FunctionDef) and node.name in wanted:
             chunks.append(ast.get_source_segment(source, node))
 
-    ns = {"torch": torch, "deepcopy": deepcopy}
+    ns = {"torch": torch, "deepcopy": deepcopy, "default_collate": default_collate}
     exec("\n\n".join(chunks), ns)
     return ns
 
@@ -45,6 +49,9 @@ GATHER_WAYPOINT_EMBEDDINGS = _HI_NS["gather_waypoint_embeddings"]
 BUILD_ACTION_CHUNKS = _HI_NS["build_action_chunks"]
 BUILD_ACTION_CHUNKS_BATCHED = _HI_NS["build_action_chunks_batched"]
 HI_LEJEPA_FORWARD = _HI_NS["hi_lejepa_forward"]
+HI_LEJEPA_FORWARD_P2_FROZEN = _HI_NS["hi_lejepa_forward_p2_frozen"]
+IS_P2_FROZEN_OPT_ENABLED = _HI_NS["is_p2_frozen_optimization_enabled"]
+BUILD_P2_FROZEN_WAYPOINT_COLLATE = _HI_NS["build_p2_frozen_waypoint_collate"]
 CLONE_PROJECTION_HEAD = _HI_NS["clone_projection_head"]
 
 
@@ -175,6 +182,16 @@ def _sample_waypoints_stub(_cfg, batch_size: int, seq_len: int, device):
 def _make_cfg(*, train_low_level: bool, sigreg_weight: float):
     return Node(
         training=Node(train_low_level=train_low_level),
+        pretrained_low_level=Node(
+            enabled=True,
+            freeze=Node(
+                encoder=True,
+                low_level_predictor=True,
+                low_level_action_encoder=True,
+                projector=True,
+                low_pred_proj=True,
+            ),
+        ),
         loss=Node(
             alpha=0.0,
             beta=1.0,
@@ -183,6 +200,7 @@ def _make_cfg(*, train_low_level: bool, sigreg_weight: float):
         wm=Node(
             history_size=3,
             num_preds=1,
+            high_level=Node(waypoints=Node(num=5)),
         ),
     )
 
@@ -326,6 +344,79 @@ def test_hi_lejepa_forward_smoke_multiple_steps_logs_metrics():
         assert torch.isfinite(out["loss"])
 
     assert len(module.logged) == 3
+
+
+def test_is_p2_frozen_optimization_enabled_matches_expected_modes():
+    cfg = _make_cfg(train_low_level=False, sigreg_weight=0.0)
+    assert IS_P2_FROZEN_OPT_ENABLED(cfg)
+
+    cfg_low = _make_cfg(train_low_level=True, sigreg_weight=0.0)
+    assert not IS_P2_FROZEN_OPT_ENABLED(cfg_low)
+
+    cfg_sig = _make_cfg(train_low_level=False, sigreg_weight=0.2)
+    assert not IS_P2_FROZEN_OPT_ENABLED(cfg_sig)
+
+    cfg_no_pretrain = _make_cfg(train_low_level=False, sigreg_weight=0.0)
+    cfg_no_pretrain.pretrained_low_level.enabled = False
+    assert not IS_P2_FROZEN_OPT_ENABLED(cfg_no_pretrain)
+
+    cfg_not_frozen = _make_cfg(train_low_level=False, sigreg_weight=0.0)
+    cfg_not_frozen.pretrained_low_level.freeze.low_pred_proj = False
+    assert not IS_P2_FROZEN_OPT_ENABLED(cfg_not_frozen)
+
+
+def test_build_p2_frozen_waypoint_collate_slices_pixels_and_attaches_waypoints():
+    BUILD_P2_FROZEN_WAYPOINT_COLLATE.__globals__["sample_waypoints"] = _sample_waypoints_stub
+
+    cfg = _make_cfg(train_low_level=False, sigreg_weight=0.0)
+    calls = {"n": 0}
+
+    def pixel_preprocessor(sample: dict):
+        calls["n"] += 1
+        return {"pixels": sample["pixels"].float()}
+
+    collate = BUILD_P2_FROZEN_WAYPOINT_COLLATE(cfg, pixel_preprocessor)
+    samples = [
+        {
+            "pixels": torch.randint(0, 255, (12, 3, 4, 4), dtype=torch.uint8),
+            "action": torch.randn(12, 6),
+            "proprio": torch.randn(12, 2),
+        },
+        {
+            "pixels": torch.randint(0, 255, (12, 3, 4, 4), dtype=torch.uint8),
+            "action": torch.randn(12, 6),
+            "proprio": torch.randn(12, 2),
+        },
+    ]
+    batch = collate(samples)
+
+    assert calls["n"] == 2
+    assert batch["pixels"].shape == (2, 5, 3, 4, 4)
+    assert batch["waypoints"].shape == (2, 5)
+    assert batch["action"].shape == (2, 12, 6)
+
+
+def test_hi_lejepa_forward_p2_frozen_uses_presliced_pixels_and_waypoints():
+    model = DummyModel(embed_dim=8, latent_dim=5)
+    module = DummyModule(model)
+    cfg = _make_cfg(train_low_level=False, sigreg_weight=0.0)
+
+    batch = {
+        "pixels": torch.randn(2, 5, 3, 4, 4),
+        "action": torch.randn(2, 12, 6),
+        "waypoints": torch.tensor([[2, 4, 6, 8, 10], [2, 4, 6, 8, 10]], dtype=torch.long),
+    }
+
+    out = HI_LEJEPA_FORWARD_P2_FROZEN(module, batch, "train", cfg)
+
+    assert model.encode_calls == 1
+    assert model.encode_selected_calls == 0
+    assert model.last_z_context_shape == (2, 4, 8)
+    assert model.last_macro_shape == (2, 4, 5)
+    assert model.last_z_pred_shape == (2, 4, 8)
+    assert torch.isfinite(out["loss"])
+    assert out["l1_pred_loss"].item() == 0.0
+    assert out["sigreg_loss"].item() == 0.0
 
 
 def test_clone_projection_head_copies_weights_without_sharing_storage():
