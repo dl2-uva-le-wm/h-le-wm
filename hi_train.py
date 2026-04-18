@@ -534,12 +534,62 @@ def build_action_chunks(
     return chunks, mask
 
 
+def build_action_chunks_batched(
+    actions: torch.Tensor, starts: torch.Tensor, ends: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Build padded action chunks for all waypoint transitions in one pass.
+
+    Args:
+        actions: Primitive action sequence, shape ``(B, T, A)``.
+        starts: Start indices per sample/transition, shape ``(B, K)``.
+        ends: End indices per sample/transition, shape ``(B, K)``.
+
+    Returns:
+        chunks: Padded chunks, shape ``(B, K, L_max, A)``.
+        mask: Valid-token mask, shape ``(B, K, L_max)`` where True is valid.
+    """
+    if actions.ndim != 3:
+        raise ValueError("actions must be shape (B, T, A)")
+    if starts.ndim != 2 or ends.ndim != 2:
+        raise ValueError("starts/ends must be shape (B, K)")
+    if starts.shape != ends.shape:
+        raise ValueError("starts and ends must have matching shape")
+
+    b, t, act_dim = actions.shape
+    if starts.size(0) != b:
+        raise ValueError("starts/ends batch dimension must match actions")
+    if (starts < 0).any() or (ends < 0).any() or (starts >= t).any() or (ends > t).any():
+        raise ValueError("starts/ends must satisfy 0 <= starts < T and 0 <= ends <= T")
+
+    lengths = (ends - starts).to(dtype=torch.long)
+    if (lengths <= 0).any():
+        raise ValueError("All action chunks must have positive length")
+
+    max_len = int(lengths.max().item())
+    offsets = torch.arange(max_len, device=actions.device).view(1, 1, max_len)
+    mask = offsets < lengths.unsqueeze(-1)  # (B, K, L_max)
+
+    gather_idx = starts.unsqueeze(-1) + offsets
+    gather_idx = gather_idx.clamp(min=0, max=t - 1)
+
+    batch_idx = torch.arange(b, device=actions.device).view(b, 1, 1)
+    batch_idx = batch_idx.expand_as(gather_idx)
+    chunks = actions[batch_idx, gather_idx, :]  # (B, K, L_max, A)
+    chunks = chunks * mask.unsqueeze(-1).to(dtype=actions.dtype)
+
+    if chunks.shape[-1] != act_dim:
+        raise RuntimeError("Unexpected chunk action dimension mismatch")
+    return chunks, mask
+
+
 def hi_lejepa_forward(self, batch, stage, cfg):
     """Single train/val step for high-level predictor training.
 
     Pipeline:
-        1. Encode observation sequence into latent states ``z``.
-        2. Sample waypoints from configured strategy.
+        1. Sample waypoints from configured strategy.
+        2. Encode either:
+           - full observation sequence, or
+           - waypoint-only frames in P2 fast path.
         3. Build action chunks between consecutive waypoints.
         4. Encode chunks into macro-actions via latent action encoder.
         5. Predict next waypoint latents using high-level predictor.
@@ -565,13 +615,12 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         Output dict containing losses and diagnostics.
     """
     batch["action"] = torch.nan_to_num(batch["action"], 0.0)
-    train_low_level = bool(cfg.training.get("train_low_level", False))
-    output = self.model.encode(batch, encode_actions=train_low_level)
-
-    emb = output["emb"]  # (B, T, D_z)
     actions = batch["action"]  # (B, T, A)
-    b, t, _d = emb.shape
-    device = emb.device
+    b, t, _a = actions.shape
+    device = actions.device
+
+    train_low_level = bool(cfg.training.get("train_low_level", False))
+    lambd = float(cfg.loss.sigreg.weight)
 
     waypoints, gaps = sample_waypoints(
         cfg,
@@ -579,23 +628,36 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         seq_len=t,
         device=device,
     )
-    z_waypoints = gather_waypoint_embeddings(emb, waypoints)  # (B, N, D_z)
+
+    # P2 fast path: avoid encoding all T frames when only waypoint latents are needed.
+    use_waypoint_fast_path = (not train_low_level) and (lambd <= 0.0)
+    if use_waypoint_fast_path:
+        output = {}
+        emb = None
+        z_waypoints = self.model.encode_selected_frames(batch["pixels"], waypoints)
+    else:
+        output = self.model.encode(batch, encode_actions=train_low_level)
+        emb = output["emb"]  # (B, T, D_z)
+        z_waypoints = gather_waypoint_embeddings(emb, waypoints)  # (B, N, D_z)
+
     z_context = z_waypoints[:, :-1]  # (B, N-1, D_z)
     z_target = z_waypoints[:, 1:]  # (B, N-1, D_z)
 
-    macro_actions_per_step = []
-    macro_norms = []
-    for k in range(z_context.size(1)):
-        chunk_actions, chunk_mask = build_action_chunks(actions, waypoints[:, k], waypoints[:, k + 1])
-        macro_k = self.model.encode_macro_actions(chunk_actions, chunk_mask)  # (B, D_l)
-        macro_actions_per_step.append(macro_k)
-        macro_norms.append(macro_k.norm(dim=-1))
+    starts = waypoints[:, :-1]
+    ends = waypoints[:, 1:]
+    chunk_actions, chunk_mask = build_action_chunks_batched(actions, starts, ends)
+    _, k, l_max, act_dim = chunk_actions.shape
+    flat_actions = chunk_actions.reshape(b * k, l_max, act_dim)
+    flat_mask = chunk_mask.reshape(b * k, l_max)
+    flat_macro = self.model.encode_macro_actions(flat_actions, flat_mask)  # (B*K, D_l)
+    macro_actions = flat_macro.reshape(b, k, -1)  # (B, N-1, D_l)
 
-    macro_actions = torch.stack(macro_actions_per_step, dim=1)  # (B, N-1, D_l)
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
     output["l2_pred_loss"] = (z_pred - z_target).pow(2).mean()
 
     if train_low_level:
+        if emb is None:
+            raise RuntimeError("emb is required for low-level loss but was not computed")
         ctx_len = int(cfg.wm.history_size)
         n_preds = int(cfg.wm.num_preds)
         act_emb = output["act_emb"]
@@ -605,13 +667,14 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         pred_emb = self.model.predict_low(ctx_emb, ctx_act)  # (B, T_ctx, D_z)
         output["l1_pred_loss"] = (pred_emb - tgt_emb).pow(2).mean()
     else:
-        output["l1_pred_loss"] = torch.zeros((), device=device, dtype=emb.dtype)
+        output["l1_pred_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
 
-    lambd = float(cfg.loss.sigreg.weight)
     if lambd > 0.0:
+        if emb is None:
+            raise RuntimeError("emb is required for SIGReg but was not computed")
         output["sigreg_loss"] = self.sigreg(emb.transpose(0, 1))
     else:
-        output["sigreg_loss"] = torch.zeros((), device=device, dtype=emb.dtype)
+        output["sigreg_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
 
     alpha = float(cfg.loss.get("alpha", 0.0))
     beta = float(cfg.loss.get("beta", 1.0))
@@ -623,7 +686,7 @@ def hi_lejepa_forward(self, batch, stage, cfg):
 
     output["waypoint_gap_mean"] = gaps.float().mean()
     output["waypoint_gap_max"] = gaps.float().max()
-    output["macro_action_norm"] = torch.stack(macro_norms, dim=1).mean()
+    output["macro_action_norm"] = macro_actions.norm(dim=-1).mean()
 
     metric_keys = (
         "loss",

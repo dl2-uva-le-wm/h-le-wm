@@ -81,6 +81,48 @@ class HiJEPA(nn.Module):
         self._enforce_frozen_eval_mode()
         return self
 
+    def _encode_pixels_sequence(self, pixels: torch.Tensor) -> torch.Tensor:
+        """Encode a pixel sequence ``(B, T, C, H, W)`` into latents ``(B, T, D_z)``."""
+        if pixels.ndim != 5:
+            raise ValueError("pixels must be shape (B, T, C, H, W)")
+        b = pixels.size(0)
+        flat_pixels = rearrange(pixels.float(), "b t ... -> (b t) ...")
+        output = self.encoder(flat_pixels, interpolate_pos_encoding=True)
+        pixels_emb = output.last_hidden_state[:, 0]
+        emb = self.projector(pixels_emb)
+        return rearrange(emb, "(b t) d -> b t d", b=b)
+
+    def encode_selected_frames(
+        self,
+        pixels: torch.Tensor,
+        frame_indices: torch.Tensor,
+    ) -> torch.Tensor:
+        """Encode selected frame indices from a sequence.
+
+        Args:
+            pixels: Full pixel sequence ``(B, T, C, H, W)``.
+            frame_indices: Per-sample frame indices ``(B, N)``.
+
+        Returns:
+            Selected-frame latents ``(B, N, D_z)``.
+        """
+        if pixels.ndim != 5:
+            raise ValueError("pixels must be shape (B, T, C, H, W)")
+        if frame_indices.ndim != 2:
+            raise ValueError("frame_indices must be shape (B, N)")
+
+        b, t = pixels.shape[:2]
+        if frame_indices.size(0) != b:
+            raise ValueError("frame_indices batch dimension must match pixels")
+
+        indices = frame_indices.to(device=pixels.device, dtype=torch.long)
+        if (indices < 0).any() or (indices >= t).any():
+            raise ValueError("frame_indices must be in [0, T)")
+
+        batch_idx = torch.arange(b, device=pixels.device).unsqueeze(1)
+        selected_pixels = pixels[batch_idx, indices]  # (B, N, C, H, W)
+        return self._encode_pixels_sequence(selected_pixels)
+
     def encode(self, info: dict, *, encode_actions: bool = True) -> dict:
         """Encode observation sequence (and optionally low-level action sequence).
 
@@ -93,13 +135,7 @@ class HiJEPA(nn.Module):
                 - ``emb``: (B, T, D_z)
                 - ``act_emb``: (B, T, D_z), only when requested
         """
-        pixels = info["pixels"].float()
-        b = pixels.size(0)
-        pixels = rearrange(pixels, "b t ... -> (b t) ...")
-        output = self.encoder(pixels, interpolate_pos_encoding=True)
-        pixels_emb = output.last_hidden_state[:, 0]
-        emb = self.projector(pixels_emb)
-        info["emb"] = rearrange(emb, "(b t) d -> b t d", b=b)
+        info["emb"] = self._encode_pixels_sequence(info["pixels"])
 
         if encode_actions and "action" in info:
             info["act_emb"] = self.action_encoder(info["action"])

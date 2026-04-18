@@ -1,18 +1,20 @@
 #!/bin/bash
 
-# Snellius job: Train hierarchical PushT P2 only (new implementation).
+# Snellius short benchmark: hierarchical PushT P2 only.
 # Usage (from this folder):
 #   cd jobs/2_levels/pusht
-#   sbatch train.sh
+#   sbatch benchmark.sh
+# Optional env overrides:
+#   BENCH_STEPS=500 BENCH_LIMIT_VAL_BATCHES=0 BENCH_RUN_NAME=hi_lewm_p2_bench_test sbatch benchmark.sh
 
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
-#SBATCH --job-name=hi_l2_pusht_p2
+#SBATCH --job-name=hi_l2_pusht_bench
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=04:00:00
-#SBATCH --output=train_p2_%j.out
-#SBATCH --error=train_p2_%j.err
+#SBATCH --time=01:00:00
+#SBATCH --output=bench_p2_%j.out
+#SBATCH --error=bench_p2_%j.err
 
 set -euo pipefail
 
@@ -64,7 +66,7 @@ if [[ -f "${WANDB_ENV_FILE}" ]]; then
 fi
 if [[ -z "${WANDB_API_KEY:-}" ]]; then
   echo "ERROR: WANDB_API_KEY is not set." >&2
-  echo "Set it in ${WANDB_ENV_FILE} or submit with: sbatch --export=ALL,WANDB_API_KEY=<your_key> train.sh" >&2
+  echo "Set it in ${WANDB_ENV_FILE} or submit with: sbatch --export=ALL,WANDB_API_KEY=<your_key> benchmark.sh" >&2
   exit 2
 fi
 wandb login --relogin "${WANDB_API_KEY}"
@@ -72,14 +74,22 @@ wandb login --relogin "${WANDB_API_KEY}"
 WANDB_ENTITY_OVERRIDE="${WANDB_ENTITY:-null}"
 WANDB_PROJECT="${WANDB_PROJECT:-hi_lewm}"
 
-######################################## TRAINING SETUP #######################################
+######################################## BENCH SETUP #######################################
 
 export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
-MAX_EPOCHS="${MAX_EPOCHS:-10}"
 PRETRAINED_LEWM_CKPT="${PRETRAINED_LEWM_CKPT:-${STABLEWM_HOME}/pusht/lewm_object.ckpt}"
+BENCH_STEPS="${BENCH_STEPS:-500}"
+BENCH_LIMIT_VAL_BATCHES="${BENCH_LIMIT_VAL_BATCHES:-0}"
+BENCH_MAX_EPOCHS="${BENCH_MAX_EPOCHS:-9999}"
+BENCH_RUN_NAME="${BENCH_RUN_NAME:-hi_lewm_p2_bench}"
 
 if [[ ! -f "${PRETRAINED_LEWM_CKPT}" ]]; then
   echo "ERROR: pretrained checkpoint not found: ${PRETRAINED_LEWM_CKPT}" >&2
+  exit 2
+fi
+
+if ! [[ "${BENCH_STEPS}" =~ ^[0-9]+$ ]] || [[ "${BENCH_STEPS}" -le 0 ]]; then
+  echo "ERROR: BENCH_STEPS must be a positive integer (got '${BENCH_STEPS}')" >&2
   exit 2
 fi
 
@@ -87,7 +97,9 @@ echo "Repo root: ${REPO_ROOT}"
 echo "STABLEWM_HOME=${STABLEWM_HOME}"
 echo "W&B entity: ${WANDB_ENTITY:-<default from login>}"
 echo "W&B project: ${WANDB_PROJECT}"
-echo "Max epochs: ${MAX_EPOCHS}"
+echo "Benchmark run name: ${BENCH_RUN_NAME}"
+echo "Benchmark max_steps: ${BENCH_STEPS}"
+echo "Benchmark limit_val_batches: ${BENCH_LIMIT_VAL_BATCHES}"
 echo "Pretrained ckpt: ${PRETRAINED_LEWM_CKPT}"
 
 cd "${REPO_ROOT}"
@@ -95,10 +107,12 @@ cd "${REPO_ROOT}"
 CMD=(
   python hi_train.py
   data=hi_pusht
-  output_model_name=hi_lewm_p2_pusht
+  output_model_name="${BENCH_RUN_NAME}"
   wandb.config.entity="${WANDB_ENTITY_OVERRIDE}"
   wandb.config.project="${WANDB_PROJECT}"
-  trainer.max_epochs="${MAX_EPOCHS}"
+  trainer.max_epochs="${BENCH_MAX_EPOCHS}"
+  +trainer.max_steps="${BENCH_STEPS}"
+  +trainer.limit_val_batches="${BENCH_LIMIT_VAL_BATCHES}"
   training.train_low_level=False
   pretrained_low_level.enabled=True
   pretrained_low_level.checkpoint.selection_mode=explicit_path
@@ -112,8 +126,18 @@ CMD=(
   loss.beta=1.0
 )
 
-echo "Launching training command:"
+echo "Launching benchmark command:"
 printf '  %q' "${CMD[@]}"
 echo
 
+SECONDS=0
 "${CMD[@]}"
+elapsed="${SECONDS}"
+echo "Benchmark finished in ${elapsed}s for ${BENCH_STEPS} train steps."
+if [[ "${elapsed}" -gt 0 ]]; then
+  python - <<PY
+steps = int(${BENCH_STEPS})
+sec = int(${elapsed})
+print(f"Approx throughput: {steps/sec:.2f} steps/s ({sec/steps:.2f} s/step)")
+PY
+fi
