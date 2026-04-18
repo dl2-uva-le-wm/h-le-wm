@@ -98,7 +98,7 @@ DATASET_FILE="${DATASET_FILE:-pusht_expert_train.h5}"
 CKPT_REL="${CKPT_REL:-pusht/lewm_object.ckpt}"
 MAX_EPOCHS="${MAX_EPOCHS:-1}"
 TRAIN_RUN_NAME="${TRAIN_RUN_NAME:-hi_lewm_p2_train_hope1_smoke_${SLURM_JOB_ID:-manual}}"
-WANDB_RUN_ID="${WANDB_RUN_ID:-${SLURM_JOB_ID:-manual}}"
+WANDB_RUN_ID="${WANDB_RUN_ID:-run_${SLURM_JOB_ID:-manual}}"
 
 SRC_DATASET="${SCRATCH_STABLEWM_HOME}/${DATASET_FILE}"
 SRC_CKPT="${SCRATCH_STABLEWM_HOME}/${CKPT_REL}"
