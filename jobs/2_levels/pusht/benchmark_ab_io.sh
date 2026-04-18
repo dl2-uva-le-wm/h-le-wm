@@ -8,6 +8,7 @@
 # Optional overrides:
 #   BENCH_STEPS=500 BENCH_LIMIT_VAL_BATCHES=0 sbatch benchmark_ab_io.sh
 #   SCRATCH_STABLEWM_HOME=/scratch-shared/$USER/stablewm_data sbatch benchmark_ab_io.sh
+#   BENCH_RESUME=1 BENCH_RUN_NAME_SHARED=hi_lewm_p2_bench_shared_21983090 sbatch benchmark_ab_io.sh
 
 #SBATCH --partition=gpu_a100
 #SBATCH --constraint=scratch-node
@@ -84,8 +85,10 @@ fi
 BENCH_STEPS="${BENCH_STEPS:-500}"
 BENCH_LIMIT_VAL_BATCHES="${BENCH_LIMIT_VAL_BATCHES:-0}"
 BENCH_MAX_EPOCHS="${BENCH_MAX_EPOCHS:-9999}"
-BENCH_RUN_NAME_SHARED="${BENCH_RUN_NAME_SHARED:-hi_lewm_p2_bench_shared}"
-BENCH_RUN_NAME_LOCAL="${BENCH_RUN_NAME_LOCAL:-hi_lewm_p2_bench_local}"
+BENCH_RESUME="${BENCH_RESUME:-0}"
+RUN_TAG="${RUN_TAG:-${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
+BENCH_RUN_NAME_SHARED="${BENCH_RUN_NAME_SHARED:-hi_lewm_p2_bench_shared_${RUN_TAG}}"
+BENCH_RUN_NAME_LOCAL="${BENCH_RUN_NAME_LOCAL:-hi_lewm_p2_bench_local_${RUN_TAG}}"
 
 LOCAL_STABLEWM_HOME="${LOCAL_STABLEWM_HOME:-${TMPDIR:-/tmp}/${USER}_stablewm_data_${SLURM_JOB_ID:-manual}}"
 LOCAL_DATASET="${LOCAL_STABLEWM_HOME}/${DATASET_FILE}"
@@ -102,6 +105,9 @@ echo "Local home: ${LOCAL_STABLEWM_HOME}"
 echo "Dataset: ${DATASET_FILE}"
 echo "Checkpoint: ${CKPT_REL}"
 echo "Bench steps: ${BENCH_STEPS}"
+echo "Bench resume mode: ${BENCH_RESUME} (0=fresh, 1=resume)"
+echo "Shared run name: ${BENCH_RUN_NAME_SHARED}"
+echo "Local run name: ${BENCH_RUN_NAME_LOCAL}"
 
 echo ""
 echo "==> Preparing node-local copy in ${LOCAL_STABLEWM_HOME}"
@@ -118,6 +124,7 @@ echo "==> Run A: scratch-shared benchmark"
   export BENCH_LIMIT_VAL_BATCHES="${BENCH_LIMIT_VAL_BATCHES}"
   export BENCH_MAX_EPOCHS="${BENCH_MAX_EPOCHS}"
   export BENCH_RUN_NAME="${BENCH_RUN_NAME_SHARED}"
+  export BENCH_RESUME="${BENCH_RESUME}"
   bash "${BASE_BENCH}"
 ) | tee "${SHARED_LOG}"
 
@@ -130,6 +137,7 @@ echo "==> Run B: node-local benchmark"
   export BENCH_LIMIT_VAL_BATCHES="${BENCH_LIMIT_VAL_BATCHES}"
   export BENCH_MAX_EPOCHS="${BENCH_MAX_EPOCHS}"
   export BENCH_RUN_NAME="${BENCH_RUN_NAME_LOCAL}"
+  export BENCH_RESUME="${BENCH_RESUME}"
   bash "${BASE_BENCH}"
 ) | tee "${LOCAL_LOG}"
 

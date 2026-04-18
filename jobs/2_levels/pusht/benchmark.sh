@@ -6,6 +6,7 @@
 #   sbatch benchmark.sh
 # Optional env overrides:
 #   BENCH_STEPS=500 BENCH_LIMIT_VAL_BATCHES=0 BENCH_RUN_NAME=hi_lewm_p2_bench_test sbatch benchmark.sh
+#   BENCH_RESUME=1 BENCH_RUN_NAME=hi_lewm_p2_bench_shared_21983090 sbatch benchmark.sh
 
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
@@ -82,6 +83,8 @@ BENCH_STEPS="${BENCH_STEPS:-500}"
 BENCH_LIMIT_VAL_BATCHES="${BENCH_LIMIT_VAL_BATCHES:-0}"
 BENCH_MAX_EPOCHS="${BENCH_MAX_EPOCHS:-9999}"
 BENCH_RUN_NAME="${BENCH_RUN_NAME:-hi_lewm_p2_bench}"
+BENCH_RESUME="${BENCH_RESUME:-0}"
+RUN_CKPT="${STABLEWM_HOME}/${BENCH_RUN_NAME}_weights.ckpt"
 
 if [[ ! -f "${PRETRAINED_LEWM_CKPT}" ]]; then
   echo "ERROR: pretrained checkpoint not found: ${PRETRAINED_LEWM_CKPT}" >&2
@@ -92,12 +95,27 @@ if ! [[ "${BENCH_STEPS}" =~ ^[0-9]+$ ]] || [[ "${BENCH_STEPS}" -le 0 ]]; then
   echo "ERROR: BENCH_STEPS must be a positive integer (got '${BENCH_STEPS}')" >&2
   exit 2
 fi
+if [[ "${BENCH_RESUME}" != "0" && "${BENCH_RESUME}" != "1" ]]; then
+  echo "ERROR: BENCH_RESUME must be 0 or 1 (got '${BENCH_RESUME}')" >&2
+  exit 2
+fi
+
+if [[ "${BENCH_RESUME}" == "0" && -f "${RUN_CKPT}" ]]; then
+  ts="$(date +%Y%m%d_%H%M%S)"
+  stale_ckpt="${RUN_CKPT%.ckpt}_stale_${ts}.ckpt"
+  echo "Found existing run checkpoint:"
+  echo "  ${RUN_CKPT}"
+  echo "Moving it aside to force a fresh benchmark start:"
+  echo "  ${stale_ckpt}"
+  mv "${RUN_CKPT}" "${stale_ckpt}"
+fi
 
 echo "Repo root: ${REPO_ROOT}"
 echo "STABLEWM_HOME=${STABLEWM_HOME}"
 echo "W&B entity: ${WANDB_ENTITY:-<default from login>}"
 echo "W&B project: ${WANDB_PROJECT}"
 echo "Benchmark run name: ${BENCH_RUN_NAME}"
+echo "Benchmark resume mode: ${BENCH_RESUME} (0=fresh, 1=resume)"
 echo "Benchmark max_steps: ${BENCH_STEPS}"
 echo "Benchmark limit_val_batches: ${BENCH_LIMIT_VAL_BATCHES}"
 echo "Pretrained ckpt: ${PRETRAINED_LEWM_CKPT}"
