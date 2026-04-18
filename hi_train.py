@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import sys
 import warnings
+from copy import deepcopy
 from functools import partial
 from pathlib import Path
 
@@ -702,6 +703,11 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     return output
 
 
+def clone_projection_head(module: torch.nn.Module) -> torch.nn.Module:
+    """Return a trainable deep copy of a projection head module."""
+    return deepcopy(module)
+
+
 def summarize_params(module: torch.nn.Module) -> tuple[int, int]:
     """Return total and trainable parameter counts for a module."""
     total = sum(p.numel() for p in module.parameters())
@@ -716,7 +722,8 @@ def log_param_breakdown(model: HiJEPA):
         ("p1_low_predictor", model.low_predictor),
         ("p1_action_encoder", model.action_encoder),
         ("projector", model.projector),
-        ("pred_proj", model.pred_proj),
+        ("p1_low_pred_proj", model.low_pred_proj),
+        ("p2_high_pred_proj", model.high_pred_proj),
         ("p2_high_predictor", model.high_predictor),
         ("p2_latent_action_encoder", model.latent_action_encoder),
         ("p2_macro_to_condition", model.macro_to_condition),
@@ -822,7 +829,8 @@ def run(cfg):
         low_predictor = pretrained.predictor
         action_encoder = pretrained.action_encoder
         projector = pretrained.projector
-        predictor_proj = pretrained.pred_proj
+        low_predictor_proj = pretrained.pred_proj
+        high_predictor_proj = clone_projection_head(pretrained.pred_proj)
     else:
         encoder = spt.backbone.utils.vit_hf(
             cfg.encoder_scale,
@@ -847,7 +855,13 @@ def run(cfg):
             hidden_dim=2048,
             norm_fn=torch.nn.BatchNorm1d,
         )
-        predictor_proj = MLP(
+        low_predictor_proj = MLP(
+            input_dim=hidden_dim,
+            output_dim=embed_dim,
+            hidden_dim=2048,
+            norm_fn=torch.nn.BatchNorm1d,
+        )
+        high_predictor_proj = MLP(
             input_dim=hidden_dim,
             output_dim=embed_dim,
             hidden_dim=2048,
@@ -917,7 +931,8 @@ def run(cfg):
         latent_action_encoder=latent_action_encoder,
         macro_to_condition=macro_to_condition,
         projector=projector,
-        pred_proj=predictor_proj,
+        low_pred_proj=low_predictor_proj,
+        high_pred_proj=high_predictor_proj,
     )
 
     freeze_cfg = cfg.pretrained_low_level.freeze
@@ -925,7 +940,8 @@ def run(cfg):
     freeze_low_predictor = bool(freeze_cfg.get("low_level_predictor", True))
     freeze_action_encoder = bool(freeze_cfg.get("low_level_action_encoder", True))
     freeze_projector = bool(freeze_cfg.get("projector", True))
-    freeze_pred_proj = bool(freeze_cfg.get("pred_proj", True))
+    freeze_low_pred_proj = bool(freeze_cfg.get("low_pred_proj", True))
+    freeze_high_pred_proj = bool(freeze_cfg.get("high_pred_proj", False))
 
     if bool(cfg.pretrained_low_level.enabled):
         world_model.freeze_low_level(
@@ -933,7 +949,8 @@ def run(cfg):
             freeze_low_predictor=freeze_low_predictor,
             freeze_action_encoder=freeze_action_encoder,
             freeze_projector=freeze_projector,
-            freeze_pred_proj=freeze_pred_proj,
+            freeze_low_pred_proj=freeze_low_pred_proj,
+            freeze_high_pred_proj=freeze_high_pred_proj,
         )
     else:
         if any(
@@ -942,7 +959,8 @@ def run(cfg):
                 freeze_low_predictor,
                 freeze_action_encoder,
                 freeze_projector,
-                freeze_pred_proj,
+                freeze_low_pred_proj,
+                freeze_high_pred_proj,
             )
         ):
             warnings.warn(
@@ -955,7 +973,8 @@ def run(cfg):
             freeze_low_predictor=False,
             freeze_action_encoder=False,
             freeze_projector=False,
-            freeze_pred_proj=False,
+            freeze_low_pred_proj=False,
+            freeze_high_pred_proj=False,
         )
 
     log_param_breakdown(world_model)

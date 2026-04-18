@@ -74,7 +74,8 @@ pretrained_low_level:
     low_level_predictor: True
     low_level_action_encoder: True
     projector: True
-    pred_proj: True
+    low_pred_proj: True
+    high_pred_proj: False
 
 training:
   train_low_level: False

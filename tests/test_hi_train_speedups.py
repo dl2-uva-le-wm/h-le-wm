@@ -4,6 +4,7 @@ import ast
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from copy import deepcopy
 
 import pytest
 import torch
@@ -27,13 +28,14 @@ def _load_hi_train_functions():
         "build_action_chunks",
         "build_action_chunks_batched",
         "hi_lejepa_forward",
+        "clone_projection_head",
     }
     chunks = []
     for node in mod.body:
         if isinstance(node, ast.FunctionDef) and node.name in wanted:
             chunks.append(ast.get_source_segment(source, node))
 
-    ns = {"torch": torch}
+    ns = {"torch": torch, "deepcopy": deepcopy}
     exec("\n\n".join(chunks), ns)
     return ns
 
@@ -43,6 +45,7 @@ GATHER_WAYPOINT_EMBEDDINGS = _HI_NS["gather_waypoint_embeddings"]
 BUILD_ACTION_CHUNKS = _HI_NS["build_action_chunks"]
 BUILD_ACTION_CHUNKS_BATCHED = _HI_NS["build_action_chunks_batched"]
 HI_LEJEPA_FORWARD = _HI_NS["hi_lejepa_forward"]
+CLONE_PROJECTION_HEAD = _HI_NS["clone_projection_head"]
 
 
 class Node(dict):
@@ -199,7 +202,8 @@ def test_encode_selected_frames_matches_full_encode_gather():
         latent_action_encoder=nn.Identity(),
         macro_to_condition=nn.Identity(),
         projector=nn.Identity(),
-        pred_proj=nn.Identity(),
+        low_pred_proj=nn.Identity(),
+        high_pred_proj=nn.Identity(),
     )
 
     full = model.encode({"pixels": pixels}, encode_actions=False)["emb"]
@@ -322,3 +326,17 @@ def test_hi_lejepa_forward_smoke_multiple_steps_logs_metrics():
         assert torch.isfinite(out["loss"])
 
     assert len(module.logged) == 3
+
+
+def test_clone_projection_head_copies_weights_without_sharing_storage():
+    low = nn.Linear(8, 8, bias=True)
+    with torch.no_grad():
+        low.weight.uniform_(-0.5, 0.5)
+        low.bias.uniform_(-0.5, 0.5)
+
+    high = CLONE_PROJECTION_HEAD(low)
+
+    assert torch.allclose(low.weight, high.weight)
+    assert torch.allclose(low.bias, high.bias)
+    assert low.weight.data_ptr() != high.weight.data_ptr()
+    assert low.bias.data_ptr() != high.bias.data_ptr()

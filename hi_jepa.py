@@ -17,7 +17,8 @@ class HiJEPA(nn.Module):
         latent_action_encoder: nn.Module,
         macro_to_condition: nn.Module,
         projector: nn.Module | None = None,
-        pred_proj: nn.Module | None = None,
+        low_pred_proj: nn.Module | None = None,
+        high_pred_proj: nn.Module | None = None,
     ):
         super().__init__()
         self.encoder = encoder
@@ -27,13 +28,15 @@ class HiJEPA(nn.Module):
         self.latent_action_encoder = latent_action_encoder
         self.macro_to_condition = macro_to_condition
         self.projector = projector or nn.Identity()
-        self.pred_proj = pred_proj or nn.Identity()
+        self.low_pred_proj = low_pred_proj or nn.Identity()
+        self.high_pred_proj = high_pred_proj or nn.Identity()
         self._freeze_flags = {
             "encoder": False,
             "low_predictor": False,
             "action_encoder": False,
             "projector": False,
-            "pred_proj": False,
+            "low_pred_proj": False,
+            "high_pred_proj": False,
         }
 
     def _set_requires_grad(self, module: nn.Module, requires_grad: bool):
@@ -50,8 +53,10 @@ class HiJEPA(nn.Module):
             self.action_encoder.eval()
         if self._freeze_flags["projector"]:
             self.projector.eval()
-        if self._freeze_flags["pred_proj"]:
-            self.pred_proj.eval()
+        if self._freeze_flags["low_pred_proj"]:
+            self.low_pred_proj.eval()
+        if self._freeze_flags["high_pred_proj"]:
+            self.high_pred_proj.eval()
 
     def freeze_low_level(
         self,
@@ -60,19 +65,22 @@ class HiJEPA(nn.Module):
         freeze_low_predictor: bool = True,
         freeze_action_encoder: bool = True,
         freeze_projector: bool = True,
-        freeze_pred_proj: bool = True,
+        freeze_low_pred_proj: bool = True,
+        freeze_high_pred_proj: bool = False,
     ):
         self._freeze_flags["encoder"] = bool(freeze_encoder)
         self._freeze_flags["low_predictor"] = bool(freeze_low_predictor)
         self._freeze_flags["action_encoder"] = bool(freeze_action_encoder)
         self._freeze_flags["projector"] = bool(freeze_projector)
-        self._freeze_flags["pred_proj"] = bool(freeze_pred_proj)
+        self._freeze_flags["low_pred_proj"] = bool(freeze_low_pred_proj)
+        self._freeze_flags["high_pred_proj"] = bool(freeze_high_pred_proj)
 
         self._set_requires_grad(self.encoder, not self._freeze_flags["encoder"])
         self._set_requires_grad(self.low_predictor, not self._freeze_flags["low_predictor"])
         self._set_requires_grad(self.action_encoder, not self._freeze_flags["action_encoder"])
         self._set_requires_grad(self.projector, not self._freeze_flags["projector"])
-        self._set_requires_grad(self.pred_proj, not self._freeze_flags["pred_proj"])
+        self._set_requires_grad(self.low_pred_proj, not self._freeze_flags["low_pred_proj"])
+        self._set_requires_grad(self.high_pred_proj, not self._freeze_flags["high_pred_proj"])
         self._enforce_frozen_eval_mode()
 
     def train(self, mode: bool = True):
@@ -143,7 +151,7 @@ class HiJEPA(nn.Module):
     def predict_low(self, emb: torch.Tensor, act_emb: torch.Tensor) -> torch.Tensor:
         # emb: (B, T_ctx, D_z), act_emb: (B, T_ctx, D_z)
         preds = self.low_predictor(emb, act_emb)
-        preds = self.pred_proj(rearrange(preds, "b t d -> (b t) d"))
+        preds = self.low_pred_proj(rearrange(preds, "b t d -> (b t) d"))
         preds = rearrange(preds, "(b t) d -> b t d", b=emb.size(0))
         return preds
 
@@ -173,7 +181,7 @@ class HiJEPA(nn.Module):
         # emb: (B, T_wp, D_z), macro_actions: (B, T_wp, D_l)
         high_cond = self.project_macro_to_condition_space(macro_actions)  # (B, T_wp, D_z)
         preds = self.high_predictor(emb, high_cond)  # (B, T_wp, D_h)
-        preds = self.pred_proj(rearrange(preds, "b t d -> (b t) d"))
+        preds = self.high_pred_proj(rearrange(preds, "b t d -> (b t) d"))
         preds = rearrange(preds, "(b t) d -> b t d", b=emb.size(0))
         return preds
 
