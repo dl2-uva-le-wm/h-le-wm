@@ -8,8 +8,8 @@ import torch
 
 
 def _load_sampling_functions():
-    """Load sampling functions from hi_train.py without importing heavy deps."""
-    src_path = Path(__file__).resolve().parents[1] / "hi_train.py"
+    """Load sampling functions from hi_waypoint_sampling.py without heavy deps."""
+    src_path = Path(__file__).resolve().parents[1] / "hi_waypoint_sampling.py"
     source = src_path.read_text()
     mod = ast.parse(source)
 
