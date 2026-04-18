@@ -10,6 +10,7 @@
 #   SCRATCH_STABLEWM_HOME=/scratch-shared/$USER/stablewm_data sbatch benchmark_ab_io.sh
 
 #SBATCH --partition=gpu_a100
+#SBATCH --constraint=scratch-node
 #SBATCH --gpus=1
 #SBATCH --job-name=hi_l2_pusht_ab_io
 #SBATCH --ntasks=1
@@ -66,6 +67,17 @@ if [[ ! -f "${SRC_DATASET}" ]]; then
 fi
 if [[ ! -f "${SRC_CKPT}" ]]; then
   echo "ERROR: checkpoint not found: ${SRC_CKPT}" >&2
+  exit 2
+fi
+
+if [[ -z "${TMPDIR:-}" ]]; then
+  echo "ERROR: TMPDIR is not set." >&2
+  echo "Expected a scratch-node allocation where TMPDIR points under /scratch-node." >&2
+  exit 2
+fi
+if [[ "${TMPDIR}" != /scratch-node/* ]]; then
+  echo "ERROR: TMPDIR is '${TMPDIR}', expected /scratch-node/... for a fair NVMe benchmark." >&2
+  echo "Make sure this job is submitted with '#SBATCH --constraint=scratch-node'." >&2
   exit 2
 fi
 
