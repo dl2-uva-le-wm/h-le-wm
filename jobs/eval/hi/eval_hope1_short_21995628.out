@@ -1,0 +1,177 @@
+Repo root: /gpfs/home3/scur0511/h-le-wm
+STABLEWM_HOME: /scratch-shared/scur0511/stablewm_data
+Run name: hi_lewm_p2_train_hope1_21983875
+Checkpoint selection: latest
+Checkpoint object: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10_object.ckpt
+Policy arg for hi_eval.py: runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10
+Config name: hi_pusht
+Goal offset steps (d): 25
+Result file: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25.txt
+PYTHONPATH prefix: /gpfs/home3/scur0511/h-le-wm/third_party/lewm:/gpfs/home3/scur0511/h-le-wm
+
+==> Launching eval command:
+  python  hi_eval.py  --config-name=hi_pusht  policy=runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10  eval.goal_offset_steps=25  output.filename=hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25.txt
+
+11:09:09.702 | INFO    (1563357, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+11:09:09.702 | INFO    (1563357, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+11:09:09.702 | INFO    (1563357, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
+11:09:09.702 | INFO    (1563357, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+11:09:09.703 | INFO    (1563357, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (50, 7), float64))
+11:09:09.703 | INFO    (1563357, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[2026-04-19 11:09:43,685][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-19 11:10:11,309][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-19 11:10:37,007][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[hi_eval] calibrated high-level latent bounds (chunks=2048, chunk_len=5)
+1869611 valid starting points found for evaluation.
+CEM solve time: 14.8321 seconds
+CEM solve time: 30.7811 seconds
+CEM solve time: 14.7469 seconds
+CEM solve time: 30.7758 seconds
+CEM solve time: 14.7491 seconds
+CEM solve time: 30.8541 seconds
+CEM solve time: 14.7498 seconds
+CEM solve time: 30.8363 seconds
+CEM solve time: 14.7547 seconds
+CEM solve time: 30.8067 seconds
+CEM solve time: 14.7481 seconds
+CEM solve time: 30.8523 seconds
+CEM solve time: 14.7441 seconds
+CEM solve time: 30.8217 seconds
+CEM solve time: 14.7484 seconds
+CEM solve time: 30.8525 seconds
+CEM solve time: 14.7505 seconds
+CEM solve time: 30.8521 seconds
+CEM solve time: 14.7457 seconds
+CEM solve time: 30.7533 seconds
+Video saved to 
+/scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875
+{'success_rate': 14.000000000000002, 'episode_successes': array([False, False, False,  True, False, False,  True,  True, False,
+        True, False, False, False, False, False, False, False, False,
+       False, False, False, False, False,  True, False, False, False,
+       False,  True, False, False, False,  True, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False]), 'seeds': None}
+
+Eval finished.
+Results appended to: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25.txt
