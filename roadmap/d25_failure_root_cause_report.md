@@ -1,6 +1,114 @@
 # PushT `d=25` Failure Report for Hi-LeWM
 
-## 0) Problem Statement
+## 0) Situation Summary
+
+This document summarizes the current state of the Hi-LeWM Push-T effort so a new reader can understand what was attempted, what has been verified, what is still failing, and what should be fixed next.
+
+### Project goal
+
+The goal is to extend the original LeWM setup into a usable hierarchical method without losing short-horizon performance.
+
+For Push-T, the intended success criteria are:
+
+1. keep short-horizon performance at `d=25` at baseline level
+2. improve over the flat baseline at longer horizon such as `d=50`
+
+In practice, the intended unified behavior is:
+
+- `d=25`: use the flat planner because the task is already reachable in a short horizon
+- `d>=50`: use the hierarchical planner because longer-horizon mediation should help
+
+### What has been done so far
+
+We trained only the second level (`P2`) on top of the original pretrained LeWM world model instead of retraining the full stack from scratch.
+
+For the run reported here:
+
+- pretrained checkpoint: `pusht/lewm_object.ckpt`
+- training script: `hi_train.py`
+- run name: `hi_lewm_p2_train_hope1_21983875`
+- training date from the logs: `2026-04-18`
+- max epochs: `10`
+- low-level model: frozen
+- trainable parts: `p2_high_predictor`, `p2_latent_action_encoder`, `p2_high_pred_proj`
+- total parameters: `30,550,958`
+- trainable parameters: `12,516,480`
+
+The run configuration explicitly trained the high-level objective only:
+
+- `training.train_low_level=False`
+- `loss.alpha=0.0`
+- `loss.beta=1.0`
+
+### What the training and validation say
+
+The training run does **not** look catastrophically broken.
+
+Evidence from the logs and exported curves:
+
+- initial validation `l2_pred_loss`: `0.7214953899383545`
+- final validation `l2_pred_loss`: `0.019426284357905388`
+- best validation `l2_pred_loss` in the shown epoch summaries: about `0.019371245056390762`
+- train and validation losses both decrease smoothly
+- the run is numerically stable: no NaNs, no divergence, no late collapse
+- the gradient check reports that all tracked trainable parameters received gradients on the first backward pass
+
+Supporting exports:
+
+- [train.csv](/Users/niccolocaselli/Downloads/train.csv)
+- [validation.csv](/Users/niccolocaselli/Downloads/validation.csv)
+
+The main training-side yellow flag is not collapse, but scale drift:
+
+- `validate/macro_action_norm` rises during training from about `25.7` to about `29.7`
+- this suggests that the learned high-level latent-action scale is moving during training, which can matter for planning and CEM calibration
+
+### What seems to have worked
+
+- the frozen low-level stack loaded correctly
+- the intended P2 modules were trainable
+- training made clear progress on the offline objective
+- validation tracked training rather than exploding away from it
+- `high_pred_proj` does not look trivially dead or disconnected
+
+### What has not worked
+
+The current method is still failing the practical acceptance test at short horizon.
+
+- reported result: `success_rate = 14.0` (`7/50`) at `d=25`
+- this is far below the original LeWM Push-T baseline and also below what a usable short-horizon non-regression path would require
+
+So the current situation is:
+
+- offline training looks healthy
+- online planning performance at `d=25` is still unacceptable
+
+### Current interpretation
+
+Based on the evidence available right now, the most likely conclusion is:
+
+1. the P2 training run is not obviously the main failure
+2. the bridge from trained high-level latents to actual planning is where the main problems are
+3. there are also concrete evaluation-path issues that make some current comparisons invalid
+
+In other words, the present evidence points more toward:
+
+- invalid short-horizon parity settings
+- missing planner-switch logic
+- calibration problems in the high-level latent prior
+- hierarchy hurting a task where flat planning may already be enough
+
+rather than toward:
+
+- total training failure
+- a dead `high_pred_proj`
+- catastrophic optimization problems in the P2 run
+
+This is why the rest of this report focuses mainly on root causes in validation and planning rather than treating the training run itself as obviously broken.
+
+---
+
+## 1) Problem Statement
 
 The short-horizon non-regression gate is currently not satisfied.
 
@@ -12,7 +120,7 @@ This document was updated after re-checking the paper baselines and cross-valida
 
 ---
 
-## 1) Paper Ground Truth
+## 2) Paper Ground Truth
 
 ### Original LeWM paper
 
@@ -40,7 +148,7 @@ These are the relevant baseline anchors for the acceptance criteria:
 
 ---
 
-## 2) Executive Diagnosis
+## 3) Executive Diagnosis
 
 After checking the code, the main problem is not a single modeling bug. It is a combination of:
 
@@ -53,7 +161,7 @@ Some items from the earlier report were valid concerns, but not actual implement
 
 ---
 
-## 3) Verified Issues
+## 4) Verified Issues
 
 ## Issue 1: The `d=25` flat fallback is not baseline-equivalent (Critical)
 
@@ -231,7 +339,7 @@ This is a real repo health issue and a new concrete discovery.
 
 ---
 
-## 4) Items From the Earlier Report That Are Not Bugs
+## 5) Items From the Earlier Report That Are Not Bugs
 
 ## Non-Issue A: The eval sampling mismatch claim is outdated
 
@@ -296,7 +404,7 @@ This item should be removed unless new logs are added.
 
 ---
 
-## 5) Updated Remediation Order
+## 6) Updated Remediation Order
 
 ## Phase A: Restore a valid non-regression path
 
@@ -330,7 +438,7 @@ This cleanly separates:
 
 ---
 
-## 6) Final Assessment
+## 7) Final Assessment
 
 The original conclusion still stands: `14%` at `d=25` is unacceptable.
 
