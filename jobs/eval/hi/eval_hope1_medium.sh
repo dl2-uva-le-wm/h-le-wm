@@ -5,14 +5,14 @@
 # Default behavior:
 # - Uses your recent run: hi_lewm_p2_train_hope1_21983875
 # - Auto-selects latest object checkpoint in that run directory
-# - Evaluates with hi_eval.py --config-name=hi_pusht wm.num_levels=2
+# - Evaluates with hi_eval.py --config-name=hi_pusht
 # - Sets eval.goal_offset_steps=50 (medium setting)
 # - Applies d=50 planning defaults (from HLWM Push-T row):
 #     high: horizon=4, samples=1500, iters=40
 #     low:  horizon=5, samples=900,  iters=20
 #
 # Usage:
-#   cd jobs/2_levels/pusht
+#   cd jobs/eval/hi
 #   sbatch eval_hope1_medium.sh
 #
 # Common overrides:
@@ -85,7 +85,6 @@ export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 RUN_NAME="${RUN_NAME:-hi_lewm_p2_train_hope1_21983875}"
 CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # "latest" or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
-WM_NUM_LEVELS="${WM_NUM_LEVELS:-2}"
 GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-50}"
 
 # d=50 planning defaults (override via --export as needed)
@@ -176,7 +175,6 @@ CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
-  "wm.num_levels=${WM_NUM_LEVELS}"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
   "planning.mode=hierarchical"
   "planning.high.replan_interval=${HIGH_REPLAN_INTERVAL}"

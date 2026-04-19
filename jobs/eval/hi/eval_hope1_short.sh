@@ -5,11 +5,11 @@
 # Default behavior:
 # - Uses your recent run: hi_lewm_p2_train_hope1_21983875
 # - Auto-selects latest object checkpoint in that run directory
-# - Evaluates with hi_eval.py --config-name=hi_pusht wm.num_levels=2
+# - Evaluates with hi_eval.py --config-name=hi_pusht
 # - Sets eval.goal_offset_steps=25 (short setting)
 #
 # Usage:
-#   cd jobs/2_levels/pusht
+#   cd jobs/eval/hi
 #   sbatch eval_hope1_short.sh
 #
 # Common overrides:
@@ -81,7 +81,6 @@ export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 RUN_NAME="${RUN_NAME:-hi_lewm_p2_train_hope1_21983875}"
 CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # "latest" or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
-WM_NUM_LEVELS="${WM_NUM_LEVELS:-2}"
 GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
 
 RUN_DIR="${STABLEWM_HOME}/runs/${RUN_NAME}"
@@ -154,7 +153,6 @@ CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
-  "wm.num_levels=${WM_NUM_LEVELS}"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
   "output.filename=${RESULT_FILENAME}"
 )
