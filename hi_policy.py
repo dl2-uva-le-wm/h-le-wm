@@ -49,6 +49,96 @@ def _infer_macro_input_dim_from_model(model: torch.nn.Module) -> int | None:
     return None
 
 
+def _try_get_episode_metadata(dataset) -> tuple[np.ndarray | None, np.ndarray | None]:
+    """Best-effort fetch of per-row episode and step metadata.
+
+    Returns:
+        Tuple (episode_ids, step_idx) where each entry is a 1D numpy array
+        aligned with dataset rows, or None when unavailable.
+    """
+    if not hasattr(dataset, "get_col_data"):
+        return None, None
+
+    episode_ids = None
+    column_names = set(getattr(dataset, "column_names", []) or [])
+
+    preferred_episode_cols: list[str] = []
+    if "episode_idx" in column_names:
+        preferred_episode_cols.append("episode_idx")
+    if "ep_idx" in column_names:
+        preferred_episode_cols.append("ep_idx")
+    if not preferred_episode_cols:
+        preferred_episode_cols = ["episode_idx", "ep_idx"]
+
+    for col in preferred_episode_cols:
+        try:
+            col_data = dataset.get_col_data(col)
+        except Exception:
+            continue
+        if col_data is None:
+            continue
+        episode_ids = np.asarray(col_data)
+        break
+
+    if episode_ids is None:
+        return None, None
+
+    step_idx = None
+    try:
+        step_data = dataset.get_col_data("step_idx")
+        if step_data is not None:
+            step_idx = np.asarray(step_data)
+    except Exception:
+        step_idx = None
+
+    return episode_ids, step_idx
+
+
+def _sample_valid_chunk_starts(
+    *,
+    episode_ids: np.ndarray | None,
+    step_idx: np.ndarray | None,
+    seq_len: int,
+    chunk_len: int,
+    num_chunks: int,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Sample chunk starts that do not cross episode boundaries.
+
+    If episode metadata is unavailable, falls back to uniform starts over the
+    flattened sequence, preserving previous behavior.
+    """
+    if chunk_len <= 0 or seq_len < chunk_len:
+        return np.empty((0,), dtype=np.int64)
+
+    max_start = seq_len - chunk_len
+    if episode_ids is None:
+        return rng.integers(0, max_start + 1, size=num_chunks)
+
+    # Mark boundary violations between consecutive rows.
+    ep_change = episode_ids[1:] != episode_ids[:-1]
+    bad_transition = ep_change.copy()
+    if step_idx is not None:
+        bad_transition |= (step_idx[1:] - step_idx[:-1]) != 1
+
+    # A start is valid when all transitions inside the chunk are valid.
+    transitions_per_chunk = chunk_len - 1
+    if transitions_per_chunk <= 0:
+        valid_starts = np.arange(max_start + 1, dtype=np.int64)
+    else:
+        bad_i64 = bad_transition.astype(np.int64)
+        csum = np.cumsum(np.concatenate(([0], bad_i64)))
+        window_bad = csum[transitions_per_chunk:] - csum[:-transitions_per_chunk]
+        valid_starts = np.nonzero(window_bad == 0)[0].astype(np.int64)
+
+    if valid_starts.size == 0:
+        return np.empty((0,), dtype=np.int64)
+
+    replace = valid_starts.size < num_chunks
+    idx = rng.choice(valid_starts.size, size=num_chunks, replace=replace)
+    return valid_starts[idx]
+
+
 @torch.inference_mode()
 def calibrate_latent_prior(
     *,
@@ -122,8 +212,9 @@ def calibrate_latent_prior(
             "chunk_len": np.array(chunk_len, dtype=np.int64),
         }
 
-    # Drop rows with NaNs and keep contiguous sequence in row order.
+    # Drop rows with NaNs and keep metadata aligned with remaining rows.
     valid_mask = ~np.isnan(action_data).any(axis=1)
+    valid_row_idx = np.nonzero(valid_mask)[0]
     action_data = action_data[valid_mask]
     if action_data.shape[0] < chunk_len:
         return {
@@ -132,6 +223,12 @@ def calibrate_latent_prior(
             "num_chunks": np.array(0, dtype=np.int64),
             "chunk_len": np.array(chunk_len, dtype=np.int64),
         }
+
+    episode_ids, step_idx = _try_get_episode_metadata(dataset)
+    if episode_ids is not None:
+        episode_ids = episode_ids[valid_row_idx]
+    if step_idx is not None:
+        step_idx = step_idx[valid_row_idx]
 
     # Apply action normalization in raw action space first.
     if process and "action" in process:
@@ -145,8 +242,21 @@ def calibrate_latent_prior(
 
     rng = np.random.default_rng(seed)
     if expected_action_dim == raw_action_dim:
-        max_start = action_data.shape[0] - chunk_len
-        starts = rng.integers(0, max_start + 1, size=num_chunks)
+        starts = _sample_valid_chunk_starts(
+            episode_ids=episode_ids,
+            step_idx=step_idx,
+            seq_len=action_data.shape[0],
+            chunk_len=chunk_len,
+            num_chunks=num_chunks,
+            rng=rng,
+        )
+        if starts.size == 0:
+            return {
+                "low": fallback_low,
+                "high": fallback_high,
+                "num_chunks": np.array(0, dtype=np.int64),
+                "chunk_len": np.array(chunk_len, dtype=np.int64),
+            }
         chunks = np.stack([action_data[s : s + chunk_len] for s in starts], axis=0)
     elif expected_action_dim > raw_action_dim and expected_action_dim % raw_action_dim == 0:
         # Model expects grouped actions (e.g., 10) while dataset stores primitive actions (e.g., 2).
@@ -160,8 +270,21 @@ def calibrate_latent_prior(
                 "num_chunks": np.array(0, dtype=np.int64),
                 "chunk_len": np.array(chunk_len, dtype=np.int64),
             }
-        max_start = action_data.shape[0] - raw_chunk_len
-        starts = rng.integers(0, max_start + 1, size=num_chunks)
+        starts = _sample_valid_chunk_starts(
+            episode_ids=episode_ids,
+            step_idx=step_idx,
+            seq_len=action_data.shape[0],
+            chunk_len=raw_chunk_len,
+            num_chunks=num_chunks,
+            rng=rng,
+        )
+        if starts.size == 0:
+            return {
+                "low": fallback_low,
+                "high": fallback_high,
+                "num_chunks": np.array(0, dtype=np.int64),
+                "chunk_len": np.array(chunk_len, dtype=np.int64),
+            }
         raw_chunks = np.stack([action_data[s : s + raw_chunk_len] for s in starts], axis=0)
         chunks = raw_chunks.reshape(num_chunks, chunk_len, expected_action_dim)
     else:

@@ -231,13 +231,35 @@ def test_get_cost_low_prefers_matching_subgoal():
 
 
 class FakeDataset:
-    def __init__(self, actions: np.ndarray):
+    def __init__(
+        self,
+        actions: np.ndarray,
+        *,
+        episode_idx: np.ndarray | None = None,
+        step_idx: np.ndarray | None = None,
+    ):
         self._actions = actions
+        self._episode_idx = episode_idx
+        self._step_idx = step_idx
+        cols = ["action"]
+        if episode_idx is not None:
+            cols.append("episode_idx")
+        if step_idx is not None:
+            cols.append("step_idx")
+        self.column_names = cols
 
     def get_col_data(self, name: str):
-        if name != "action":
-            raise KeyError(name)
-        return self._actions
+        if name == "action":
+            return self._actions
+        if name == "episode_idx":
+            if self._episode_idx is None:
+                raise KeyError(name)
+            return self._episode_idx
+        if name == "step_idx":
+            if self._step_idx is None:
+                raise KeyError(name)
+            return self._step_idx
+        raise KeyError(name)
 
 
 def test_calibrate_latent_prior_bounds_deterministic_and_ordered():
@@ -283,6 +305,28 @@ def test_calibrate_latent_prior_fallback_for_short_dataset():
     b = calibrate_latent_prior(model=model, dataset=dataset, cfg=cfg, seed=0)
     np.testing.assert_allclose(b["low"], -1.5)
     np.testing.assert_allclose(b["high"], 1.5)
+    assert int(b["num_chunks"]) == 0
+
+
+def test_calibrate_latent_prior_respects_episode_boundaries():
+    model = make_test_hijepa(dim=4)
+    # Two episodes of length 3 each. Global flattening would allow chunk_len=4,
+    # but episode-aware sampling must reject all such starts.
+    actions = np.random.default_rng(9).normal(size=(6, 4)).astype(np.float32)
+    episode_idx = np.array([0, 0, 0, 1, 1, 1], dtype=np.int64)
+    step_idx = np.array([0, 1, 2, 0, 1, 2], dtype=np.int64)
+    dataset = FakeDataset(actions, episode_idx=episode_idx, step_idx=step_idx)
+    cfg = {
+        "enabled": True,
+        "num_chunks": 128,
+        "min_chunks_for_stats": 16,
+        "chunk_len": 4,
+        "fallback_abs": 1.25,
+    }
+
+    b = calibrate_latent_prior(model=model, dataset=dataset, cfg=cfg, seed=7)
+    np.testing.assert_allclose(b["low"], -1.25)
+    np.testing.assert_allclose(b["high"], 1.25)
     assert int(b["num_chunks"]) == 0
 
 
