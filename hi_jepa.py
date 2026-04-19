@@ -513,11 +513,22 @@ class HiJEPA(nn.Module):
         Supported modes:
             - planner_level='high' -> high-level latent planning
             - planner_level='low'  -> low-level primitive planning
-            - missing planner_level -> flat low-level fallback
+            - missing planner_level -> inferred from tensor keys, then flat fallback
         """
         planner_level = info_dict.get("planner_level", None)
         if planner_level == "high":
             return self.get_cost_high(info_dict, action_candidates)
         if planner_level == "low":
             return self.get_cost_low(info_dict, action_candidates)
+
+        # Some solver paths may drop non-tensor metadata keys (e.g. planner_level).
+        # Infer routing from the latent tensors that the corresponding planners pass.
+        has_high_latents = torch.is_tensor(info_dict.get("z_init")) and torch.is_tensor(info_dict.get("z_goal"))
+        if has_high_latents:
+            return self.get_cost_high(info_dict, action_candidates)
+
+        has_low_latents = torch.is_tensor(info_dict.get("z_hist")) and torch.is_tensor(info_dict.get("z_subgoal"))
+        if has_low_latents:
+            return self.get_cost_low(info_dict, action_candidates)
+
         return self.get_cost_flat(info_dict, action_candidates)
