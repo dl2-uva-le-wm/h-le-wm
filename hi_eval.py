@@ -11,9 +11,17 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 
+import baseline_adapter as _baseline_adapter
 from hi_policy import HierarchicalWorldModelPolicy, calibrate_latent_prior
 
 os.environ["MUJOCO_GL"] = "egl"
+
+# Backward-compatibility for torch.load on object checkpoints saved by hi_train:
+# those pickles may reference classes under the dynamic module name
+# `_baseline_lewm_module` (created by baseline_adapter). Touch one exported
+# symbol so baseline_adapter registers that dynamic module in sys.modules
+# before AutoCostModel unpickles.
+_ = _baseline_adapter.ARPredictor
 
 
 def sample_eval_row_indices(valid_indices: np.ndarray, num_eval: int, seed: int) -> np.ndarray:
