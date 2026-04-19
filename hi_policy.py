@@ -5,6 +5,7 @@ from typing import Any, Callable
 
 import numpy as np
 import torch
+import warnings
 from torchvision import tv_tensors
 
 try:
@@ -36,6 +37,16 @@ def _infer_latent_dim_from_model(model: torch.nn.Module) -> int:
         if hasattr(latent_encoder, "latent_dim"):
             return int(latent_encoder.latent_dim)
     raise ValueError("Unable to infer latent action dimension from model.")
+
+
+def _infer_macro_input_dim_from_model(model: torch.nn.Module) -> int | None:
+    """Infer latent-action encoder token input dimension if available."""
+    if not hasattr(model, "latent_action_encoder"):
+        return None
+    latent_encoder = model.latent_action_encoder
+    if hasattr(latent_encoder, "input_proj") and hasattr(latent_encoder.input_proj, "in_features"):
+        return int(latent_encoder.input_proj.in_features)
+    return None
 
 
 @torch.inference_mode()
@@ -122,16 +133,50 @@ def calibrate_latent_prior(
             "chunk_len": np.array(chunk_len, dtype=np.int64),
         }
 
-    rng = np.random.default_rng(seed)
-    max_start = action_data.shape[0] - chunk_len
-    starts = rng.integers(0, max_start + 1, size=num_chunks)
-    chunks = np.stack([action_data[s : s + chunk_len] for s in starts], axis=0)
-
+    # Apply action normalization in raw action space first.
     if process and "action" in process:
         proc = process["action"]
-        flat = chunks.reshape(-1, chunks.shape[-1])
-        flat = proc.transform(flat)
-        chunks = flat.reshape(chunks.shape)
+        action_data = proc.transform(action_data)
+
+    raw_action_dim = int(action_data.shape[1])
+    expected_action_dim = _infer_macro_input_dim_from_model(model)
+    if expected_action_dim is None:
+        expected_action_dim = raw_action_dim
+
+    rng = np.random.default_rng(seed)
+    if expected_action_dim == raw_action_dim:
+        max_start = action_data.shape[0] - chunk_len
+        starts = rng.integers(0, max_start + 1, size=num_chunks)
+        chunks = np.stack([action_data[s : s + chunk_len] for s in starts], axis=0)
+    elif expected_action_dim > raw_action_dim and expected_action_dim % raw_action_dim == 0:
+        # Model expects grouped actions (e.g., 10) while dataset stores primitive actions (e.g., 2).
+        # Build chunks of `chunk_len` grouped tokens by concatenating contiguous primitive actions.
+        group = expected_action_dim // raw_action_dim
+        raw_chunk_len = chunk_len * group
+        if action_data.shape[0] < raw_chunk_len:
+            return {
+                "low": fallback_low,
+                "high": fallback_high,
+                "num_chunks": np.array(0, dtype=np.int64),
+                "chunk_len": np.array(chunk_len, dtype=np.int64),
+            }
+        max_start = action_data.shape[0] - raw_chunk_len
+        starts = rng.integers(0, max_start + 1, size=num_chunks)
+        raw_chunks = np.stack([action_data[s : s + raw_chunk_len] for s in starts], axis=0)
+        chunks = raw_chunks.reshape(num_chunks, chunk_len, expected_action_dim)
+    else:
+        warnings.warn(
+            "Unable to match action dimension for latent-prior calibration: "
+            f"dataset action dim={raw_action_dim}, model latent-action input dim={expected_action_dim}. "
+            "Falling back to default latent bounds.",
+            stacklevel=2,
+        )
+        return {
+            "low": fallback_low,
+            "high": fallback_high,
+            "num_chunks": np.array(0, dtype=np.int64),
+            "chunk_len": np.array(chunk_len, dtype=np.int64),
+        }
 
     device = next(model.parameters()).device if any(True for _ in model.parameters()) else torch.device("cpu")
     chunks_t = torch.from_numpy(chunks.astype(np.float32)).to(device)
