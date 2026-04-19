@@ -16,6 +16,7 @@
 #   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_short.sh
 #   sbatch --export=ALL,RUN_NAME=hi_lewm_p2_train_hope1_21983875,CHECKPOINT_EPOCH=latest eval_hope1_short.sh
 #   sbatch --export=ALL,RESULT_FILENAME=my_eval_short_epoch8.txt eval_hope1_short.sh
+#   sbatch --export=ALL,EVAL_SUBDIR=my_custom_eval_subdir eval_hope1_short.sh
 #   sbatch --export=ALL,GOAL_OFFSET_STEPS=25 eval_hope1_short.sh
 #   sbatch --export=ALL,STABLEWM_HOME=/scratch-shared/$USER/stablewm_data eval_hope1_short.sh
 
@@ -82,6 +83,7 @@ RUN_NAME="${RUN_NAME:-hi_lewm_p2_train_hope1_21983875}"
 CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # "latest" or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
 GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
+EVAL_SUBDIR="${EVAL_SUBDIR:-eval_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
 
 RUN_DIR="${STABLEWM_HOME}/runs/${RUN_NAME}"
 DATASET_PATH="${STABLEWM_HOME}/pusht_expert_train.h5"
@@ -135,7 +137,8 @@ POLICY="${CKPT_OBJECT_PATH#${STABLEWM_HOME}/}"
 POLICY="${POLICY%_object.ckpt}"
 POLICY_BASENAME="$(basename "${POLICY}")"
 RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}.txt}"
-RESULT_PATH="$(dirname "${CKPT_OBJECT_PATH}")/${RESULT_FILENAME}"
+ARTIFACTS_DIR="$(dirname "${CKPT_OBJECT_PATH}")/${EVAL_SUBDIR}"
+RESULT_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME}"
 
 echo "Repo root: ${REPO_ROOT}"
 echo "STABLEWM_HOME: ${STABLEWM_HOME}"
@@ -145,6 +148,8 @@ echo "Checkpoint object: ${CKPT_OBJECT_PATH}"
 echo "Policy arg for hi_eval.py: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
+echo "Output subdir: ${EVAL_SUBDIR}"
+echo "Artifacts dir: ${ARTIFACTS_DIR}"
 echo "Result file: ${RESULT_PATH}"
 
 cd "${REPO_ROOT}"
@@ -163,6 +168,7 @@ CMD=(
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
+  "output.subdir=${EVAL_SUBDIR}"
   "output.filename=${RESULT_FILENAME}"
 )
 
@@ -176,4 +182,5 @@ echo
 
 echo ""
 echo "Eval finished."
+echo "Artifacts written to: ${ARTIFACTS_DIR}"
 echo "Results appended to: ${RESULT_PATH}"

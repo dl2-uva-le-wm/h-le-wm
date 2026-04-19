@@ -24,6 +24,29 @@ os.environ["MUJOCO_GL"] = "egl"
 _ = _baseline_adapter.ARPredictor
 
 
+def resolve_output_dir(cfg: DictConfig) -> Path:
+    """Resolve directory used for videos and result text output.
+
+    Uses policy parent directory by default and optionally appends output.subdir.
+    """
+    base_dir = (
+        Path(swm.data.utils.get_cache_dir(), cfg.policy).parent
+        if cfg.policy != "random"
+        else Path(__file__).parent
+    )
+
+    output_subdir = str(cfg.output.get("subdir", "")).strip()
+    if output_subdir:
+        subdir = Path(output_subdir)
+        if subdir.is_absolute() or ".." in subdir.parts:
+            raise ValueError(
+                "output.subdir must be a relative path without '..' segments."
+            )
+        base_dir = base_dir / subdir
+
+    return base_dir
+
+
 def sample_eval_row_indices(valid_indices: np.ndarray, num_eval: int, seed: int) -> np.ndarray:
     """Sample unique dataset row indices used as evaluation starts.
 
@@ -196,11 +219,8 @@ def run(cfg: DictConfig):
     else:
         policy = swm.policy.RandomPolicy()
 
-    results_path = (
-        Path(swm.data.utils.get_cache_dir(), cfg.policy).parent
-        if cfg.policy != "random"
-        else Path(__file__).parent
-    )
+    output_dir = resolve_output_dir(cfg)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     episode_len = get_episodes_length(dataset, ep_indices)
     max_start_idx = episode_len - cfg.eval.goal_offset_steps - 1
@@ -230,12 +250,12 @@ def run(cfg: DictConfig):
         eval_budget=cfg.eval.eval_budget,
         episodes_idx=eval_episodes.tolist(),
         callables=OmegaConf.to_container(cfg.eval.get("callables"), resolve=True),
-        video_path=results_path,
+        video_path=output_dir,
     )
     end_time = time.time()
 
     print(metrics)
-    results_path = results_path / cfg.output.filename
+    results_path = output_dir / cfg.output.filename
     results_path.parent.mkdir(parents=True, exist_ok=True)
 
     with results_path.open("a") as f:
