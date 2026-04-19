@@ -171,6 +171,15 @@ echo "Result file: ${RESULT_PATH}"
 
 cd "${REPO_ROOT}"
 
+# Compatibility for object checkpoints pickled from baseline code:
+# torch.load may need top-level imports like `module` / `utils` from third_party/lewm.
+if [[ -n "${PYTHONPATH:-}" ]]; then
+  export PYTHONPATH="${REPO_ROOT}/third_party/lewm:${REPO_ROOT}:${PYTHONPATH}"
+else
+  export PYTHONPATH="${REPO_ROOT}/third_party/lewm:${REPO_ROOT}"
+fi
+echo "PYTHONPATH prefix: ${REPO_ROOT}/third_party/lewm:${REPO_ROOT}"
+
 CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
