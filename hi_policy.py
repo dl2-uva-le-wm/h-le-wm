@@ -371,16 +371,24 @@ class HierarchicalWorldModelPolicy:
             "z_init": z_init,
             "z_goal": z_goal,
         }
-        outputs = self.high_solver(high_info, init_action=self._next_high_init)
-        actions = outputs["actions"]
-        if not torch.is_tensor(actions):
-            actions = torch.as_tensor(actions)
-        actions = actions.to(z_init.device)
+        # Keep warm-start tensors on CPU to avoid mixed-device issues in CEM internals.
+        high_init_action = self._next_high_init
+        if torch.is_tensor(high_init_action):
+            high_init_action = high_init_action.detach().cpu()
+
+        outputs = self.high_solver(high_info, init_action=high_init_action)
+        actions_solver = outputs["actions"]
+        if not torch.is_tensor(actions_solver):
+            actions_solver = torch.as_tensor(actions_solver)
+        actions = actions_solver.to(z_init.device)
 
         keep_h = int(self.high_cfg.receding_horizon)
         high_plan = actions[:, :keep_h]
-        high_rest = actions[:, keep_h:]
-        self._next_high_init = high_rest if bool(getattr(self.high_cfg, "warm_start", True)) else None
+        self._next_high_init = (
+            actions_solver[:, keep_h:].detach().cpu()
+            if bool(getattr(self.high_cfg, "warm_start", True))
+            else None
+        )
 
         high_action_block = int(self.high_cfg.action_block)
         macro_seq = high_plan.reshape(
@@ -412,16 +420,24 @@ class HierarchicalWorldModelPolicy:
             "z_subgoal": self._z_subgoal,
         }
 
-        outputs = self.low_solver(low_info, init_action=self._next_low_init)
-        actions = outputs["actions"]
-        if not torch.is_tensor(actions):
-            actions = torch.as_tensor(actions)
-        actions = actions.to(z_init.device)
+        # Keep warm-start tensors on CPU to avoid mixed-device issues in CEM internals.
+        low_init_action = self._next_low_init
+        if torch.is_tensor(low_init_action):
+            low_init_action = low_init_action.detach().cpu()
+
+        outputs = self.low_solver(low_info, init_action=low_init_action)
+        actions_solver = outputs["actions"]
+        if not torch.is_tensor(actions_solver):
+            actions_solver = torch.as_tensor(actions_solver)
+        actions = actions_solver.to(z_init.device)
 
         keep_h = int(self.low_cfg.receding_horizon)
         plan = actions[:, :keep_h]
-        rest = actions[:, keep_h:]
-        self._next_low_init = rest if bool(getattr(self.low_cfg, "warm_start", True)) else None
+        self._next_low_init = (
+            actions_solver[:, keep_h:].detach().cpu()
+            if bool(getattr(self.low_cfg, "warm_start", True))
+            else None
+        )
 
         # Convert grouped planner actions (n_env, receding_h, action_dim*block)
         # into env-step actions (n_env, receding_h*block, action_dim).
