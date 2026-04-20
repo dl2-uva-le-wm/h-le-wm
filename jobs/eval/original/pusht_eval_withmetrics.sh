@@ -41,6 +41,12 @@ export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 POLICY="${POLICY:-pusht/lewm}"
 CONFIG_NAME="${CONFIG_NAME:-pusht.yaml}"
 HF_URL="${HF_URL:-https://huggingface.co/quentinll/lewm-pusht/tree/main}"
+VARIANT_NAME="${VARIANT_NAME:-baseline}"
+JOB_TOKEN="${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}"
+EVAL_SUBDIR="${EVAL_SUBDIR:-eval_original_${VARIANT_NAME}_${JOB_TOKEN}}"
+RESULT_FILENAME="${RESULT_FILENAME:-pusht_results_${VARIANT_NAME}.txt}"
+EVAL_BUDGET="${EVAL_BUDGET:-}"
+PLAN_HORIZON="${PLAN_HORIZON:-}"
 
 cd "${REPO_ROOT}"
 
@@ -60,6 +66,15 @@ echo "STABLEWM_HOME=${STABLEWM_HOME}"
 echo "POLICY=${POLICY}"
 echo "CONFIG_NAME=${CONFIG_NAME}"
 echo "HF_URL=${HF_URL}"
+echo "VARIANT_NAME=${VARIANT_NAME}"
+echo "EVAL_SUBDIR=${EVAL_SUBDIR}"
+echo "RESULT_FILENAME=${RESULT_FILENAME}"
+if [[ -n "${EVAL_BUDGET}" ]]; then
+  echo "Override eval_budget=${EVAL_BUDGET}"
+fi
+if [[ -n "${PLAN_HORIZON}" ]]; then
+  echo "Override plan_config.horizon=${PLAN_HORIZON}"
+fi
 echo "Expected checkpoint: ${CKPT_OBJECT_PATH}"
 echo "Expected dataset: ${DATASET_PATH}"
 
@@ -78,8 +93,27 @@ if [[ ! -f "${CKPT_OBJECT_PATH}" ]]; then
 fi
 
 echo "Starting original eval with per-episode metrics..."
-python original_eval_with_manifest.py --config-name="${CONFIG_NAME}" policy="${POLICY}"
+CMD=(
+  python original_eval_with_manifest.py
+  --config-name="${CONFIG_NAME}"
+  "policy=${POLICY}"
+  "output.filename=${RESULT_FILENAME}"
+  "+output.subdir=${EVAL_SUBDIR}"
+)
+
+if [[ -n "${EVAL_BUDGET}" ]]; then
+  CMD+=( "eval.eval_budget=${EVAL_BUDGET}" )
+fi
+
+if [[ -n "${PLAN_HORIZON}" ]]; then
+  CMD+=( "plan_config.horizon=${PLAN_HORIZON}" )
+fi
+
+printf '  %q' "${CMD[@]}"
+echo
+"${CMD[@]}"
 
 echo "Original eval with metrics finished."
-echo "Result file should be under: ${STABLEWM_HOME}/$(dirname "${POLICY}")/pusht_results.txt"
-echo "Episode manifest should be under: ${STABLEWM_HOME}/$(dirname "${POLICY}")/pusht_results_episodes.tsv"
+echo "Artifacts should be under: ${STABLEWM_HOME}/$(dirname "${POLICY}")/${EVAL_SUBDIR}"
+echo "Result file should be under: ${STABLEWM_HOME}/$(dirname "${POLICY}")/${EVAL_SUBDIR}/${RESULT_FILENAME}"
+echo "Episode manifest should be under: ${STABLEWM_HOME}/$(dirname "${POLICY}")/${EVAL_SUBDIR}/${RESULT_FILENAME%.*}_episodes.tsv"

@@ -26,6 +26,26 @@ if _VENDORED_LEWM_DIR.is_dir():
     sys.path.insert(0, str(_VENDORED_LEWM_DIR))
 
 
+def resolve_output_dir(cfg: DictConfig) -> Path:
+    """Resolve directory used for videos and result outputs."""
+    base_dir = (
+        Path(swm.data.utils.get_cache_dir(), cfg.policy).parent
+        if cfg.policy != "random"
+        else Path(__file__).parent
+    )
+
+    output_subdir = str(cfg.output.get("subdir", "")).strip()
+    if output_subdir:
+        subdir = Path(output_subdir)
+        if subdir.is_absolute() or ".." in subdir.parts:
+            raise ValueError(
+                "output.subdir must be a relative path without '..' segments."
+            )
+        base_dir = base_dir / subdir
+
+    return base_dir
+
+
 def img_transform(cfg):
     transform = transforms.Compose(
         [
@@ -126,11 +146,8 @@ def run(cfg: DictConfig):
     else:
         policy = swm.policy.RandomPolicy()
 
-    output_root = (
-        Path(swm.data.utils.get_cache_dir(), cfg.policy).parent
-        if cfg.policy != "random"
-        else Path(__file__).parent
-    )
+    output_root = resolve_output_dir(cfg)
+    output_root.mkdir(parents=True, exist_ok=True)
 
     episode_len = get_episodes_length(dataset, ep_indices)
     max_start_idx = episode_len - cfg.eval.goal_offset_steps - 1
@@ -234,7 +251,7 @@ def run(cfg: DictConfig):
     results_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path = results_path.with_name(f"{results_path.stem}_episodes.tsv")
 
-    with results_path.open("a") as f:
+    with results_path.open("w") as f:
         f.write("\n")
         f.write("==== CONFIG ====\n")
         f.write(OmegaConf.to_yaml(cfg))
@@ -252,7 +269,7 @@ def run(cfg: DictConfig):
             for line in block_only_lines:
                 f.write(f"{line}\n")
 
-    with manifest_path.open("a") as f:
+    with manifest_path.open("w") as f:
         header = "eval_index\tepisode_id\tstart_step\tstatus"
         if has_block_only:
             header += "\tstatus_block_only"
