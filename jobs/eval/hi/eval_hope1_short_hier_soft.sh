@@ -8,7 +8,6 @@
 # - Auto-selects latest object checkpoint in that run directory
 # - Forces planning.mode=hierarchical
 # - Sets eval.goal_offset_steps=25
-# - Uses eval.eval_budget=75 (longer than config default 50)
 # - Uses high horizon=1, receding_horizon=1, action_block=1, k=5
 # - Uses high topk=10 and low topk=150 (best observed in prior short-hier-soft run)
 #
@@ -19,7 +18,6 @@
 # Common overrides:
 #   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_short_hier_soft.sh
 #   sbatch --export=ALL,HIGH_HORIZON=1,HIGH_REPLAN_INTERVAL=5 eval_hope1_short_hier_soft.sh
-#   sbatch --export=ALL,EVAL_BUDGET=100 eval_hope1_short_hier_soft.sh
 #   sbatch --export=ALL,LOW_TOPK=200 eval_hope1_short_hier_soft.sh
 
 #SBATCH --partition=gpu_a100
@@ -32,6 +30,32 @@
 #SBATCH --error=eval_hope1_short_hier_soft_%j.err
 
 set -euo pipefail
+
+print_video_group() {
+  local manifest_path="$1"
+  local status_col="$2"
+  local wanted_status="$3"
+  local title="$4"
+
+  echo "${title}"
+  awk -F'\t' -v status_col="${status_col}" -v wanted_status="${wanted_status}" '
+    NR == 1 {
+      for (i = 1; i <= NF; i++) cols[$i] = i
+      next
+    }
+    !(status_col in cols) { next }
+    $cols[status_col] == wanted_status {
+      found = 1
+      printf "  [eval %s] %s (episode_id=%s, start_step=%s)\n",
+        $cols["eval_index"], $cols["video_path"], $cols["episode_id"], $cols["start_step"]
+    }
+    END {
+      if (!found) {
+        printf "  none\n"
+      }
+    }
+  ' "${manifest_path}"
+}
 
 resolve_repo_root() {
   local c p
@@ -85,8 +109,7 @@ RUN_NAME="${RUN_NAME:-hi_lewm_p2_train_hope1_21983875}"
 CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # latest or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
 GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
-EVAL_BUDGET="${EVAL_BUDGET:-75}"
-EVAL_SUBDIR="${EVAL_SUBDIR:-eval_hier_soft_d${GOAL_OFFSET_STEPS}_b${EVAL_BUDGET}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
+EVAL_SUBDIR="${EVAL_SUBDIR:-eval_hier_soft_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
 
 # Softer high-level settings for short-horizon hierarchical ablation.
 HIGH_NUM_SAMPLES="${HIGH_NUM_SAMPLES:-900}"
@@ -103,11 +126,6 @@ LOW_TOPK="${LOW_TOPK:-150}"
 LOW_HORIZON="${LOW_HORIZON:-5}"
 LOW_RECEDING_HORIZON="${LOW_RECEDING_HORIZON:-1}"
 LOW_ACTION_BLOCK="${LOW_ACTION_BLOCK:-5}"
-
-if ! [[ "${EVAL_BUDGET}" =~ ^[0-9]+$ ]] || (( EVAL_BUDGET < 1 )); then
-  echo "ERROR: EVAL_BUDGET must be an integer >= 1, got '${EVAL_BUDGET}'" >&2
-  exit 9
-fi
 
 RUN_DIR="${STABLEWM_HOME}/runs/${RUN_NAME}"
 DATASET_PATH="${STABLEWM_HOME}/pusht_expert_train.h5"
@@ -160,9 +178,10 @@ fi
 POLICY="${CKPT_OBJECT_PATH#${STABLEWM_HOME}/}"
 POLICY="${POLICY%_object.ckpt}"
 POLICY_BASENAME="$(basename "${POLICY}")"
-RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}_b${EVAL_BUDGET}_hier_soft.txt}"
+RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}_hier_soft.txt}"
 ARTIFACTS_DIR="$(dirname "${CKPT_OBJECT_PATH}")/${EVAL_SUBDIR}"
 RESULT_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME}"
+MANIFEST_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME%.*}_episodes.tsv"
 
 echo "Repo root: ${REPO_ROOT}"
 echo "STABLEWM_HOME: ${STABLEWM_HOME}"
@@ -172,13 +191,13 @@ echo "Checkpoint object: ${CKPT_OBJECT_PATH}"
 echo "Policy arg for hi_eval.py: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
-echo "Eval budget: ${EVAL_BUDGET}"
 echo "Planning mode: hierarchical"
 echo "High-level planner: horizon=${HIGH_HORIZON}, receding=${HIGH_RECEDING_HORIZON}, block=${HIGH_ACTION_BLOCK}, samples=${HIGH_NUM_SAMPLES}, iters=${HIGH_N_STEPS}, topk=${HIGH_TOPK}, k=${HIGH_REPLAN_INTERVAL}"
 echo "Low-level planner: horizon=${LOW_HORIZON}, receding=${LOW_RECEDING_HORIZON}, block=${LOW_ACTION_BLOCK}, samples=${LOW_NUM_SAMPLES}, iters=${LOW_N_STEPS}, topk=${LOW_TOPK}"
 echo "Output subdir: ${EVAL_SUBDIR}"
 echo "Artifacts dir: ${ARTIFACTS_DIR}"
 echo "Result file: ${RESULT_PATH}"
+echo "Episode manifest: ${MANIFEST_PATH}"
 
 cd "${REPO_ROOT}"
 
@@ -197,7 +216,6 @@ CMD=(
   "policy=${POLICY}"
   "planning.mode=hierarchical"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
-  "eval.eval_budget=${EVAL_BUDGET}"
   "output.subdir=${EVAL_SUBDIR}"
   "planning.high.replan_interval=${HIGH_REPLAN_INTERVAL}"
   "planning.high.solver.num_samples=${HIGH_NUM_SAMPLES}"
@@ -227,3 +245,14 @@ echo ""
 echo "Eval finished."
 echo "Artifacts written to: ${ARTIFACTS_DIR}"
 echo "Results appended to: ${RESULT_PATH}"
+if [[ -f "${MANIFEST_PATH}" ]]; then
+  echo "Episode manifest written to: ${MANIFEST_PATH}"
+  echo ""
+  echo "==> Video outcomes"
+  print_video_group "${MANIFEST_PATH}" "status" "PASS" "Passing videos (env metric):"
+  print_video_group "${MANIFEST_PATH}" "status" "FAIL" "Failing videos (env metric):"
+  print_video_group "${MANIFEST_PATH}" "status_block_only" "PASS" "Passing videos (block-only metric):"
+  print_video_group "${MANIFEST_PATH}" "status_block_only" "FAIL" "Failing videos (block-only metric):"
+else
+  echo "WARNING: Episode manifest not found: ${MANIFEST_PATH}" >&2
+fi

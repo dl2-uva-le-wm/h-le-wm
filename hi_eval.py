@@ -107,6 +107,18 @@ def get_dataset(cfg, dataset_name):
     return dataset
 
 
+def format_episode_outcomes(eval_episodes, eval_start_idx, episode_successes):
+    lines = []
+    for eval_index, (episode_id, start_step, success) in enumerate(
+        zip(eval_episodes.tolist(), eval_start_idx.tolist(), episode_successes.tolist())
+    ):
+        status = "PASS" if success else "FAIL"
+        lines.append(
+            f"{status}\teval_index={eval_index}\tepisode_id={episode_id}\tstart_step={start_step}"
+        )
+    return lines
+
+
 def build_process_map(cfg, dataset):
     process = {}
     for col in cfg.dataset.keys_to_cache:
@@ -264,8 +276,40 @@ def run(cfg: DictConfig):
     print(metrics)
     if "success_rate_block_only" in metrics:
         print(f"block_only_success_rate: {metrics['success_rate_block_only']}")
+
+    episode_successes = np.asarray(metrics.get("episode_successes", []), dtype=bool)
+    if episode_successes.shape[0] != len(eval_episodes):
+        raise ValueError(
+            "Mismatch between sampled evaluations and episode_successes: "
+            f"{len(eval_episodes)} samples vs {episode_successes.shape[0]} outcomes"
+        )
+
+    episode_successes_block_only = np.asarray(
+        metrics.get("episode_successes_block_only", []),
+        dtype=bool,
+    )
+    has_block_only = "episode_successes_block_only" in metrics
+    if has_block_only and episode_successes_block_only.shape[0] != len(eval_episodes):
+        raise ValueError(
+            "Mismatch between sampled evaluations and episode_successes_block_only: "
+            f"{len(eval_episodes)} samples vs {episode_successes_block_only.shape[0]} outcomes"
+        )
+
+    outcome_lines = format_episode_outcomes(
+        eval_episodes=eval_episodes,
+        eval_start_idx=eval_start_idx,
+        episode_successes=episode_successes,
+    )
+    if has_block_only:
+        block_only_lines = format_episode_outcomes(
+            eval_episodes=eval_episodes,
+            eval_start_idx=eval_start_idx,
+            episode_successes=episode_successes_block_only,
+        )
+
     results_path = output_dir / cfg.output.filename
     results_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path = results_path.with_name(f"{results_path.stem}_episodes.tsv")
 
     with results_path.open("a") as f:
         f.write("\n")
@@ -277,6 +321,36 @@ def run(cfg: DictConfig):
         if "success_rate_block_only" in metrics:
             f.write(f"block_only_success_rate: {metrics['success_rate_block_only']}\n")
         f.write(f"evaluation_time: {end_time - start_time} seconds\n")
+        f.write("==== EPISODE OUTCOMES ====\n")
+        for line in outcome_lines:
+            f.write(f"{line}\n")
+        if has_block_only:
+            f.write("==== BLOCK-ONLY EPISODE OUTCOMES ====\n")
+            for line in block_only_lines:
+                f.write(f"{line}\n")
+
+    with manifest_path.open("w") as f:
+        header = "eval_index\tepisode_id\tstart_step\tstatus\tvideo_path"
+        if has_block_only:
+            header += "\tstatus_block_only"
+        f.write(f"{header}\n")
+        for row in zip(
+            range(len(eval_episodes)),
+            eval_episodes.tolist(),
+            eval_start_idx.tolist(),
+            episode_successes.tolist(),
+            episode_successes_block_only.tolist() if has_block_only else [""] * len(eval_episodes),
+        ):
+            eval_index, episode_id, start_step, success, block_success = row
+            status = "PASS" if success else "FAIL"
+            video_path = output_dir / f"rollout_{eval_index}.mp4"
+            line = f"{eval_index}\t{episode_id}\t{start_step}\t{status}\t{video_path}"
+            if has_block_only:
+                block_status = "PASS" if block_success else "FAIL"
+                line += f"\t{block_status}"
+            f.write(f"{line}\n")
+
+    print(f"Saved episode manifest to {manifest_path}")
 
 
 if __name__ == "__main__":
