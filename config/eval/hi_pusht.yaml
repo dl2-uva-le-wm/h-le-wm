@@ -31,7 +31,7 @@ planning:
       num_samples: 900
       var_scale: 1.0
       n_steps: 20
-      topk: 10
+      topk: 30
       device: "cuda"
       seed: ${seed}
     plan_config:
@@ -53,10 +53,10 @@ planning:
       _target_: stable_worldmodel.solver.CEMSolver
       model: ???
       batch_size: 1
-      num_samples: 300
+      num_samples: 600
       var_scale: 1.0
       n_steps: 30
-      topk: 10
+      topk: 60
       device: "cuda"
       seed: ${seed}
     plan_config:

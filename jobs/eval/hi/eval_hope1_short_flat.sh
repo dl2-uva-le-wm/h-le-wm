@@ -1,37 +1,34 @@
 #!/bin/bash
 
-# Snellius eval job for Hi-LeWM (2-level) on PushT (medium, d=50).
+# Snellius eval job for Hi-LeWM on PushT (short, d=25) using flat planning.
 #
 # Default behavior:
-# - Uses your recent run: hi_lewm_p2_train_hope1_21983875
+# - Uses run: hi_lewm_p2_train_hope1_21983875
 # - Auto-selects latest object checkpoint in that run directory
 # - Evaluates with hi_eval.py --config-name=hi_pusht
-# - Sets eval.goal_offset_steps=50 (medium setting)
-# - Applies d=50 planning defaults (from HLWM Push-T row):
-#     high: horizon=4, samples=1500, iters=40
-#     low:  horizon=5, samples=900,  iters=20
+# - Forces planning.mode=flat
+# - Sets eval.goal_offset_steps=25 (short setting)
 #
 # Usage:
 #   cd jobs/eval/hi
-#   sbatch eval_hope1_medium.sh
+#   sbatch eval_hope1_short_flat.sh
 #
 # Common overrides:
-#   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_medium.sh
-#   sbatch --export=ALL,RUN_NAME=hi_lewm_p2_train_hope1_21983875,CHECKPOINT_EPOCH=latest eval_hope1_medium.sh
-#   sbatch --export=ALL,RESULT_FILENAME=my_eval_medium_epoch8.txt eval_hope1_medium.sh
-#   sbatch --export=ALL,EVAL_SUBDIR=my_custom_eval_subdir eval_hope1_medium.sh
-#   sbatch --export=ALL,GOAL_OFFSET_STEPS=50 eval_hope1_medium.sh
-#   sbatch --export=ALL,HIGH_NUM_SAMPLES=1200,HIGH_N_STEPS=30,HIGH_HORIZON=3 eval_hope1_medium.sh
-#   sbatch --export=ALL,STABLEWM_HOME=/scratch-shared/$USER/stablewm_data eval_hope1_medium.sh
+#   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_short_flat.sh
+#   sbatch --export=ALL,RUN_NAME=hi_lewm_p2_train_hope1_21983875,CHECKPOINT_EPOCH=latest eval_hope1_short_flat.sh
+#   sbatch --export=ALL,RESULT_FILENAME=my_eval_short_flat_epoch8.txt eval_hope1_short_flat.sh
+#   sbatch --export=ALL,EVAL_SUBDIR=my_custom_eval_subdir eval_hope1_short_flat.sh
+#   sbatch --export=ALL,GOAL_OFFSET_STEPS=25 eval_hope1_short_flat.sh
+#   sbatch --export=ALL,STABLEWM_HOME=/scratch-shared/$USER/stablewm_data eval_hope1_short_flat.sh
 
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
-#SBATCH --job-name=hi_eval_hope1_medium
+#SBATCH --job-name=hi_eval_hope1_short_flat
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=eval_hope1_medium_%j.out
-#SBATCH --error=eval_hope1_medium_%j.err
+#SBATCH --output=eval_hope1_short_flat_%j.out
+#SBATCH --error=eval_hope1_short_flat_%j.err
 
 set -euo pipefail
 
@@ -86,24 +83,8 @@ export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 RUN_NAME="${RUN_NAME:-hi_lewm_p2_train_hope1_21983875}"
 CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # "latest" or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
-GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-50}"
-EVAL_SUBDIR="${EVAL_SUBDIR:-eval_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
-
-# d=50 planning defaults (override via --export as needed)
-HIGH_NUM_SAMPLES="${HIGH_NUM_SAMPLES:-1500}"
-HIGH_N_STEPS="${HIGH_N_STEPS:-40}"
-HIGH_TOPK="${HIGH_TOPK:-10}"
-HIGH_HORIZON="${HIGH_HORIZON:-4}"
-HIGH_RECEDING_HORIZON="${HIGH_RECEDING_HORIZON:-1}"
-HIGH_ACTION_BLOCK="${HIGH_ACTION_BLOCK:-1}"
-HIGH_REPLAN_INTERVAL="${HIGH_REPLAN_INTERVAL:-5}"
-
-LOW_NUM_SAMPLES="${LOW_NUM_SAMPLES:-900}"
-LOW_N_STEPS="${LOW_N_STEPS:-20}"
-LOW_TOPK="${LOW_TOPK:-30}"
-LOW_HORIZON="${LOW_HORIZON:-5}"
-LOW_RECEDING_HORIZON="${LOW_RECEDING_HORIZON:-1}"
-LOW_ACTION_BLOCK="${LOW_ACTION_BLOCK:-5}"
+GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
+EVAL_SUBDIR="${EVAL_SUBDIR:-eval_flat_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
 
 RUN_DIR="${STABLEWM_HOME}/runs/${RUN_NAME}"
 DATASET_PATH="${STABLEWM_HOME}/pusht_expert_train.h5"
@@ -156,7 +137,7 @@ fi
 POLICY="${CKPT_OBJECT_PATH#${STABLEWM_HOME}/}"
 POLICY="${POLICY%_object.ckpt}"
 POLICY_BASENAME="$(basename "${POLICY}")"
-RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}.txt}"
+RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}_flat.txt}"
 ARTIFACTS_DIR="$(dirname "${CKPT_OBJECT_PATH}")/${EVAL_SUBDIR}"
 RESULT_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME}"
 
@@ -168,10 +149,9 @@ echo "Checkpoint object: ${CKPT_OBJECT_PATH}"
 echo "Policy arg for hi_eval.py: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
+echo "Planning mode: flat"
 echo "Output subdir: ${EVAL_SUBDIR}"
 echo "Artifacts dir: ${ARTIFACTS_DIR}"
-echo "High-level planner: horizon=${HIGH_HORIZON}, samples=${HIGH_NUM_SAMPLES}, iters=${HIGH_N_STEPS}, topk=${HIGH_TOPK}, k=${HIGH_REPLAN_INTERVAL}"
-echo "Low-level planner: horizon=${LOW_HORIZON}, samples=${LOW_NUM_SAMPLES}, iters=${LOW_N_STEPS}, topk=${LOW_TOPK}"
 echo "Result file: ${RESULT_PATH}"
 
 cd "${REPO_ROOT}"
@@ -189,22 +169,9 @@ CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
+  "planning.mode=flat"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
   "output.subdir=${EVAL_SUBDIR}"
-  "planning.mode=hierarchical"
-  "planning.high.replan_interval=${HIGH_REPLAN_INTERVAL}"
-  "planning.high.solver.num_samples=${HIGH_NUM_SAMPLES}"
-  "planning.high.solver.n_steps=${HIGH_N_STEPS}"
-  "planning.high.solver.topk=${HIGH_TOPK}"
-  "planning.high.plan_config.horizon=${HIGH_HORIZON}"
-  "planning.high.plan_config.receding_horizon=${HIGH_RECEDING_HORIZON}"
-  "planning.high.plan_config.action_block=${HIGH_ACTION_BLOCK}"
-  "planning.low.solver.num_samples=${LOW_NUM_SAMPLES}"
-  "planning.low.solver.n_steps=${LOW_N_STEPS}"
-  "planning.low.solver.topk=${LOW_TOPK}"
-  "planning.low.plan_config.horizon=${LOW_HORIZON}"
-  "planning.low.plan_config.receding_horizon=${LOW_RECEDING_HORIZON}"
-  "planning.low.plan_config.action_block=${LOW_ACTION_BLOCK}"
   "output.filename=${RESULT_FILENAME}"
 )
 

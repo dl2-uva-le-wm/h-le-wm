@@ -1,37 +1,35 @@
 #!/bin/bash
 
-# Snellius eval job for Hi-LeWM (2-level) on PushT (medium, d=50).
+# Snellius eval job for Hi-LeWM on PushT (short, d=25) in hierarchical mode,
+# with a softer high-level planner for ablation.
 #
 # Default behavior:
-# - Uses your recent run: hi_lewm_p2_train_hope1_21983875
+# - Uses run: hi_lewm_p2_train_hope1_21983875
 # - Auto-selects latest object checkpoint in that run directory
-# - Evaluates with hi_eval.py --config-name=hi_pusht
-# - Sets eval.goal_offset_steps=50 (medium setting)
-# - Applies d=50 planning defaults (from HLWM Push-T row):
-#     high: horizon=4, samples=1500, iters=40
-#     low:  horizon=5, samples=900,  iters=20
+# - Forces planning.mode=hierarchical
+# - Sets eval.goal_offset_steps=25
+# - Uses eval.eval_budget=75 (longer than config default 50)
+# - Uses high horizon=1, receding_horizon=1, action_block=1, k=5
+# - Uses high topk=10 and low topk=150 (best observed in prior short-hier-soft run)
 #
 # Usage:
 #   cd jobs/eval/hi
-#   sbatch eval_hope1_medium.sh
+#   sbatch eval_hope1_short_hier_soft.sh
 #
 # Common overrides:
-#   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_medium.sh
-#   sbatch --export=ALL,RUN_NAME=hi_lewm_p2_train_hope1_21983875,CHECKPOINT_EPOCH=latest eval_hope1_medium.sh
-#   sbatch --export=ALL,RESULT_FILENAME=my_eval_medium_epoch8.txt eval_hope1_medium.sh
-#   sbatch --export=ALL,EVAL_SUBDIR=my_custom_eval_subdir eval_hope1_medium.sh
-#   sbatch --export=ALL,GOAL_OFFSET_STEPS=50 eval_hope1_medium.sh
-#   sbatch --export=ALL,HIGH_NUM_SAMPLES=1200,HIGH_N_STEPS=30,HIGH_HORIZON=3 eval_hope1_medium.sh
-#   sbatch --export=ALL,STABLEWM_HOME=/scratch-shared/$USER/stablewm_data eval_hope1_medium.sh
+#   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_short_hier_soft.sh
+#   sbatch --export=ALL,HIGH_HORIZON=1,HIGH_REPLAN_INTERVAL=5 eval_hope1_short_hier_soft.sh
+#   sbatch --export=ALL,EVAL_BUDGET=100 eval_hope1_short_hier_soft.sh
+#   sbatch --export=ALL,LOW_TOPK=200 eval_hope1_short_hier_soft.sh
 
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
-#SBATCH --job-name=hi_eval_hope1_medium
+#SBATCH --job-name=hi_eval_hope1_short_hier_soft
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=eval_hope1_medium_%j.out
-#SBATCH --error=eval_hope1_medium_%j.err
+#SBATCH --output=eval_hope1_short_hier_soft_%j.out
+#SBATCH --error=eval_hope1_short_hier_soft_%j.err
 
 set -euo pipefail
 
@@ -84,26 +82,32 @@ set -u
 
 export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 RUN_NAME="${RUN_NAME:-hi_lewm_p2_train_hope1_21983875}"
-CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # "latest" or integer >= 1
+CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # latest or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
-GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-50}"
-EVAL_SUBDIR="${EVAL_SUBDIR:-eval_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
+GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
+EVAL_BUDGET="${EVAL_BUDGET:-75}"
+EVAL_SUBDIR="${EVAL_SUBDIR:-eval_hier_soft_d${GOAL_OFFSET_STEPS}_b${EVAL_BUDGET}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
 
-# d=50 planning defaults (override via --export as needed)
-HIGH_NUM_SAMPLES="${HIGH_NUM_SAMPLES:-1500}"
-HIGH_N_STEPS="${HIGH_N_STEPS:-40}"
+# Softer high-level settings for short-horizon hierarchical ablation.
+HIGH_NUM_SAMPLES="${HIGH_NUM_SAMPLES:-900}"
+HIGH_N_STEPS="${HIGH_N_STEPS:-20}"
 HIGH_TOPK="${HIGH_TOPK:-10}"
-HIGH_HORIZON="${HIGH_HORIZON:-4}"
+HIGH_HORIZON="${HIGH_HORIZON:-1}"
 HIGH_RECEDING_HORIZON="${HIGH_RECEDING_HORIZON:-1}"
 HIGH_ACTION_BLOCK="${HIGH_ACTION_BLOCK:-1}"
 HIGH_REPLAN_INTERVAL="${HIGH_REPLAN_INTERVAL:-5}"
 
-LOW_NUM_SAMPLES="${LOW_NUM_SAMPLES:-900}"
-LOW_N_STEPS="${LOW_N_STEPS:-20}"
-LOW_TOPK="${LOW_TOPK:-30}"
+LOW_NUM_SAMPLES="${LOW_NUM_SAMPLES:-300}"
+LOW_N_STEPS="${LOW_N_STEPS:-30}"
+LOW_TOPK="${LOW_TOPK:-150}"
 LOW_HORIZON="${LOW_HORIZON:-5}"
 LOW_RECEDING_HORIZON="${LOW_RECEDING_HORIZON:-1}"
 LOW_ACTION_BLOCK="${LOW_ACTION_BLOCK:-5}"
+
+if ! [[ "${EVAL_BUDGET}" =~ ^[0-9]+$ ]] || (( EVAL_BUDGET < 1 )); then
+  echo "ERROR: EVAL_BUDGET must be an integer >= 1, got '${EVAL_BUDGET}'" >&2
+  exit 9
+fi
 
 RUN_DIR="${STABLEWM_HOME}/runs/${RUN_NAME}"
 DATASET_PATH="${STABLEWM_HOME}/pusht_expert_train.h5"
@@ -133,7 +137,7 @@ if [[ "${CHECKPOINT_EPOCH}" == "latest" ]]; then
   CKPT_OBJECT_PATH="${sorted_candidates[${#sorted_candidates[@]}-1]}"
 else
   if ! [[ "${CHECKPOINT_EPOCH}" =~ ^[0-9]+$ ]] || (( CHECKPOINT_EPOCH < 1 )); then
-    echo "ERROR: CHECKPOINT_EPOCH must be 'latest' or an integer >= 1, got '${CHECKPOINT_EPOCH}'" >&2
+    echo "ERROR: CHECKPOINT_EPOCH must be latest or an integer >= 1, got '${CHECKPOINT_EPOCH}'" >&2
     exit 6
   fi
   CKPT_OBJECT_PATH="${RUN_DIR}/${RUN_NAME}_epoch_${CHECKPOINT_EPOCH}_object.ckpt"
@@ -156,7 +160,7 @@ fi
 POLICY="${CKPT_OBJECT_PATH#${STABLEWM_HOME}/}"
 POLICY="${POLICY%_object.ckpt}"
 POLICY_BASENAME="$(basename "${POLICY}")"
-RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}.txt}"
+RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}_b${EVAL_BUDGET}_hier_soft.txt}"
 ARTIFACTS_DIR="$(dirname "${CKPT_OBJECT_PATH}")/${EVAL_SUBDIR}"
 RESULT_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME}"
 
@@ -168,16 +172,18 @@ echo "Checkpoint object: ${CKPT_OBJECT_PATH}"
 echo "Policy arg for hi_eval.py: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
+echo "Eval budget: ${EVAL_BUDGET}"
+echo "Planning mode: hierarchical"
+echo "High-level planner: horizon=${HIGH_HORIZON}, receding=${HIGH_RECEDING_HORIZON}, block=${HIGH_ACTION_BLOCK}, samples=${HIGH_NUM_SAMPLES}, iters=${HIGH_N_STEPS}, topk=${HIGH_TOPK}, k=${HIGH_REPLAN_INTERVAL}"
+echo "Low-level planner: horizon=${LOW_HORIZON}, receding=${LOW_RECEDING_HORIZON}, block=${LOW_ACTION_BLOCK}, samples=${LOW_NUM_SAMPLES}, iters=${LOW_N_STEPS}, topk=${LOW_TOPK}"
 echo "Output subdir: ${EVAL_SUBDIR}"
 echo "Artifacts dir: ${ARTIFACTS_DIR}"
-echo "High-level planner: horizon=${HIGH_HORIZON}, samples=${HIGH_NUM_SAMPLES}, iters=${HIGH_N_STEPS}, topk=${HIGH_TOPK}, k=${HIGH_REPLAN_INTERVAL}"
-echo "Low-level planner: horizon=${LOW_HORIZON}, samples=${LOW_NUM_SAMPLES}, iters=${LOW_N_STEPS}, topk=${LOW_TOPK}"
 echo "Result file: ${RESULT_PATH}"
 
 cd "${REPO_ROOT}"
 
 # Compatibility for object checkpoints pickled from baseline code:
-# torch.load may need top-level imports like `module` / `utils` from third_party/lewm.
+# torch.load may need top-level imports like module / utils from third_party/lewm.
 if [[ -n "${PYTHONPATH:-}" ]]; then
   export PYTHONPATH="${REPO_ROOT}/third_party/lewm:${REPO_ROOT}:${PYTHONPATH}"
 else
@@ -189,9 +195,10 @@ CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
-  "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
-  "output.subdir=${EVAL_SUBDIR}"
   "planning.mode=hierarchical"
+  "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
+  "eval.eval_budget=${EVAL_BUDGET}"
+  "output.subdir=${EVAL_SUBDIR}"
   "planning.high.replan_interval=${HIGH_REPLAN_INTERVAL}"
   "planning.high.solver.num_samples=${HIGH_NUM_SAMPLES}"
   "planning.high.solver.n_steps=${HIGH_N_STEPS}"
