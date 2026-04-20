@@ -7,7 +7,7 @@
 #   cd jobs/eval/original
 #   sbatch pusht_eval_withmetrics.sh
 
-#SBATCH --partition=gpu_a100
+#SBATCH --partition=gpu_h100
 #SBATCH --gpus=1
 #SBATCH --job-name=orig_eval_pusht_metrics
 #SBATCH --ntasks=1
