@@ -12,6 +12,7 @@ from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 
 import baseline_adapter as _baseline_adapter
+from eval_dataset_metrics import evaluate_from_dataset_with_optional_metrics
 from hi_policy import HierarchicalWorldModelPolicy, calibrate_latent_prior
 
 os.environ["MUJOCO_GL"] = "egl"
@@ -170,6 +171,10 @@ def build_policy(cfg, model, dataset, process, transform):
     )
 
 
+def should_compute_pusht_block_only_metric(cfg: DictConfig) -> bool:
+    return str(cfg.world.env_name).strip() == "swm/PushT-v1"
+
+
 @hydra.main(version_base=None, config_path="./config/eval", config_name="hi_pusht")
 def run(cfg: DictConfig):
     mode = str(cfg.planning.get("mode", "hierarchical")).lower()
@@ -243,18 +248,22 @@ def run(cfg: DictConfig):
     world.set_policy(policy)
 
     start_time = time.time()
-    metrics = world.evaluate_from_dataset(
-        dataset,
+    metrics = evaluate_from_dataset_with_optional_metrics(
+        world=world,
+        dataset=dataset,
         start_steps=eval_start_idx.tolist(),
         goal_offset_steps=cfg.eval.goal_offset_steps,
         eval_budget=cfg.eval.eval_budget,
         episodes_idx=eval_episodes.tolist(),
         callables=OmegaConf.to_container(cfg.eval.get("callables"), resolve=True),
+        enable_pusht_block_only=should_compute_pusht_block_only_metric(cfg),
         video_path=output_dir,
     )
     end_time = time.time()
 
     print(metrics)
+    if "success_rate_block_only" in metrics:
+        print(f"block_only_success_rate: {metrics['success_rate_block_only']}")
     results_path = output_dir / cfg.output.filename
     results_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -265,6 +274,8 @@ def run(cfg: DictConfig):
         f.write("\n")
         f.write("==== RESULTS ====\n")
         f.write(f"metrics: {metrics}\n")
+        if "success_rate_block_only" in metrics:
+            f.write(f"block_only_success_rate: {metrics['success_rate_block_only']}\n")
         f.write(f"evaluation_time: {end_time - start_time} seconds\n")
 
 

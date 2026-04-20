@@ -15,6 +15,8 @@ from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 import stable_worldmodel as swm
 
+from eval_dataset_metrics import evaluate_from_dataset_with_optional_metrics
+
 
 # LeWM checkpoints were serialized with classes from a top-level `jepa` module.
 # Add the vendored source directory so torch.load can resolve that module on clusters
@@ -67,6 +69,10 @@ def format_episode_outcomes(eval_episodes, eval_start_idx, episode_successes):
             f"{status}\teval_index={eval_index}\tepisode_id={episode_id}\tstart_step={start_step}"
         )
     return lines
+
+
+def should_compute_pusht_block_only_metric(cfg: DictConfig) -> bool:
+    return str(cfg.world.env_name).strip() == "swm/PushT-v1"
 
 
 @hydra.main(
@@ -154,24 +160,39 @@ def run(cfg: DictConfig):
     world.set_policy(policy)
 
     start_time = time.time()
-    metrics = world.evaluate_from_dataset(
-        dataset,
+    metrics = evaluate_from_dataset_with_optional_metrics(
+        world=world,
+        dataset=dataset,
         start_steps=eval_start_idx.tolist(),
         goal_offset_steps=cfg.eval.goal_offset_steps,
         eval_budget=cfg.eval.eval_budget,
         episodes_idx=eval_episodes.tolist(),
         callables=OmegaConf.to_container(cfg.eval.get("callables"), resolve=True),
+        enable_pusht_block_only=should_compute_pusht_block_only_metric(cfg),
         video_path=output_root,
     )
     end_time = time.time()
 
     print(metrics)
+    if "success_rate_block_only" in metrics:
+        print(f"block_only_success_rate: {metrics['success_rate_block_only']}")
 
     episode_successes = np.asarray(metrics.get("episode_successes", []), dtype=bool)
     if episode_successes.shape[0] != len(eval_episodes):
         raise ValueError(
             "Mismatch between sampled evaluations and episode_successes: "
             f"{len(eval_episodes)} samples vs {episode_successes.shape[0]} outcomes"
+        )
+
+    episode_successes_block_only = np.asarray(
+        metrics.get("episode_successes_block_only", []),
+        dtype=bool,
+    )
+    has_block_only = "episode_successes_block_only" in metrics
+    if has_block_only and episode_successes_block_only.shape[0] != len(eval_episodes):
+        raise ValueError(
+            "Mismatch between sampled evaluations and episode_successes_block_only: "
+            f"{len(eval_episodes)} samples vs {episode_successes_block_only.shape[0]} outcomes"
         )
 
     outcome_lines = format_episode_outcomes(
@@ -191,6 +212,23 @@ def run(cfg: DictConfig):
     print("==== PASSED EPISODES ====")
     for line in passed_lines:
         print(line)
+    if has_block_only:
+        block_only_lines = format_episode_outcomes(
+            eval_episodes=eval_episodes,
+            eval_start_idx=eval_start_idx,
+            episode_successes=episode_successes_block_only,
+        )
+        block_only_failed = [line for line in block_only_lines if line.startswith("FAIL")]
+        block_only_passed = [line for line in block_only_lines if line.startswith("PASS")]
+        print("==== BLOCK-ONLY EPISODE OUTCOMES ====")
+        for line in block_only_lines:
+            print(line)
+        print("==== BLOCK-ONLY FAILED EPISODES ====")
+        for line in block_only_failed:
+            print(line)
+        print("==== BLOCK-ONLY PASSED EPISODES ====")
+        for line in block_only_passed:
+            print(line)
 
     results_path = output_root / cfg.output.filename
     results_path.parent.mkdir(parents=True, exist_ok=True)
@@ -203,23 +241,36 @@ def run(cfg: DictConfig):
         f.write("\n")
         f.write("==== RESULTS ====\n")
         f.write(f"metrics: {metrics}\n")
+        if "success_rate_block_only" in metrics:
+            f.write(f"block_only_success_rate: {metrics['success_rate_block_only']}\n")
         f.write(f"evaluation_time: {end_time - start_time} seconds\n")
         f.write("==== EPISODE OUTCOMES ====\n")
         for line in outcome_lines:
             f.write(f"{line}\n")
+        if has_block_only:
+            f.write("==== BLOCK-ONLY EPISODE OUTCOMES ====\n")
+            for line in block_only_lines:
+                f.write(f"{line}\n")
 
     with manifest_path.open("a") as f:
-        f.write("eval_index\tepisode_id\tstart_step\tstatus\n")
-        for eval_index, episode_id, start_step, success in zip(
+        header = "eval_index\tepisode_id\tstart_step\tstatus"
+        if has_block_only:
+            header += "\tstatus_block_only"
+        f.write(f"{header}\n")
+        for row in zip(
             range(len(eval_episodes)),
             eval_episodes.tolist(),
             eval_start_idx.tolist(),
             episode_successes.tolist(),
+            episode_successes_block_only.tolist() if has_block_only else [""] * len(eval_episodes),
         ):
+            eval_index, episode_id, start_step, success, block_success = row
             status = "PASS" if success else "FAIL"
-            f.write(
-                f"{eval_index}\t{episode_id}\t{start_step}\t{status}\n"
-            )
+            line = f"{eval_index}\t{episode_id}\t{start_step}\t{status}"
+            if has_block_only:
+                block_status = "PASS" if block_success else "FAIL"
+                line += f"\t{block_status}"
+            f.write(f"{line}\n")
 
     print(f"Saved episode manifest to {manifest_path}")
 
