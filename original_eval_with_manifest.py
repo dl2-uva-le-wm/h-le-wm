@@ -1,9 +1,10 @@
 import os
+import sys
+from pathlib import Path
 
 os.environ["MUJOCO_GL"] = "egl"
 
 import time
-from pathlib import Path
 
 import hydra
 import numpy as np
@@ -13,6 +14,14 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 import stable_worldmodel as swm
+
+
+# LeWM checkpoints were serialized with classes from a top-level `jepa` module.
+# Add the vendored source directory so torch.load can resolve that module on clusters
+# where the package is not installed separately.
+_VENDORED_LEWM_DIR = Path(__file__).resolve().parent / "third_party" / "lewm"
+if _VENDORED_LEWM_DIR.is_dir():
+    sys.path.insert(0, str(_VENDORED_LEWM_DIR))
 
 
 def img_transform(cfg):
