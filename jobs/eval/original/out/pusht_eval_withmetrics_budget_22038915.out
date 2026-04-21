@@ -1,0 +1,143 @@
+REPO_ROOT=/gpfs/home3/scur0511/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0511/stablewm_data
+POLICY=pusht/lewm
+CONFIG_NAME=pusht.yaml
+HF_URL=https://huggingface.co/quentinll/lewm-pusht/tree/main
+VARIANT_NAME=budget100
+EVAL_SUBDIR=eval_original_budget100_22038915
+RESULT_FILENAME=pusht_results_budget100.txt
+Override eval_budget=100
+Expected checkpoint: /scratch-shared/scur0511/stablewm_data/pusht/lewm_object.ckpt
+Expected dataset: /scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5
+Starting original eval with per-episode metrics...
+  python  original_eval_with_manifest.py  --config-name=pusht.yaml  policy=pusht/lewm  output.filename=pusht_results_budget100.txt  +output.subdir=eval_original_budget100_22038915  eval.eval_budget=100
+17:53:06.285 | INFO    (1479134, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+17:53:06.286 | INFO    (1479134, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+17:53:06.286 | INFO    (1479134, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
+17:53:06.286 | INFO    (1479134, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+17:53:06.286 | INFO    (1479134, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (50, 7), float64))
+17:53:06.287 | INFO    (1479134, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[2026-04-20 17:54:14,545][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-20 17:54:55,247][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-20 17:55:39,517][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'

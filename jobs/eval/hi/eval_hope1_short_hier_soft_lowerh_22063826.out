@@ -1,0 +1,154 @@
+Repo root: /gpfs/home3/scur0511/h-le-wm
+STABLEWM_HOME: /scratch-shared/scur0511/stablewm_data
+Run name: hi_lewm_p2_train_hope1_21983875
+Checkpoint selection: latest
+Checkpoint object: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10_object.ckpt
+Policy arg for hi_eval.py: runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10
+Config name: hi_pusht
+Goal offset steps (d): 25
+Eval budget: 30
+Eval device: cuda
+Planning mode: hierarchical
+High-level planner: horizon=1, receding=1, block=1, samples=900, iters=20, topk=10, k=5
+Low-level planner: horizon=2, receding=1, block=5, samples=300, iters=30, topk=150
+Output subdir: eval_hier_soft_lowerh_d25_job_22063826
+Artifacts dir: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_lowerh_d25_job_22063826
+Result file: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_lowerh_d25_job_22063826/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_hier_soft_lowerh.txt
+Episode manifest: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_lowerh_d25_job_22063826/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_hier_soft_lowerh_episodes.tsv
+PYTHONPATH prefix: /gpfs/home3/scur0511/h-le-wm/third_party/lewm:/gpfs/home3/scur0511/h-le-wm
+
+==> Launching eval command:
+  python  hi_eval.py  --config-name=hi_pusht  device=cuda  policy=runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10  planning.mode=hierarchical  eval.goal_offset_steps=25  eval.eval_budget=30  output.subdir=eval_hier_soft_lowerh_d25_job_22063826  planning.high.solver.device=cuda  planning.low.solver.device=cuda  solver.device=cuda  planning.high.replan_interval=5  planning.high.solver.num_samples=900  planning.high.solver.n_steps=20  planning.high.solver.topk=10  planning.high.plan_config.horizon=1  planning.high.plan_config.receding_horizon=1  planning.high.plan_config.action_block=1  planning.low.solver.num_samples=300  planning.low.solver.n_steps=30  planning.low.solver.topk=150  planning.low.plan_config.horizon=2  planning.low.plan_config.receding_horizon=1  planning.low.plan_config.action_block=5  output.filename=hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_hier_soft_lowerh.txt
+
+[hi_eval] requested device=cuda but CUDA is unavailable; falling back to cpu
+[hi_eval] using device=cpu
+11:32:33.613 | INFO    (2644561, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+11:32:33.613 | INFO    (2644561, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+11:32:33.613 | INFO    (2644561, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
+11:32:33.613 | INFO    (2644561, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+11:32:33.613 | INFO    (2644561, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (50, 7), float64))
+11:32:33.614 | INFO    (2644561, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[2026-04-21 11:33:30,507][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-21 11:34:18,589][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-21 11:35:07,392][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'

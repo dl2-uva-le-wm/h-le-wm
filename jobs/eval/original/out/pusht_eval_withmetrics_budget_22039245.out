@@ -1,0 +1,379 @@
+REPO_ROOT=/gpfs/home3/scur0511/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0511/stablewm_data
+POLICY=pusht/lewm
+CONFIG_NAME=pusht.yaml
+HF_URL=https://huggingface.co/quentinll/lewm-pusht/tree/main
+VARIANT_NAME=budget100
+EVAL_SUBDIR=eval_original_budget100_22039245
+RESULT_FILENAME=pusht_results_budget100.txt
+Override eval_budget=100
+Expected checkpoint: /scratch-shared/scur0511/stablewm_data/pusht/lewm_object.ckpt
+Expected dataset: /scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5
+Starting original eval with per-episode metrics...
+  python  original_eval_with_manifest.py  --config-name=pusht.yaml  policy=pusht/lewm  output.filename=pusht_results_budget100.txt  +output.subdir=eval_original_budget100_22039245  eval.eval_budget=100
+18:07:46.640 | INFO    (850615, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+18:07:46.640 | INFO    (850615, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+18:07:46.640 | INFO    (850615, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
+18:07:46.640 | INFO    (850615, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+18:07:46.640 | INFO    (850615, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (50, 7), float64))
+18:07:46.641 | INFO    (850615, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[2026-04-20 18:08:47,709][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-20 18:09:46,231][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-20 18:10:41,625][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+1869611 valid starting points found for evaluation.
+[ 150187  159883  201656  209210  216281  221571  305393  388512  429216
+  472611  532318  645504  829098  867812  941648 1015425 1028336 1038327
+ 1043460 1054182 1054375 1175223 1206116 1237214 1279178 1299073 1475334
+ 1504936 1529287 1582218 1627801 1635424 1673952 1715192 1768147 1775706
+ 1805133 1816073 1823056 1832756 1920150 1933212 1962500 2005033 2005680
+ 2069969 2083086 2164264 2263297 2275346]
+CEM solve time: 154.7653 seconds
+CEM solve time: 154.5006 seconds
+CEM solve time: 154.7119 seconds
+CEM solve time: 154.6689 seconds
+Video saved to /scratch-shared/scur0511/stablewm_data/pusht/eval_original_budget100_22039245
+{'success_rate': 96.0, 'episode_successes': array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True,  True,  True,  True, False,  True,  True,  True,
+        True,  True,  True,  True,  True, False,  True,  True,  True,
+        True,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True,  True,  True,  True]), 'seeds': None, 'success_rate_block_only': 1200.0, 'episode_successes_block_only': array([[False, False, False, ..., False, False, False],
+       [ True,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True],
+       ...,
+       [False, False, False, ..., False, False, False],
+       [False, False, False, ..., False, False, False],
+       [False, False, False, ..., False, False, False]], shape=(50, 50))}
+block_only_success_rate: 1200.0
+==== EPISODE OUTCOMES ====
+PASS	eval_index=0	episode_id=1235	start_step=36
+PASS	eval_index=1	episode_id=1316	start_step=129
+PASS	eval_index=2	episode_id=1639	start_step=40
+PASS	eval_index=3	episode_id=1694	start_step=59
+PASS	eval_index=4	episode_id=1761	start_step=19
+PASS	eval_index=5	episode_id=1820	start_step=13
+PASS	eval_index=6	episode_id=2635	start_step=114
+PASS	eval_index=7	episode_id=3184	start_step=115
+PASS	eval_index=8	episode_id=3517	start_step=2
+PASS	eval_index=9	episode_id=3838	start_step=133
+PASS	eval_index=10	episode_id=4299	start_step=20
+PASS	eval_index=11	episode_id=5123	start_step=126
+PASS	eval_index=12	episode_id=6651	start_step=49
+PASS	eval_index=13	episode_id=6983	start_step=65
+FAIL	eval_index=14	episode_id=7572	start_step=116
+PASS	eval_index=15	episode_id=8235	start_step=10
+PASS	eval_index=16	episode_id=8313	start_step=130
+PASS	eval_index=17	episode_id=8373	start_step=101
+PASS	eval_index=18	episode_id=8408	start_step=89
+PASS	eval_index=19	episode_id=8486	start_step=37
+PASS	eval_index=20	episode_id=8488	start_step=20
+PASS	eval_index=21	episode_id=9591	start_step=26
+PASS	eval_index=22	episode_id=9864	start_step=50
+FAIL	eval_index=23	episode_id=10117	start_step=135
+PASS	eval_index=24	episode_id=10378	start_step=28
+PASS	eval_index=25	episode_id=10489	start_step=33
+PASS	eval_index=26	episode_id=11775	start_step=25
+PASS	eval_index=27	episode_id=12047	start_step=95
+PASS	eval_index=28	episode_id=12221	start_step=46
+PASS	eval_index=29	episode_id=12591	start_step=155
+PASS	eval_index=30	episode_id=12961	start_step=25
+PASS	eval_index=31	episode_id=13029	start_step=32
+PASS	eval_index=32	episode_id=13303	start_step=72
+PASS	eval_index=33	episode_id=13586	start_step=35
+PASS	eval_index=34	episode_id=14033	start_step=87
+PASS	eval_index=35	episode_id=14108	start_step=35
+PASS	eval_index=36	episode_id=14327	start_step=27
+PASS	eval_index=37	episode_id=14432	start_step=47
+PASS	eval_index=38	episode_id=14474	start_step=98
+PASS	eval_index=39	episode_id=14526	start_step=126
+PASS	eval_index=40	episode_id=15277	start_step=42
+PASS	eval_index=41	episode_id=15435	start_step=19
+PASS	eval_index=42	episode_id=15701	start_step=33
+PASS	eval_index=43	episode_id=16015	start_step=137
+PASS	eval_index=44	episode_id=16019	start_step=72
+PASS	eval_index=45	episode_id=16399	start_step=75
+PASS	eval_index=46	episode_id=16532	start_step=35
+PASS	eval_index=47	episode_id=17264	start_step=9
+PASS	eval_index=48	episode_id=17939	start_step=40
+PASS	eval_index=49	episode_id=18054	start_step=21
+==== FAILED EPISODES ====
+FAIL	eval_index=14	episode_id=7572	start_step=116
+FAIL	eval_index=23	episode_id=10117	start_step=135
+==== PASSED EPISODES ====
+PASS	eval_index=0	episode_id=1235	start_step=36
+PASS	eval_index=1	episode_id=1316	start_step=129
+PASS	eval_index=2	episode_id=1639	start_step=40
+PASS	eval_index=3	episode_id=1694	start_step=59
+PASS	eval_index=4	episode_id=1761	start_step=19
+PASS	eval_index=5	episode_id=1820	start_step=13
+PASS	eval_index=6	episode_id=2635	start_step=114
+PASS	eval_index=7	episode_id=3184	start_step=115
+PASS	eval_index=8	episode_id=3517	start_step=2
+PASS	eval_index=9	episode_id=3838	start_step=133
+PASS	eval_index=10	episode_id=4299	start_step=20
+PASS	eval_index=11	episode_id=5123	start_step=126
+PASS	eval_index=12	episode_id=6651	start_step=49
+PASS	eval_index=13	episode_id=6983	start_step=65
+PASS	eval_index=15	episode_id=8235	start_step=10
+PASS	eval_index=16	episode_id=8313	start_step=130
+PASS	eval_index=17	episode_id=8373	start_step=101
+PASS	eval_index=18	episode_id=8408	start_step=89
+PASS	eval_index=19	episode_id=8486	start_step=37
+PASS	eval_index=20	episode_id=8488	start_step=20
+PASS	eval_index=21	episode_id=9591	start_step=26
+PASS	eval_index=22	episode_id=9864	start_step=50
+PASS	eval_index=24	episode_id=10378	start_step=28
+PASS	eval_index=25	episode_id=10489	start_step=33
+PASS	eval_index=26	episode_id=11775	start_step=25
+PASS	eval_index=27	episode_id=12047	start_step=95
+PASS	eval_index=28	episode_id=12221	start_step=46
+PASS	eval_index=29	episode_id=12591	start_step=155
+PASS	eval_index=30	episode_id=12961	start_step=25
+PASS	eval_index=31	episode_id=13029	start_step=32
+PASS	eval_index=32	episode_id=13303	start_step=72
+PASS	eval_index=33	episode_id=13586	start_step=35
+PASS	eval_index=34	episode_id=14033	start_step=87
+PASS	eval_index=35	episode_id=14108	start_step=35
+PASS	eval_index=36	episode_id=14327	start_step=27
+PASS	eval_index=37	episode_id=14432	start_step=47
+PASS	eval_index=38	episode_id=14474	start_step=98
+PASS	eval_index=39	episode_id=14526	start_step=126
+PASS	eval_index=40	episode_id=15277	start_step=42
+PASS	eval_index=41	episode_id=15435	start_step=19
+PASS	eval_index=42	episode_id=15701	start_step=33
+PASS	eval_index=43	episode_id=16015	start_step=137
+PASS	eval_index=44	episode_id=16019	start_step=72
+PASS	eval_index=45	episode_id=16399	start_step=75
+PASS	eval_index=46	episode_id=16532	start_step=35
+PASS	eval_index=47	episode_id=17264	start_step=9
+PASS	eval_index=48	episode_id=17939	start_step=40
+PASS	eval_index=49	episode_id=18054	start_step=21
+==== BLOCK-ONLY EPISODE OUTCOMES ====
+PASS	eval_index=0	episode_id=1235	start_step=36
+PASS	eval_index=1	episode_id=1316	start_step=129
+PASS	eval_index=2	episode_id=1639	start_step=40
+PASS	eval_index=3	episode_id=1694	start_step=59
+PASS	eval_index=4	episode_id=1761	start_step=19
+PASS	eval_index=5	episode_id=1820	start_step=13
+PASS	eval_index=6	episode_id=2635	start_step=114
+PASS	eval_index=7	episode_id=3184	start_step=115
+PASS	eval_index=8	episode_id=3517	start_step=2
+PASS	eval_index=9	episode_id=3838	start_step=133
+PASS	eval_index=10	episode_id=4299	start_step=20
+PASS	eval_index=11	episode_id=5123	start_step=126
+PASS	eval_index=12	episode_id=6651	start_step=49
+PASS	eval_index=13	episode_id=6983	start_step=65
+PASS	eval_index=14	episode_id=7572	start_step=116
+PASS	eval_index=15	episode_id=8235	start_step=10
+PASS	eval_index=16	episode_id=8313	start_step=130
+PASS	eval_index=17	episode_id=8373	start_step=101
+PASS	eval_index=18	episode_id=8408	start_step=89
+PASS	eval_index=19	episode_id=8486	start_step=37
+PASS	eval_index=20	episode_id=8488	start_step=20
+PASS	eval_index=21	episode_id=9591	start_step=26
+PASS	eval_index=22	episode_id=9864	start_step=50
+PASS	eval_index=23	episode_id=10117	start_step=135
+PASS	eval_index=24	episode_id=10378	start_step=28
+PASS	eval_index=25	episode_id=10489	start_step=33
+PASS	eval_index=26	episode_id=11775	start_step=25
+PASS	eval_index=27	episode_id=12047	start_step=95
+PASS	eval_index=28	episode_id=12221	start_step=46
+PASS	eval_index=29	episode_id=12591	start_step=155
+PASS	eval_index=30	episode_id=12961	start_step=25
+PASS	eval_index=31	episode_id=13029	start_step=32
+PASS	eval_index=32	episode_id=13303	start_step=72
+PASS	eval_index=33	episode_id=13586	start_step=35
+PASS	eval_index=34	episode_id=14033	start_step=87
+PASS	eval_index=35	episode_id=14108	start_step=35
+PASS	eval_index=36	episode_id=14327	start_step=27
+PASS	eval_index=37	episode_id=14432	start_step=47
+PASS	eval_index=38	episode_id=14474	start_step=98
+PASS	eval_index=39	episode_id=14526	start_step=126
+PASS	eval_index=40	episode_id=15277	start_step=42
+PASS	eval_index=41	episode_id=15435	start_step=19
+PASS	eval_index=42	episode_id=15701	start_step=33
+PASS	eval_index=43	episode_id=16015	start_step=137
+PASS	eval_index=44	episode_id=16019	start_step=72
+PASS	eval_index=45	episode_id=16399	start_step=75
+PASS	eval_index=46	episode_id=16532	start_step=35
+PASS	eval_index=47	episode_id=17264	start_step=9
+PASS	eval_index=48	episode_id=17939	start_step=40
+PASS	eval_index=49	episode_id=18054	start_step=21
+==== BLOCK-ONLY FAILED EPISODES ====
+==== BLOCK-ONLY PASSED EPISODES ====
+PASS	eval_index=0	episode_id=1235	start_step=36
+PASS	eval_index=1	episode_id=1316	start_step=129
+PASS	eval_index=2	episode_id=1639	start_step=40
+PASS	eval_index=3	episode_id=1694	start_step=59
+PASS	eval_index=4	episode_id=1761	start_step=19
+PASS	eval_index=5	episode_id=1820	start_step=13
+PASS	eval_index=6	episode_id=2635	start_step=114
+PASS	eval_index=7	episode_id=3184	start_step=115
+PASS	eval_index=8	episode_id=3517	start_step=2
+PASS	eval_index=9	episode_id=3838	start_step=133
+PASS	eval_index=10	episode_id=4299	start_step=20
+PASS	eval_index=11	episode_id=5123	start_step=126
+PASS	eval_index=12	episode_id=6651	start_step=49
+PASS	eval_index=13	episode_id=6983	start_step=65
+PASS	eval_index=14	episode_id=7572	start_step=116
+PASS	eval_index=15	episode_id=8235	start_step=10
+PASS	eval_index=16	episode_id=8313	start_step=130
+PASS	eval_index=17	episode_id=8373	start_step=101
+PASS	eval_index=18	episode_id=8408	start_step=89
+PASS	eval_index=19	episode_id=8486	start_step=37
+PASS	eval_index=20	episode_id=8488	start_step=20
+PASS	eval_index=21	episode_id=9591	start_step=26
+PASS	eval_index=22	episode_id=9864	start_step=50
+PASS	eval_index=23	episode_id=10117	start_step=135
+PASS	eval_index=24	episode_id=10378	start_step=28
+PASS	eval_index=25	episode_id=10489	start_step=33
+PASS	eval_index=26	episode_id=11775	start_step=25
+PASS	eval_index=27	episode_id=12047	start_step=95
+PASS	eval_index=28	episode_id=12221	start_step=46
+PASS	eval_index=29	episode_id=12591	start_step=155
+PASS	eval_index=30	episode_id=12961	start_step=25
+PASS	eval_index=31	episode_id=13029	start_step=32
+PASS	eval_index=32	episode_id=13303	start_step=72
+PASS	eval_index=33	episode_id=13586	start_step=35
+PASS	eval_index=34	episode_id=14033	start_step=87
+PASS	eval_index=35	episode_id=14108	start_step=35
+PASS	eval_index=36	episode_id=14327	start_step=27
+PASS	eval_index=37	episode_id=14432	start_step=47
+PASS	eval_index=38	episode_id=14474	start_step=98
+PASS	eval_index=39	episode_id=14526	start_step=126
+PASS	eval_index=40	episode_id=15277	start_step=42
+PASS	eval_index=41	episode_id=15435	start_step=19
+PASS	eval_index=42	episode_id=15701	start_step=33
+PASS	eval_index=43	episode_id=16015	start_step=137
+PASS	eval_index=44	episode_id=16019	start_step=72
+PASS	eval_index=45	episode_id=16399	start_step=75
+PASS	eval_index=46	episode_id=16532	start_step=35
+PASS	eval_index=47	episode_id=17264	start_step=9
+PASS	eval_index=48	episode_id=17939	start_step=40
+PASS	eval_index=49	episode_id=18054	start_step=21
+Saved episode manifest to /scratch-shared/scur0511/stablewm_data/pusht/eval_original_budget100_22039245/pusht_results_budget100_episodes.tsv
+Original eval with metrics finished.
+Artifacts should be under: /scratch-shared/scur0511/stablewm_data/pusht/eval_original_budget100_22039245
+Result file should be under: /scratch-shared/scur0511/stablewm_data/pusht/eval_original_budget100_22039245/pusht_results_budget100.txt
+Episode manifest should be under: /scratch-shared/scur0511/stablewm_data/pusht/eval_original_budget100_22039245/pusht_results_budget100_episodes.tsv

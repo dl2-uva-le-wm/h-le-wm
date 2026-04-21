@@ -15,7 +15,7 @@ import baseline_adapter as _baseline_adapter
 from eval_dataset_metrics import evaluate_from_dataset_with_optional_metrics
 from hi_policy import HierarchicalWorldModelPolicy, calibrate_latent_prior
 
-os.environ["MUJOCO_GL"] = "egl"
+os.environ.setdefault("MUJOCO_GL", "egl")
 
 # Backward-compatibility for torch.load on object checkpoints saved by hi_train:
 # those pickles may reference classes under the dynamic module name
@@ -187,9 +187,30 @@ def should_compute_pusht_block_only_metric(cfg: DictConfig) -> bool:
     return str(cfg.world.env_name).strip() == "swm/PushT-v1"
 
 
+def resolve_eval_device(cfg: DictConfig) -> str:
+    """Resolve runtime device for model + solver execution."""
+    requested = str(cfg.get("device", "auto")).strip().lower()
+    if requested == "auto":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if requested == "cuda" and not torch.cuda.is_available():
+        print("[hi_eval] requested device=cuda but CUDA is unavailable; falling back to cpu")
+        return "cpu"
+    if requested not in {"cpu", "cuda"}:
+        raise ValueError("device must be one of: auto, cpu, cuda")
+    return requested
+
+
 @hydra.main(version_base=None, config_path="./config/eval", config_name="hi_pusht")
 def run(cfg: DictConfig):
     mode = str(cfg.planning.get("mode", "hierarchical")).lower()
+    eval_device = resolve_eval_device(cfg)
+    print(f"[hi_eval] using device={eval_device}")
+
+    if mode == "hierarchical":
+        cfg.planning.high.solver.device = eval_device
+        cfg.planning.low.solver.device = eval_device
+    else:
+        cfg.solver.device = eval_device
 
     if mode == "hierarchical":
         high_plan_len = (
@@ -228,7 +249,7 @@ def run(cfg: DictConfig):
     policy_name = cfg.get("policy", "random")
     if policy_name != "random":
         model = swm.policy.AutoCostModel(cfg.policy)
-        model = model.to("cuda")
+        model = model.to(eval_device)
         model = model.eval()
         model.requires_grad_(False)
         model.interpolate_pos_encoding = True

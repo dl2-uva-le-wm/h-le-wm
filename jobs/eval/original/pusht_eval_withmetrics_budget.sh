@@ -10,8 +10,9 @@
 #   cd jobs/eval/original
 #   sbatch pusht_eval_withmetrics_budget.sh
 
-#SBATCH --partition=gpu_a100
+#SBATCH --partition=gpu_mig
 #SBATCH --gpus=1
+
 #SBATCH --job-name=orig_eval_pusht_budget
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8

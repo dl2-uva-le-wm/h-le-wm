@@ -1,0 +1,39 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+Error executing job with overrides: ['policy=pusht/lewm', 'output.filename=pusht_results_budget100.txt', '+output.subdir=eval_original_budget100_22038915', 'eval.eval_budget=100']
+Traceback (most recent call last):
+  File "/gpfs/home3/scur0511/h-le-wm/original_eval_with_manifest.py", line 137, in run
+    model = model.to("cuda")
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1384, in to
+    return self._apply(convert)
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  [Previous line repeated 1 more time]
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/nn/modules/module.py", line 965, in _apply
+    param_applied = fn(param)
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1370, in convert
+    return t.to(
+  File "/home/scur0511/.conda/envs/lewm-gpu/lib/python3.10/site-packages/torch/cuda/__init__.py", line 478, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: No CUDA GPUs are available
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

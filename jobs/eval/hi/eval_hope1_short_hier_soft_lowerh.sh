@@ -1,29 +1,36 @@
 #!/bin/bash
 
 # Snellius eval job for Hi-LeWM on PushT (short, d=25) in hierarchical mode,
-# with a softer high-level planner for ablation and a reduced eval budget.
+# with a softer high-level planner and lower low-level horizon.
 #
-# Default behavior relative to eval_hope1_short_hier_soft.sh:
-# - Uses the same planner settings
+# Default behavior:
+# - Uses run: hi_lewm_p2_train_hope1_21983875
+# - Auto-selects latest object checkpoint in that run directory
+# - Forces planning.mode=hierarchical
 # - Sets eval.goal_offset_steps=25
-# - Sets eval.eval_budget=30 (reduced from 50)
+# - Sets eval.eval_budget=30
+# - Uses high horizon=1, receding_horizon=1, action_block=1, k=5
+# - Uses high topk=10 and low topk=150 (best observed in prior short-hier-soft run)
+# - Uses lower low-level horizon default: 3 (vs 5), while keeping action_block=5
 #
 # Usage:
 #   cd jobs/eval/hi
-#   sbatch eval_hope1_short_hier_soft_lowerbudg.sh
+#   sbatch eval_hope1_short_hier_soft_lowerh.sh
+#   sbatch --export=ALL,EVAL_DEVICE=cpu --partition=cpu --gpus=0 eval_hope1_short_hier_soft_lowerh.sh
 #
 # Common overrides:
-#   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_short_hier_soft_lowerbudg.sh
-#   sbatch --export=ALL,EVAL_BUDGET=20 eval_hope1_short_hier_soft_lowerbudg.sh
+#   sbatch --export=ALL,CHECKPOINT_EPOCH=8 eval_hope1_short_hier_soft_lowerh.sh
+#   sbatch --export=ALL,HIGH_HORIZON=1,HIGH_REPLAN_INTERVAL=5 eval_hope1_short_hier_soft_lowerh.sh
+#   sbatch --export=ALL,LOW_HORIZON=2 eval_hope1_short_hier_soft_lowerh.sh
+#   sbatch --export=ALL,EVAL_BUDGET=40 eval_hope1_short_hier_soft_lowerh.sh
 
-#SBATCH --partition=gpu_mig
-#SBATCH --gpus=1
-#SBATCH --job-name=hi_eval_hope1_short_hier_soft_lowerbudg
+#SBATCH --partition=rome
+#SBATCH --job-name=hi_eval_hope1_short_hier_soft_lowerh
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=eval_hope1_short_hier_soft_lowerbudg_%j.out
-#SBATCH --error=eval_hope1_short_hier_soft_lowerbudg_%j.err
+#SBATCH --output=eval_hope1_short_hier_soft_lowerh_%j.out
+#SBATCH --error=eval_hope1_short_hier_soft_lowerh_%j.err
 
 set -euo pipefail
 
@@ -106,7 +113,8 @@ CHECKPOINT_EPOCH="${CHECKPOINT_EPOCH:-latest}"  # latest or integer >= 1
 CONFIG_NAME="${CONFIG_NAME:-hi_pusht}"
 GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
 EVAL_BUDGET="${EVAL_BUDGET:-30}"
-EVAL_SUBDIR="${EVAL_SUBDIR:-eval_hier_soft_d${GOAL_OFFSET_STEPS}_b${EVAL_BUDGET}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
+EVAL_SUBDIR="${EVAL_SUBDIR:-eval_hier_soft_lowerh_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
+EVAL_DEVICE="${EVAL_DEVICE:-cuda}"  # one of: cuda, cpu
 
 # Softer high-level settings for short-horizon hierarchical ablation.
 HIGH_NUM_SAMPLES="${HIGH_NUM_SAMPLES:-900}"
@@ -120,7 +128,7 @@ HIGH_REPLAN_INTERVAL="${HIGH_REPLAN_INTERVAL:-5}"
 LOW_NUM_SAMPLES="${LOW_NUM_SAMPLES:-300}"
 LOW_N_STEPS="${LOW_N_STEPS:-30}"
 LOW_TOPK="${LOW_TOPK:-150}"
-LOW_HORIZON="${LOW_HORIZON:-5}"
+LOW_HORIZON="${LOW_HORIZON:-2}"
 LOW_RECEDING_HORIZON="${LOW_RECEDING_HORIZON:-1}"
 LOW_ACTION_BLOCK="${LOW_ACTION_BLOCK:-5}"
 
@@ -175,7 +183,7 @@ fi
 POLICY="${CKPT_OBJECT_PATH#${STABLEWM_HOME}/}"
 POLICY="${POLICY%_object.ckpt}"
 POLICY_BASENAME="$(basename "${POLICY}")"
-RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}_b${EVAL_BUDGET}_hier_soft_lowerbudg.txt}"
+RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}_hier_soft_lowerh.txt}"
 ARTIFACTS_DIR="$(dirname "${CKPT_OBJECT_PATH}")/${EVAL_SUBDIR}"
 RESULT_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME}"
 MANIFEST_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME%.*}_episodes.tsv"
@@ -189,6 +197,7 @@ echo "Policy arg for hi_eval.py: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
 echo "Eval budget: ${EVAL_BUDGET}"
+echo "Eval device: ${EVAL_DEVICE}"
 echo "Planning mode: hierarchical"
 echo "High-level planner: horizon=${HIGH_HORIZON}, receding=${HIGH_RECEDING_HORIZON}, block=${HIGH_ACTION_BLOCK}, samples=${HIGH_NUM_SAMPLES}, iters=${HIGH_N_STEPS}, topk=${HIGH_TOPK}, k=${HIGH_REPLAN_INTERVAL}"
 echo "Low-level planner: horizon=${LOW_HORIZON}, receding=${LOW_RECEDING_HORIZON}, block=${LOW_ACTION_BLOCK}, samples=${LOW_NUM_SAMPLES}, iters=${LOW_N_STEPS}, topk=${LOW_TOPK}"
@@ -208,14 +217,24 @@ else
 fi
 echo "PYTHONPATH prefix: ${REPO_ROOT}/third_party/lewm:${REPO_ROOT}"
 
+if [[ "${EVAL_DEVICE}" == "cpu" ]]; then
+  # Avoid accidental CUDA use when cpu mode is requested.
+  export CUDA_VISIBLE_DEVICES=""
+  export MUJOCO_GL="${MUJOCO_GL:-osmesa}"
+fi
+
 CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
+  "device=${EVAL_DEVICE}"
   "policy=${POLICY}"
   "planning.mode=hierarchical"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
   "eval.eval_budget=${EVAL_BUDGET}"
   "output.subdir=${EVAL_SUBDIR}"
+  "planning.high.solver.device=${EVAL_DEVICE}"
+  "planning.low.solver.device=${EVAL_DEVICE}"
+  "solver.device=${EVAL_DEVICE}"
   "planning.high.replan_interval=${HIGH_REPLAN_INTERVAL}"
   "planning.high.solver.num_samples=${HIGH_NUM_SAMPLES}"
   "planning.high.solver.n_steps=${HIGH_N_STEPS}"

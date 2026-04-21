@@ -10,7 +10,7 @@
 #   cd jobs/eval/original
 #   sbatch pusht_eval_withmetrics_horizon.sh
 
-#SBATCH --partition=gpu_a100
+#SBATCH --partition=gpu_mig
 #SBATCH --gpus=1
 #SBATCH --job-name=orig_eval_pusht_horizon
 #SBATCH --ntasks=1

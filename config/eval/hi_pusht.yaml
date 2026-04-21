@@ -19,6 +19,7 @@ dataset:
 
 seed: 42
 policy: hi_lewm
+device: auto # one of: auto, cpu, cuda
 
 planning:
   mode: hierarchical # one of: hierarchical, flat

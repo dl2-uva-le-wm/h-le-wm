@@ -1,0 +1,292 @@
+Repo root: /gpfs/home3/scur0511/h-le-wm
+STABLEWM_HOME: /scratch-shared/scur0511/stablewm_data
+Run name: hi_lewm_p2_train_hope1_21983875
+Checkpoint selection: latest
+Checkpoint object: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10_object.ckpt
+Policy arg for hi_eval.py: runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10
+Config name: hi_pusht
+Goal offset steps (d): 25
+Eval budget: 30
+Planning mode: hierarchical
+High-level planner: horizon=1, receding=1, block=1, samples=900, iters=20, topk=10, k=5
+Low-level planner: horizon=5, receding=1, block=5, samples=300, iters=30, topk=150
+Output subdir: eval_hier_soft_d25_b30_job_22039237
+Artifacts dir: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237
+Result file: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_b30_hier_soft_lowerbudg.txt
+Episode manifest: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_b30_hier_soft_lowerbudg_episodes.tsv
+PYTHONPATH prefix: /gpfs/home3/scur0511/h-le-wm/third_party/lewm:/gpfs/home3/scur0511/h-le-wm
+
+==> Launching eval command:
+  python  hi_eval.py  --config-name=hi_pusht  policy=runs/hi_lewm_p2_train_hope1_21983875/hi_lewm_p2_train_hope1_21983875_epoch_10  planning.mode=hierarchical  eval.goal_offset_steps=25  eval.eval_budget=30  output.subdir=eval_hier_soft_d25_b30_job_22039237  planning.high.replan_interval=5  planning.high.solver.num_samples=900  planning.high.solver.n_steps=20  planning.high.solver.topk=10  planning.high.plan_config.horizon=1  planning.high.plan_config.receding_horizon=1  planning.high.plan_config.action_block=1  planning.low.solver.num_samples=300  planning.low.solver.n_steps=30  planning.low.solver.topk=150  planning.low.plan_config.horizon=5  planning.low.plan_config.receding_horizon=1  planning.low.plan_config.action_block=5  output.filename=hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_b30_hier_soft_lowerbudg.txt
+
+18:07:01.299 | INFO    (1294612, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+18:07:01.299 | INFO    (1294612, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+18:07:01.299 | INFO    (1294612, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 2), float32)
+18:07:01.300 | INFO    (1294612, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+18:07:01.300 | INFO    (1294612, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (50, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]
+ [512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (50, 7), float64))
+18:07:01.300 | INFO    (1294612, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[2026-04-20 18:08:07,218][root][INFO] - Cached 'action' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-20 18:09:03,142][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[2026-04-20 18:09:56,057][root][INFO] - Cached 'state' from '/scratch-shared/scur0511/stablewm_data/pusht_expert_train.h5'
+[hi_eval] calibrated high-level latent bounds (chunks=2048, chunk_len=5)
+1869611 valid starting points found for evaluation.
+CEM solve time: 15.2835 seconds
+CEM solve time: 58.0293 seconds
+CEM solve time: 15.1760 seconds
+CEM solve time: 58.0014 seconds
+CEM solve time: 15.1816 seconds
+CEM solve time: 58.0088 seconds
+CEM solve time: 15.1814 seconds
+CEM solve time: 58.0050 seconds
+CEM solve time: 15.1824 seconds
+CEM solve time: 58.0163 seconds
+CEM solve time: 15.1824 seconds
+CEM solve time: 58.0127 seconds
+Video saved to /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237
+{'success_rate': 28.000000000000004, 'episode_successes': array([ True, False,  True, False, False, False, False, False, False,
+       False,  True,  True, False,  True, False, False, False, False,
+       False, False, False,  True, False, False, False, False, False,
+        True, False,  True, False, False, False, False, False, False,
+       False,  True,  True, False, False, False,  True,  True,  True,
+       False, False,  True, False, False]), 'seeds': None, 'success_rate_block_only': 1000.0, 'episode_successes_block_only': array([[False, False, False, ..., False, False, False],
+       [False, False, False, ..., False, False, False],
+       [ True,  True,  True, ...,  True,  True,  True],
+       ...,
+       [False, False, False, ..., False, False, False],
+       [False, False, False, ..., False, False, False],
+       [False, False, False, ..., False, False, False]], shape=(50, 50))}
+block_only_success_rate: 1000.0
+Saved episode manifest to /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_b30_hier_soft_lowerbudg_episodes.tsv
+
+Eval finished.
+Artifacts written to: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237
+Results appended to: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_b30_hier_soft_lowerbudg.txt
+Episode manifest written to: /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/hi_lewm_p2_train_hope1_21983875_epoch_10_hi_pusht_results_d25_b30_hier_soft_lowerbudg_episodes.tsv
+
+==> Video outcomes
+Passing videos (env metric):
+  [eval 0] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_0.mp4 (episode_id=1235, start_step=36)
+  [eval 2] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_2.mp4 (episode_id=1639, start_step=40)
+  [eval 10] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_10.mp4 (episode_id=4299, start_step=20)
+  [eval 11] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_11.mp4 (episode_id=5123, start_step=126)
+  [eval 13] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_13.mp4 (episode_id=6983, start_step=65)
+  [eval 21] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_21.mp4 (episode_id=9591, start_step=26)
+  [eval 27] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_27.mp4 (episode_id=12047, start_step=95)
+  [eval 29] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_29.mp4 (episode_id=12591, start_step=156)
+  [eval 37] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_37.mp4 (episode_id=14432, start_step=48)
+  [eval 38] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_38.mp4 (episode_id=14474, start_step=99)
+  [eval 42] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_42.mp4 (episode_id=15701, start_step=34)
+  [eval 43] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_43.mp4 (episode_id=16015, start_step=138)
+  [eval 44] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_44.mp4 (episode_id=16019, start_step=73)
+  [eval 47] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_47.mp4 (episode_id=17264, start_step=10)
+Failing videos (env metric):
+  [eval 1] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_1.mp4 (episode_id=1316, start_step=129)
+  [eval 3] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_3.mp4 (episode_id=1694, start_step=59)
+  [eval 4] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_4.mp4 (episode_id=1761, start_step=19)
+  [eval 5] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_5.mp4 (episode_id=1820, start_step=13)
+  [eval 6] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_6.mp4 (episode_id=2635, start_step=114)
+  [eval 7] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_7.mp4 (episode_id=3184, start_step=115)
+  [eval 8] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_8.mp4 (episode_id=3517, start_step=2)
+  [eval 9] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_9.mp4 (episode_id=3838, start_step=133)
+  [eval 12] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_12.mp4 (episode_id=6651, start_step=49)
+  [eval 14] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_14.mp4 (episode_id=7572, start_step=117)
+  [eval 15] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_15.mp4 (episode_id=8235, start_step=10)
+  [eval 16] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_16.mp4 (episode_id=8313, start_step=130)
+  [eval 17] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_17.mp4 (episode_id=8373, start_step=102)
+  [eval 18] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_18.mp4 (episode_id=8408, start_step=89)
+  [eval 19] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_19.mp4 (episode_id=8486, start_step=37)
+  [eval 20] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_20.mp4 (episode_id=8488, start_step=20)
+  [eval 22] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_22.mp4 (episode_id=9864, start_step=51)
+  [eval 23] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_23.mp4 (episode_id=10117, start_step=136)
+  [eval 24] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_24.mp4 (episode_id=10378, start_step=28)
+  [eval 25] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_25.mp4 (episode_id=10489, start_step=33)
+  [eval 26] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_26.mp4 (episode_id=11775, start_step=26)
+  [eval 28] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_28.mp4 (episode_id=12221, start_step=47)
+  [eval 30] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_30.mp4 (episode_id=12961, start_step=26)
+  [eval 31] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_31.mp4 (episode_id=13029, start_step=33)
+  [eval 32] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_32.mp4 (episode_id=13303, start_step=73)
+  [eval 33] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_33.mp4 (episode_id=13586, start_step=36)
+  [eval 34] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_34.mp4 (episode_id=14033, start_step=88)
+  [eval 35] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_35.mp4 (episode_id=14108, start_step=36)
+  [eval 36] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_36.mp4 (episode_id=14327, start_step=28)
+  [eval 39] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_39.mp4 (episode_id=14526, start_step=127)
+  [eval 40] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_40.mp4 (episode_id=15277, start_step=43)
+  [eval 41] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_41.mp4 (episode_id=15435, start_step=20)
+  [eval 45] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_45.mp4 (episode_id=16400, start_step=0)
+  [eval 46] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_46.mp4 (episode_id=16532, start_step=36)
+  [eval 48] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_48.mp4 (episode_id=17939, start_step=41)
+  [eval 49] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_49.mp4 (episode_id=18054, start_step=22)
+Passing videos (block-only metric):
+  [eval 0] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_0.mp4 (episode_id=1235, start_step=36)
+  [eval 1] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_1.mp4 (episode_id=1316, start_step=129)
+  [eval 2] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_2.mp4 (episode_id=1639, start_step=40)
+  [eval 3] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_3.mp4 (episode_id=1694, start_step=59)
+  [eval 4] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_4.mp4 (episode_id=1761, start_step=19)
+  [eval 5] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_5.mp4 (episode_id=1820, start_step=13)
+  [eval 6] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_6.mp4 (episode_id=2635, start_step=114)
+  [eval 7] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_7.mp4 (episode_id=3184, start_step=115)
+  [eval 8] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_8.mp4 (episode_id=3517, start_step=2)
+  [eval 9] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_9.mp4 (episode_id=3838, start_step=133)
+  [eval 10] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_10.mp4 (episode_id=4299, start_step=20)
+  [eval 11] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_11.mp4 (episode_id=5123, start_step=126)
+  [eval 12] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_12.mp4 (episode_id=6651, start_step=49)
+  [eval 13] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_13.mp4 (episode_id=6983, start_step=65)
+  [eval 14] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_14.mp4 (episode_id=7572, start_step=117)
+  [eval 15] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_15.mp4 (episode_id=8235, start_step=10)
+  [eval 16] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_16.mp4 (episode_id=8313, start_step=130)
+  [eval 17] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_17.mp4 (episode_id=8373, start_step=102)
+  [eval 18] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_18.mp4 (episode_id=8408, start_step=89)
+  [eval 19] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_19.mp4 (episode_id=8486, start_step=37)
+  [eval 20] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_20.mp4 (episode_id=8488, start_step=20)
+  [eval 21] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_21.mp4 (episode_id=9591, start_step=26)
+  [eval 22] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_22.mp4 (episode_id=9864, start_step=51)
+  [eval 23] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_23.mp4 (episode_id=10117, start_step=136)
+  [eval 24] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_24.mp4 (episode_id=10378, start_step=28)
+  [eval 25] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_25.mp4 (episode_id=10489, start_step=33)
+  [eval 26] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_26.mp4 (episode_id=11775, start_step=26)
+  [eval 27] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_27.mp4 (episode_id=12047, start_step=95)
+  [eval 28] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_28.mp4 (episode_id=12221, start_step=47)
+  [eval 29] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_29.mp4 (episode_id=12591, start_step=156)
+  [eval 30] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_30.mp4 (episode_id=12961, start_step=26)
+  [eval 31] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_31.mp4 (episode_id=13029, start_step=33)
+  [eval 32] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_32.mp4 (episode_id=13303, start_step=73)
+  [eval 33] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_33.mp4 (episode_id=13586, start_step=36)
+  [eval 34] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_34.mp4 (episode_id=14033, start_step=88)
+  [eval 35] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_35.mp4 (episode_id=14108, start_step=36)
+  [eval 36] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_36.mp4 (episode_id=14327, start_step=28)
+  [eval 37] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_37.mp4 (episode_id=14432, start_step=48)
+  [eval 38] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_38.mp4 (episode_id=14474, start_step=99)
+  [eval 39] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_39.mp4 (episode_id=14526, start_step=127)
+  [eval 40] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_40.mp4 (episode_id=15277, start_step=43)
+  [eval 41] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_41.mp4 (episode_id=15435, start_step=20)
+  [eval 42] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_42.mp4 (episode_id=15701, start_step=34)
+  [eval 43] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_43.mp4 (episode_id=16015, start_step=138)
+  [eval 44] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_44.mp4 (episode_id=16019, start_step=73)
+  [eval 45] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_45.mp4 (episode_id=16400, start_step=0)
+  [eval 46] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_46.mp4 (episode_id=16532, start_step=36)
+  [eval 47] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_47.mp4 (episode_id=17264, start_step=10)
+  [eval 48] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_48.mp4 (episode_id=17939, start_step=41)
+  [eval 49] /scratch-shared/scur0511/stablewm_data/runs/hi_lewm_p2_train_hope1_21983875/eval_hier_soft_d25_b30_job_22039237/rollout_49.mp4 (episode_id=18054, start_step=22)
+Failing videos (block-only metric):
+  none
