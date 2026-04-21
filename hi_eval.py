@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import os
 import time
 from pathlib import Path
+import re
 
 import hydra
 import numpy as np
@@ -22,6 +25,8 @@ os.environ["MUJOCO_GL"] = "egl"
 # symbol so baseline_adapter registers that dynamic module in sys.modules
 # before AutoCostModel unpickles.
 _ = _baseline_adapter.ARPredictor
+
+VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm", ".gif"}
 
 
 def resolve_output_dir(cfg: DictConfig) -> Path:
@@ -45,6 +50,156 @@ def resolve_output_dir(cfg: DictConfig) -> Path:
         base_dir = base_dir / subdir
 
     return base_dir
+
+
+def list_video_inventory(output_dir: Path) -> dict[Path, int]:
+    """Return mapping of video files to mtime_ns under output_dir."""
+    inventory = {}
+    if not output_dir.exists():
+        return inventory
+
+    for path in output_dir.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.suffix.lower() not in VIDEO_EXTENSIONS:
+            continue
+        try:
+            inventory[path] = path.stat().st_mtime_ns
+        except OSError:
+            continue
+    return inventory
+
+
+def discover_new_video_files(
+    output_dir: Path, before_inventory: dict[Path, int]
+) -> list[Path]:
+    """Find created/updated video files after evaluation."""
+    after_inventory = list_video_inventory(output_dir)
+    new_or_updated = []
+    for path, mtime_ns in after_inventory.items():
+        previous_mtime = before_inventory.get(path)
+        if previous_mtime is None or mtime_ns > previous_mtime:
+            new_or_updated.append(path)
+    return sorted(
+        set(new_or_updated),
+        key=lambda path: (after_inventory.get(path, 0), str(path)),
+    )
+
+
+def extract_eval_index_from_video_name(path: Path, num_eval: int) -> int | None:
+    """Best-effort parse of eval index encoded in a video file name."""
+    stem = path.stem.lower()
+    patterns = [
+        r"(?:eval|episode|ep|rollout|traj|video)[_-]?(\d+)",
+        r"[_-](\d+)$",
+        r"(\d+)",
+    ]
+    for pattern in patterns:
+        for match in re.finditer(pattern, stem):
+            value = int(match.group(1))
+            if 0 <= value < num_eval:
+                return value
+    return None
+
+
+def map_eval_video_paths(video_files: list[Path], num_eval: int) -> list[str]:
+    """Map eval index -> video path with filename-index hints and fallback order."""
+    if num_eval <= 0:
+        return []
+
+    mapped = ["" for _ in range(num_eval)]
+    remaining_files = []
+    taken_indices = set()
+
+    for path in video_files:
+        idx = extract_eval_index_from_video_name(path, num_eval=num_eval)
+        if idx is None or idx in taken_indices:
+            remaining_files.append(path)
+            continue
+        mapped[idx] = str(path)
+        taken_indices.add(idx)
+
+    remaining_iter = iter(remaining_files)
+    for eval_index in range(num_eval):
+        if mapped[eval_index]:
+            continue
+        next_path = next(remaining_iter, None)
+        if next_path is None:
+            break
+        mapped[eval_index] = str(next_path)
+
+    return mapped
+
+
+def extract_episode_successes(metrics: dict, expected_count: int) -> np.ndarray:
+    """Read per-eval success vector and validate length."""
+    episode_successes = np.asarray(metrics.get("episode_successes", []), dtype=bool)
+    if episode_successes.shape[0] != expected_count:
+        raise ValueError(
+            "Mismatch between sampled evaluations and episode_successes: "
+            f"{expected_count} samples vs {episode_successes.shape[0]} outcomes"
+        )
+    return episode_successes
+
+
+def build_episode_outcomes(
+    eval_episodes: np.ndarray,
+    eval_start_idx: np.ndarray,
+    episode_successes: np.ndarray,
+    eval_video_paths: list[str],
+) -> list[dict[str, str | int]]:
+    """Build structured per-eval outcomes."""
+    episode_ids = eval_episodes.tolist()
+    start_steps = eval_start_idx.tolist()
+    successes = episode_successes.tolist()
+    if not (len(episode_ids) == len(start_steps) == len(successes)):
+        raise ValueError(
+            "Outcome inputs must have same length: "
+            f"episode_ids={len(episode_ids)}, "
+            f"start_steps={len(start_steps)}, "
+            f"successes={len(successes)}"
+        )
+
+    outcomes = []
+    for eval_index, (episode_id, start_step, success) in enumerate(
+        zip(episode_ids, start_steps, successes)
+    ):
+        outcomes.append(
+            {
+                "eval_index": int(eval_index),
+                "episode_id": int(episode_id),
+                "start_step": int(start_step),
+                "status": "PASS" if bool(success) else "FAIL",
+                "video_path": eval_video_paths[eval_index]
+                if eval_index < len(eval_video_paths)
+                else "",
+            }
+        )
+    return outcomes
+
+
+def format_outcome_line(outcome: dict[str, str | int]) -> str:
+    return (
+        f"{outcome['status']}\t"
+        f"eval_index={outcome['eval_index']}\t"
+        f"episode_id={outcome['episode_id']}\t"
+        f"start_step={outcome['start_step']}\t"
+        f"video_path={outcome['video_path']}"
+    )
+
+
+def write_episode_manifest(manifest_path: Path, outcomes: list[dict[str, str | int]]) -> None:
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    with manifest_path.open("w") as f:
+        f.write("eval_index\tepisode_id\tstart_step\tstatus\tvideo_path\n")
+        for outcome in outcomes:
+            f.write(
+                f"{outcome['eval_index']}\t"
+                f"{outcome['episode_id']}\t"
+                f"{outcome['start_step']}\t"
+                f"{outcome['status']}\t"
+                f"{outcome['video_path']}\n"
+            )
 
 
 def sample_eval_row_indices(valid_indices: np.ndarray, num_eval: int, seed: int) -> np.ndarray:
@@ -221,6 +376,7 @@ def run(cfg: DictConfig):
 
     output_dir = resolve_output_dir(cfg)
     output_dir.mkdir(parents=True, exist_ok=True)
+    video_inventory_before = list_video_inventory(output_dir)
 
     episode_len = get_episodes_length(dataset, ep_indices)
     max_start_idx = episode_len - cfg.eval.goal_offset_steps - 1
@@ -253,10 +409,36 @@ def run(cfg: DictConfig):
         video_path=output_dir,
     )
     end_time = time.time()
+    video_files = discover_new_video_files(output_dir, before_inventory=video_inventory_before)
 
     print(metrics)
+    episode_successes = extract_episode_successes(
+        metrics=metrics,
+        expected_count=len(eval_episodes),
+    )
+    eval_video_paths = map_eval_video_paths(video_files=video_files, num_eval=len(eval_episodes))
+    outcomes = build_episode_outcomes(
+        eval_episodes=eval_episodes,
+        eval_start_idx=eval_start_idx,
+        episode_successes=episode_successes,
+        eval_video_paths=eval_video_paths,
+    )
+    failed_outcomes = [o for o in outcomes if o["status"] == "FAIL"]
+    passed_outcomes = [o for o in outcomes if o["status"] == "PASS"]
+
+    print("==== EPISODE OUTCOMES ====")
+    for outcome in outcomes:
+        print(format_outcome_line(outcome))
+    print("==== FAILED EPISODES ====")
+    for outcome in failed_outcomes:
+        print(format_outcome_line(outcome))
+    print("==== PASSED EPISODES ====")
+    for outcome in passed_outcomes:
+        print(format_outcome_line(outcome))
+
     results_path = output_dir / cfg.output.filename
     results_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path = results_path.with_name(f"{results_path.stem}_episodes.tsv")
 
     with results_path.open("a") as f:
         f.write("\n")
@@ -266,6 +448,12 @@ def run(cfg: DictConfig):
         f.write("==== RESULTS ====\n")
         f.write(f"metrics: {metrics}\n")
         f.write(f"evaluation_time: {end_time - start_time} seconds\n")
+        f.write("==== EPISODE OUTCOMES ====\n")
+        for outcome in outcomes:
+            f.write(f"{format_outcome_line(outcome)}\n")
+
+    write_episode_manifest(manifest_path=manifest_path, outcomes=outcomes)
+    print(f"Saved episode manifest to {manifest_path}")
 
 
 if __name__ == "__main__":

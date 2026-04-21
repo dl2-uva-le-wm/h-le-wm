@@ -139,6 +139,11 @@ POLICY_BASENAME="$(basename "${POLICY}")"
 RESULT_FILENAME="${RESULT_FILENAME:-${POLICY_BASENAME}_hi_pusht_results_d${GOAL_OFFSET_STEPS}.txt}"
 ARTIFACTS_DIR="$(dirname "${CKPT_OBJECT_PATH}")/${EVAL_SUBDIR}"
 RESULT_PATH="${ARTIFACTS_DIR}/${RESULT_FILENAME}"
+RESULT_STEM="${RESULT_FILENAME%.*}"
+if [[ "${RESULT_STEM}" == "${RESULT_FILENAME}" ]]; then
+  RESULT_STEM="${RESULT_FILENAME}"
+fi
+MANIFEST_PATH="${ARTIFACTS_DIR}/${RESULT_STEM}_episodes.tsv"
 
 echo "Repo root: ${REPO_ROOT}"
 echo "STABLEWM_HOME: ${STABLEWM_HOME}"
@@ -151,6 +156,7 @@ echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
 echo "Output subdir: ${EVAL_SUBDIR}"
 echo "Artifacts dir: ${ARTIFACTS_DIR}"
 echo "Result file: ${RESULT_PATH}"
+echo "Episode manifest: ${MANIFEST_PATH}"
 
 cd "${REPO_ROOT}"
 
@@ -184,3 +190,4 @@ echo ""
 echo "Eval finished."
 echo "Artifacts written to: ${ARTIFACTS_DIR}"
 echo "Results appended to: ${RESULT_PATH}"
+echo "Episode manifest written to: ${MANIFEST_PATH}"
