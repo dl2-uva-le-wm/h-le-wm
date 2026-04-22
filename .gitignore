@@ -45,6 +45,8 @@ data/stablewm/
 .env
 .env.*
 environment.json
+.codex
+jobs_github_ready_*.zip
 
 
 *_frozen.txt
