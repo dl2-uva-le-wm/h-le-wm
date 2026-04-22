@@ -286,6 +286,66 @@ def build_action_chunks_batched(
     return chunks, mask
 
 
+def rollout_high_autoregressive(
+    model,
+    z_start: torch.Tensor,
+    macro_actions: torch.Tensor,
+    *,
+    steps: int,
+) -> tuple[torch.Tensor, int]:
+    """Autoregressively rollout high-level latents with gradients enabled.
+
+    Args:
+        model: High-level model exposing ``predict_high`` (and optionally ``_infer_high_context_len``).
+        z_start: Initial latent state, shape ``(B, D_z)``.
+        macro_actions: Latent macro-action sequence, shape ``(B, K, D_l)``.
+        steps: Requested rollout steps.
+
+    Returns:
+        Tuple of:
+            - predicted rollout latents, shape ``(B, S, D_z)``
+            - effective rollout steps ``S`` (clamped to available actions)
+    """
+    if z_start.ndim != 2:
+        raise ValueError("z_start must be shape (B, D_z)")
+    if macro_actions.ndim != 3:
+        raise ValueError("macro_actions must be shape (B, K, D_l)")
+
+    effective_steps = min(max(int(steps), 0), int(macro_actions.size(1)))
+    if effective_steps == 0:
+        empty = z_start.new_zeros((z_start.size(0), 0, z_start.size(-1)))
+        return empty, 0
+
+    high_ctx = None
+    infer_ctx = getattr(model, "_infer_high_context_len", None)
+    if callable(infer_ctx):
+        high_ctx = int(infer_ctx())
+        if high_ctx <= 0:
+            high_ctx = None
+
+    z_hist = z_start.unsqueeze(1)
+    act_hist = None
+    preds = []
+    for k in range(effective_steps):
+        act_k = macro_actions[:, k : k + 1, :]
+        act_hist = act_k if act_hist is None else torch.cat([act_hist, act_k], dim=1)
+
+        if high_ctx is None:
+            z_ctx = z_hist
+            a_ctx = act_hist
+        else:
+            ctx = min(high_ctx, z_hist.size(1), act_hist.size(1))
+            z_ctx = z_hist[:, -ctx:]
+            a_ctx = act_hist[:, -ctx:]
+
+        z_next = model.predict_high(z_ctx, a_ctx)[:, -1:, :]
+        z_hist = torch.cat([z_hist, z_next], dim=1)
+        preds.append(z_next.squeeze(1))
+
+    pred_rollout = torch.stack(preds, dim=1)
+    return pred_rollout, effective_steps
+
+
 def is_p2_frozen_optimization_enabled(cfg) -> bool:
     """Return whether P2-frozen optimized input pipeline should be enabled."""
     if bool(cfg.training.get("train_low_level", False)):
@@ -365,9 +425,10 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         4. Encode chunks into macro-actions via latent action encoder.
         5. Predict next waypoint latents using high-level predictor.
         6. Compute high-level prediction loss ``l2_pred_loss``.
-        7. Optionally compute low-level loss (off by default).
-        8. Optionally compute SIGReg (weight-controlled).
-        9. Aggregate total loss and log metrics.
+        7. Optionally compute multi-step autoregressive high-level rollout loss.
+        8. Optionally compute low-level loss (off by default).
+        9. Optionally compute SIGReg (weight-controlled).
+        10. Aggregate total loss and log metrics.
 
     Shapes:
         - emb: ``(B, T, D_z)``
@@ -425,6 +486,30 @@ def hi_lejepa_forward(self, batch, stage, cfg):
 
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
     output["l2_pred_loss"] = (z_pred - z_target).pow(2).mean()
+    rollout_cfg = cfg.loss.get("rollout", {})
+    rollout_enabled = bool(rollout_cfg.get("enabled", False))
+    rollout_weight = float(rollout_cfg.get("weight", 0.0))
+    rollout_steps = int(rollout_cfg.get("steps", 1))
+    if rollout_enabled:
+        z_rollout_pred, rollout_steps_effective = rollout_high_autoregressive(
+            self.model,
+            z_waypoints[:, 0],
+            macro_actions,
+            steps=rollout_steps,
+        )
+        if rollout_steps_effective > 0:
+            z_rollout_target = z_target[:, :rollout_steps_effective]
+            output["l2_rollout_loss"] = (z_rollout_pred - z_rollout_target).pow(2).mean()
+        else:
+            output["l2_rollout_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
+    else:
+        rollout_steps_effective = 0
+        output["l2_rollout_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
+    output["high_rollout_steps_effective"] = torch.tensor(
+        float(rollout_steps_effective),
+        device=device,
+        dtype=z_waypoints.dtype,
+    )
 
     if train_low_level:
         if emb is None:
@@ -452,6 +537,7 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     output["loss"] = (
         alpha * output["l1_pred_loss"]
         + beta * output["l2_pred_loss"]
+        + rollout_weight * output["l2_rollout_loss"]
         + lambd * output["sigreg_loss"]
     )
 
@@ -463,7 +549,9 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         "loss",
         "l1_pred_loss",
         "l2_pred_loss",
+        "l2_rollout_loss",
         "sigreg_loss",
+        "high_rollout_steps_effective",
         "waypoint_gap_mean",
         "waypoint_gap_max",
         "macro_action_norm",
@@ -511,12 +599,40 @@ def hi_lejepa_forward_p2_frozen(self, batch, stage, cfg):
 
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
     output["l2_pred_loss"] = (z_pred - z_target).pow(2).mean()
+    rollout_cfg = cfg.loss.get("rollout", {})
+    rollout_enabled = bool(rollout_cfg.get("enabled", False))
+    rollout_weight = float(rollout_cfg.get("weight", 0.0))
+    rollout_steps = int(rollout_cfg.get("steps", 1))
+    if rollout_enabled:
+        z_rollout_pred, rollout_steps_effective = rollout_high_autoregressive(
+            self.model,
+            z_waypoints[:, 0],
+            macro_actions,
+            steps=rollout_steps,
+        )
+        if rollout_steps_effective > 0:
+            z_rollout_target = z_target[:, :rollout_steps_effective]
+            output["l2_rollout_loss"] = (z_rollout_pred - z_rollout_target).pow(2).mean()
+        else:
+            output["l2_rollout_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
+    else:
+        rollout_steps_effective = 0
+        output["l2_rollout_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
+    output["high_rollout_steps_effective"] = torch.tensor(
+        float(rollout_steps_effective),
+        device=device,
+        dtype=z_waypoints.dtype,
+    )
     output["l1_pred_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
     output["sigreg_loss"] = torch.zeros((), device=device, dtype=z_waypoints.dtype)
 
     alpha = float(cfg.loss.get("alpha", 0.0))
     beta = float(cfg.loss.get("beta", 1.0))
-    output["loss"] = alpha * output["l1_pred_loss"] + beta * output["l2_pred_loss"]
+    output["loss"] = (
+        alpha * output["l1_pred_loss"]
+        + beta * output["l2_pred_loss"]
+        + rollout_weight * output["l2_rollout_loss"]
+    )
 
     gaps = waypoints[:, 1:] - waypoints[:, :-1]
     output["waypoint_gap_mean"] = gaps.float().mean()
@@ -527,7 +643,9 @@ def hi_lejepa_forward_p2_frozen(self, batch, stage, cfg):
         "loss",
         "l1_pred_loss",
         "l2_pred_loss",
+        "l2_rollout_loss",
         "sigreg_loss",
+        "high_rollout_steps_effective",
         "waypoint_gap_mean",
         "waypoint_gap_max",
         "macro_action_norm",
@@ -605,6 +723,16 @@ def validate_high_level_config(cfg):
             "Set latent_action_encoder.max_seq_len to wm.high_level.waypoints.max_span "
             "or larger."
         )
+
+    rollout_cfg = cfg.loss.get("rollout", {})
+    rollout_enabled = bool(rollout_cfg.get("enabled", False))
+    rollout_weight = float(rollout_cfg.get("weight", 0.0))
+    rollout_steps = int(rollout_cfg.get("steps", 1))
+
+    if rollout_weight < 0.0:
+        raise ValueError("loss.rollout.weight must be >= 0.0")
+    if rollout_enabled and rollout_steps < 1:
+        raise ValueError("loss.rollout.steps must be >= 1 when loss.rollout.enabled=True")
 
 
 @hydra.main(version_base=None, config_path="./config/train", config_name="hi_lewm")

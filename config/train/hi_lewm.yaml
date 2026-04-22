@@ -107,6 +107,10 @@ predictor_high:
 loss:
   alpha: 0.0
   beta: 1.0
+  rollout:
+    enabled: False
+    weight: 0.5
+    steps: 2
   sigreg:
     weight: 0.0
     kwargs:

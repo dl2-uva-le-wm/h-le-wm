@@ -28,6 +28,7 @@ def _load_hi_train_functions():
         "gather_waypoint_embeddings",
         "build_action_chunks",
         "build_action_chunks_batched",
+        "rollout_high_autoregressive",
         "is_p2_frozen_optimization_enabled",
         "build_p2_frozen_waypoint_collate",
         "hi_lejepa_forward",
@@ -90,6 +91,7 @@ class DummyModel:
         self.latent_dim = latent_dim
         self.encode_calls = 0
         self.encode_selected_calls = 0
+        self.predict_high_call_shapes = []
         self.last_z_context_shape = None
         self.last_macro_shape = None
         self.last_z_pred_shape = None
@@ -139,6 +141,7 @@ class DummyModel:
         return out
 
     def predict_high(self, emb: torch.Tensor, macro_actions: torch.Tensor):
+        self.predict_high_call_shapes.append((tuple(emb.shape), tuple(macro_actions.shape)))
         self.last_z_context_shape = tuple(emb.shape)
         self.last_macro_shape = tuple(macro_actions.shape)
 
@@ -179,7 +182,14 @@ def _sample_waypoints_stub(_cfg, batch_size: int, seq_len: int, device):
     return waypoints, gaps
 
 
-def _make_cfg(*, train_low_level: bool, sigreg_weight: float):
+def _make_cfg(
+    *,
+    train_low_level: bool,
+    sigreg_weight: float,
+    rollout_enabled: bool = False,
+    rollout_weight: float = 0.0,
+    rollout_steps: int = 2,
+):
     return Node(
         training=Node(train_low_level=train_low_level),
         pretrained_low_level=Node(
@@ -195,6 +205,11 @@ def _make_cfg(*, train_low_level: bool, sigreg_weight: float):
         loss=Node(
             alpha=0.0,
             beta=1.0,
+            rollout=Node(
+                enabled=bool(rollout_enabled),
+                weight=float(rollout_weight),
+                steps=int(rollout_steps),
+            ),
             sigreg=Node(weight=float(sigreg_weight)),
         ),
         wm=Node(
@@ -346,6 +361,34 @@ def test_hi_lejepa_forward_smoke_multiple_steps_logs_metrics():
     assert len(module.logged) == 3
 
 
+def test_hi_lejepa_forward_rollout_loss_contributes_when_enabled():
+    HI_LEJEPA_FORWARD.__globals__["sample_waypoints"] = _sample_waypoints_stub
+
+    model = DummyModel(embed_dim=8, latent_dim=5)
+    module = DummyModule(model)
+    rollout_weight = 0.5
+    cfg = _make_cfg(
+        train_low_level=False,
+        sigreg_weight=0.0,
+        rollout_enabled=True,
+        rollout_weight=rollout_weight,
+        rollout_steps=2,
+    )
+
+    batch = {
+        "pixels": torch.randn(2, 12, 3, 4, 4),
+        "action": torch.randn(2, 12, 6),
+    }
+
+    out = HI_LEJEPA_FORWARD(module, batch, "train", cfg)
+
+    assert len(model.predict_high_call_shapes) == 3  # 1 teacher-forced + 2 rollout steps
+    assert out["high_rollout_steps_effective"].item() == 2.0
+    assert out["l2_rollout_loss"].item() > 0.0
+    expected = out["l2_pred_loss"] + rollout_weight * out["l2_rollout_loss"]
+    assert torch.allclose(out["loss"], expected)
+
+
 def test_is_p2_frozen_optimization_enabled_matches_expected_modes():
     cfg = _make_cfg(train_low_level=False, sigreg_weight=0.0)
     assert IS_P2_FROZEN_OPT_ENABLED(cfg)
@@ -417,6 +460,33 @@ def test_hi_lejepa_forward_p2_frozen_uses_presliced_pixels_and_waypoints():
     assert torch.isfinite(out["loss"])
     assert out["l1_pred_loss"].item() == 0.0
     assert out["sigreg_loss"].item() == 0.0
+
+
+def test_hi_lejepa_forward_p2_frozen_rollout_loss_contributes_when_enabled():
+    model = DummyModel(embed_dim=8, latent_dim=5)
+    module = DummyModule(model)
+    rollout_weight = 0.5
+    cfg = _make_cfg(
+        train_low_level=False,
+        sigreg_weight=0.0,
+        rollout_enabled=True,
+        rollout_weight=rollout_weight,
+        rollout_steps=2,
+    )
+
+    batch = {
+        "pixels": torch.randn(2, 5, 3, 4, 4),
+        "action": torch.randn(2, 12, 6),
+        "waypoints": torch.tensor([[2, 4, 6, 8, 10], [2, 4, 6, 8, 10]], dtype=torch.long),
+    }
+
+    out = HI_LEJEPA_FORWARD_P2_FROZEN(module, batch, "train", cfg)
+
+    assert len(model.predict_high_call_shapes) == 3  # 1 teacher-forced + 2 rollout steps
+    assert out["high_rollout_steps_effective"].item() == 2.0
+    assert out["l2_rollout_loss"].item() > 0.0
+    expected = out["l2_pred_loss"] + rollout_weight * out["l2_rollout_loss"]
+    assert torch.allclose(out["loss"], expected)
 
 
 def test_clone_projection_head_copies_weights_without_sharing_storage():
