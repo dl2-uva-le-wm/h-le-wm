@@ -2,7 +2,7 @@
 
 # Snellius short benchmark: hierarchical PushT P2 only.
 # Usage (from this folder):
-#   cd jobs/2_levels/pusht
+#   cd jobs/train/pusht
 #   sbatch benchmark.sh
 # Optional env overrides:
 #   BENCH_STEPS=500 BENCH_LIMIT_VAL_BATCHES=0 BENCH_RUN_NAME=hi_lewm_p2_bench_test sbatch benchmark.sh

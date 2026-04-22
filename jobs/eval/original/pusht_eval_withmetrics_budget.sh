@@ -3,18 +3,22 @@
 # Snellius job: evaluate original baseline LeWM code on PushT, plus save a
 # per-eval pass/fail manifest for quick failure inspection.
 #
+# Variant relative to pusht_eval_withmetrics.sh:
+# - eval.eval_budget: 50 -> 100
+#
 # Usage:
 #   cd jobs/eval/original
-#   sbatch pusht_eval_withmetrics.sh
+#   sbatch pusht_eval_withmetrics_budget.sh
 
-#SBATCH --partition=gpu_a100
+#SBATCH --partition=gpu_mig
 #SBATCH --gpus=1
-#SBATCH --job-name=orig_eval_pusht_metrics
+
+#SBATCH --job-name=orig_eval_pusht_budget
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=02:00:00
-#SBATCH --output=out/pusht_eval_withmetrics_%j.out
-#SBATCH --error=out/pusht_eval_withmetrics_%j.err
+#SBATCH --output=out/pusht_eval_withmetrics_budget_%j.out
+#SBATCH --error=out/pusht_eval_withmetrics_budget_%j.err
 
 set -eo pipefail
 
@@ -41,18 +45,18 @@ export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 POLICY="${POLICY:-pusht/lewm}"
 CONFIG_NAME="${CONFIG_NAME:-pusht.yaml}"
 HF_URL="${HF_URL:-https://huggingface.co/quentinll/lewm-pusht/tree/main}"
-VARIANT_NAME="${VARIANT_NAME:-baseline}"
+VARIANT_NAME="${VARIANT_NAME:-budget100}"
 JOB_TOKEN="${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}"
 EVAL_SUBDIR="${EVAL_SUBDIR:-eval_original_${VARIANT_NAME}_${JOB_TOKEN}}"
 RESULT_FILENAME="${RESULT_FILENAME:-pusht_results_${VARIANT_NAME}.txt}"
-EVAL_BUDGET="${EVAL_BUDGET:-}"
+EVAL_BUDGET="${EVAL_BUDGET:-100}"
 PLAN_HORIZON="${PLAN_HORIZON:-}"
 
 cd "${REPO_ROOT}"
 
 if [[ ! -f "original_eval_with_manifest.py" ]]; then
   echo "ERROR: original_eval_with_manifest.py not found at ${REPO_ROOT}" >&2
-  echo "Expected script layout: jobs/eval/original/pusht_eval_withmetrics.sh" >&2
+  echo "Expected script layout: jobs/eval/original/pusht_eval_withmetrics_budget.sh" >&2
   exit 2
 fi
 

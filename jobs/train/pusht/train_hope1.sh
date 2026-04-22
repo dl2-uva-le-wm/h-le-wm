@@ -5,7 +5,7 @@
 # - Save training artifacts directly to shared scratch
 #
 # Usage:
-#   cd jobs/2_levels/pusht
+#   cd jobs/train/pusht
 #   sbatch train_hope1.sh
 #
 # Optional overrides:

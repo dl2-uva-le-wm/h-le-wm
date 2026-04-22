@@ -3,7 +3,7 @@
 # Snellius single benchmark: P2 training with node-local storage on scratch-node.
 # This is equivalent to the "Run B" (node-local) path from benchmark_ab_io.sh.
 # Usage:
-#   cd jobs/2_levels/pusht
+#   cd jobs/train/pusht
 #   sbatch benchmark_cpu_optimization.sh
 #
 # Optional overrides:
@@ -35,7 +35,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/hi_train.py" && -f "${p}/jobs/2_levels/pusht/benchmark.sh" ]]; then
+        if [[ -f "${p}/hi_train.py" && -f "${p}/config/train/hi_lewm.yaml" ]]; then
           echo "${p}"
           return 0
         fi
@@ -50,7 +50,11 @@ if ! REPO_ROOT="$(resolve_repo_root)"; then
   exit 2
 fi
 
-BASE_BENCH="${REPO_ROOT}/jobs/2_levels/pusht/benchmark.sh"
+BASE_BENCH="${REPO_ROOT}/jobs/train/pusht/benchmark.sh"
+if [[ ! -f "${BASE_BENCH}" ]]; then
+  # Backward-compatible fallback for older branch layouts.
+  BASE_BENCH="${REPO_ROOT}/jobs/2_levels/pusht/benchmark.sh"
+fi
 if [[ ! -f "${BASE_BENCH}" ]]; then
   echo "ERROR: benchmark script not found: ${BASE_BENCH}" >&2
   exit 2
@@ -91,7 +95,7 @@ LOCAL_STABLEWM_HOME="${LOCAL_STABLEWM_HOME:-${TMPDIR}/${USER}_stablewm_data_${SL
 LOCAL_DATASET="${LOCAL_STABLEWM_HOME}/${DATASET_FILE}"
 LOCAL_CKPT="${LOCAL_STABLEWM_HOME}/${CKPT_REL}"
 
-LOG_DIR="${REPO_ROOT}/jobs/2_levels/pusht/out"
+LOG_DIR="${REPO_ROOT}/jobs/train/pusht/out"
 mkdir -p "${LOG_DIR}"
 LOCAL_LOG="${LOG_DIR}/cpu_opt_local_${SLURM_JOB_ID:-manual}.log"
 

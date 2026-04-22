@@ -2,7 +2,7 @@
 
 # Snellius job: Train hierarchical PushT P2 only (new implementation).
 # Usage (from this folder):
-#   cd jobs/2_levels/pusht
+#   cd jobs/train/pusht
 #   sbatch train.sh
 
 #SBATCH --partition=gpu_a100
