@@ -17,7 +17,8 @@ from torchvision.transforms import v2 as transforms
 import baseline_adapter as _baseline_adapter
 from hi_policy import HierarchicalWorldModelPolicy, calibrate_latent_prior
 
-os.environ["MUJOCO_GL"] = "egl"
+_MUJOCO_GL_WAS_PRESET = "MUJOCO_GL" in os.environ
+os.environ.setdefault("MUJOCO_GL", "egl")
 
 # Backward-compatibility for torch.load on object checkpoints saved by hi_train:
 # those pickles may reference classes under the dynamic module name
@@ -27,6 +28,52 @@ os.environ["MUJOCO_GL"] = "egl"
 _ = _baseline_adapter.ARPredictor
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm", ".gif"}
+VALID_RUNTIME_DEVICES = ("auto", "cpu", "cuda")
+
+
+def resolve_runtime_device(cfg: DictConfig) -> str:
+    """Resolve requested runtime device with CUDA availability fallback."""
+    raw_value = cfg.get("device", os.environ.get("EVAL_DEVICE", "auto"))
+    requested = str(raw_value).strip().lower()
+    if not requested:
+        requested = "auto"
+
+    normalized = "cuda" if requested.startswith("cuda") else requested
+    if normalized not in VALID_RUNTIME_DEVICES:
+        raise ValueError(
+            "Unsupported runtime device "
+            f"'{requested}'. Supported values: auto, cpu, cuda."
+        )
+
+    if normalized == "auto":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if normalized == "cuda" and not torch.cuda.is_available():
+        print(
+            "[hi_eval] requested device='cuda' but CUDA is unavailable; "
+            "falling back to CPU."
+        )
+        return "cpu"
+    return requested
+
+
+def align_solver_devices(cfg: DictConfig, runtime_device: str) -> None:
+    """Keep model and CEM solver devices aligned for eval."""
+    if "solver" in cfg and "device" in cfg.solver:
+        cfg.solver.device = runtime_device
+    if (
+        "planning" in cfg
+        and "high" in cfg.planning
+        and "solver" in cfg.planning.high
+        and "device" in cfg.planning.high.solver
+    ):
+        cfg.planning.high.solver.device = runtime_device
+    if (
+        "planning" in cfg
+        and "low" in cfg.planning
+        and "solver" in cfg.planning.low
+        and "device" in cfg.planning.low.solver
+    ):
+        cfg.planning.low.solver.device = runtime_device
 
 
 def resolve_output_dir(cfg: DictConfig) -> Path:
@@ -327,6 +374,15 @@ def build_policy(cfg, model, dataset, process, transform):
 
 @hydra.main(version_base=None, config_path="./config/eval", config_name="hi_pusht")
 def run(cfg: DictConfig):
+    runtime_device = resolve_runtime_device(cfg)
+    align_solver_devices(cfg, runtime_device=runtime_device)
+    if runtime_device == "cpu" and not _MUJOCO_GL_WAS_PRESET:
+        os.environ["MUJOCO_GL"] = "osmesa"
+    print(
+        f"[hi_eval] runtime_device={runtime_device}, "
+        f"MUJOCO_GL={os.environ.get('MUJOCO_GL')}"
+    )
+
     mode = str(cfg.planning.get("mode", "hierarchical")).lower()
 
     if mode == "hierarchical":
@@ -366,7 +422,7 @@ def run(cfg: DictConfig):
     policy_name = cfg.get("policy", "random")
     if policy_name != "random":
         model = swm.policy.AutoCostModel(cfg.policy)
-        model = model.to("cuda")
+        model = model.to(runtime_device)
         model = model.eval()
         model.requires_grad_(False)
         model.interpolate_pos_encoding = True

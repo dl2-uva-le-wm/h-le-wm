@@ -2,7 +2,8 @@ import os
 import sys
 from pathlib import Path
 
-os.environ["MUJOCO_GL"] = "egl"
+_MUJOCO_GL_WAS_PRESET = "MUJOCO_GL" in os.environ
+os.environ.setdefault("MUJOCO_GL", "egl")
 
 import time
 
@@ -69,12 +70,47 @@ def format_episode_outcomes(eval_episodes, eval_start_idx, episode_successes):
     return lines
 
 
+def resolve_runtime_device(cfg: DictConfig) -> str:
+    """Resolve requested runtime device with CUDA availability fallback."""
+    raw_value = cfg.get("device", os.environ.get("EVAL_DEVICE", "auto"))
+    requested = str(raw_value).strip().lower()
+    if not requested:
+        requested = "auto"
+
+    normalized = "cuda" if requested.startswith("cuda") else requested
+    if normalized not in {"auto", "cpu", "cuda"}:
+        raise ValueError(
+            "Unsupported runtime device "
+            f"'{requested}'. Supported values: auto, cpu, cuda."
+        )
+
+    if normalized == "auto":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if normalized == "cuda" and not torch.cuda.is_available():
+        print(
+            "[original_eval] requested device='cuda' but CUDA is unavailable; "
+            "falling back to CPU."
+        )
+        return "cpu"
+    return requested
+
+
 @hydra.main(
     version_base=None,
     config_path="third_party/lewm/config/eval",
     config_name="pusht",
 )
 def run(cfg: DictConfig):
+    runtime_device = resolve_runtime_device(cfg)
+    if "solver" in cfg and "device" in cfg.solver:
+        cfg.solver.device = runtime_device
+    if runtime_device == "cpu" and not _MUJOCO_GL_WAS_PRESET:
+        os.environ["MUJOCO_GL"] = "osmesa"
+    print(
+        f"[original_eval] runtime_device={runtime_device}, "
+        f"MUJOCO_GL={os.environ.get('MUJOCO_GL')}"
+    )
+
     assert (
         cfg.plan_config.horizon * cfg.plan_config.action_block <= cfg.eval.eval_budget
     ), "Planning horizon must be smaller than or equal to eval_budget"
@@ -108,7 +144,7 @@ def run(cfg: DictConfig):
     policy = cfg.get("policy", "random")
     if policy != "random":
         model = swm.policy.AutoCostModel(cfg.policy)
-        model = model.to("cuda")
+        model = model.to(runtime_device)
         model = model.eval()
         model.requires_grad_(False)
         model.interpolate_pos_encoding = True
