@@ -38,3 +38,10 @@ Hierarchical PushT evaluation jobs, organized by goal offset and experiment type
 
 Slurm/runtime artifacts (`*.out`, `*.err`, `*.log`, `submitted_jobs.tsv`) are intentionally
 ignored by Git via `jobs/.gitignore` to keep this folder transition-safe for branch moves.
+
+## Diagnostics
+
+- `macro_action_manifold_cpu.sh`: CPU Slurm job for the macro-action manifold diagnostic
+  (`scripts/test_macro_action_manifold.py`), comparing:
+  - true dataset macro-actions vs one-step high-level prediction error
+  - CEM macro-actions vs one-step error and off-manifold statistics
