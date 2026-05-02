@@ -50,14 +50,16 @@ wm:
 
   high_level:
     enabled: True
-    latent_action_dim: ${wm.embed_dim}
-    macro_to_condition_proj: auto # (D_l -> D_z), one of: auto, identity, linear
+    latent_action_dim: 32                 # RC-2: was ${wm.embed_dim}=192; smaller CEM search space
+    macro_to_condition_proj: linear       # RC-2: explicit linear since 32 != 192
+    preembed_actions: True                # RC-6: route action chunks through frozen action_encoder first
+    history_size: 4                       # decoupled from num_waypoints (default = num_waypoints - 1)
     waypoints:
       num: 5
-      strategy: random_sorted # one of: random_middle, random_sorted, fixed_stride
+      strategy: fixed_stride             # RC-3: was random_sorted; fixed stride matches eval replan interval
       min_stride: 1
-      max_span: 15
-      stride: -1 # set >0 only when strategy=fixed_stride; otherwise ignored with warning
+      max_span: 4                        # RC-3: (num_waypoints-1)*stride = 4; was 15
+      stride: 1                          # RC-3: 1 training frame per hop = 5 env steps = macro_replan_interval
       beta_alpha: 2.0
       beta_beta: 2.0
 
@@ -86,7 +88,7 @@ latent_action_encoder:
   num_heads: 4
   mlp_dim: 768
   dropout: 0.1
-  max_seq_len: ${wm.high_level.waypoints.max_span}
+  max_seq_len: ${wm.high_level.waypoints.stride}  # RC-3: chunk length = stride (1 action per hop)
 
 predictor:
   depth: 6
@@ -97,9 +99,9 @@ predictor:
   emb_dropout: 0.0
 
 predictor_high:
-  depth: 6
+  depth: 8        # RC-5: was 6; higher capacity for long-horizon abstraction
   heads: 16
-  mlp_dim: 2048
+  mlp_dim: 4096   # RC-5: was 2048
   dim_head: 64
   dropout: 0.1
   emb_dropout: 0.0
@@ -107,6 +109,7 @@ predictor_high:
 loss:
   alpha: 0.0
   beta: 1.0
+  lambda_var: 0.1  # RC-7: variance regularization on P2 predictions
   sigreg:
     weight: 0.0
     kwargs:

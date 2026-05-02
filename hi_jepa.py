@@ -159,8 +159,14 @@ class HiJEPA(nn.Module):
         self,
         action_chunks: torch.Tensor,
         action_mask: torch.Tensor | None = None,
+        *,
+        preembed: bool = False,
     ) -> torch.Tensor:
         # action_chunks: (B, T_chunk, A), action_mask: (B, T_chunk)
+        # preembed=True: route through frozen action_encoder first → (B, T_chunk, 192)
+        # so latent_action_encoder must have input_dim=embed_dim when preembed=True
+        if preembed:
+            action_chunks = self.action_encoder(action_chunks.float())
         return self.latent_action_encoder(action_chunks, action_mask=action_mask)
 
     def project_macro_to_condition_space(self, macro_actions: torch.Tensor) -> torch.Tensor:

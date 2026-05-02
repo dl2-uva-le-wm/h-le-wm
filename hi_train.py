@@ -352,11 +352,20 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     _, k, l_max, act_dim = chunk_actions.shape
     flat_actions = chunk_actions.reshape(b * k, l_max, act_dim)
     flat_mask = chunk_mask.reshape(b * k, l_max)
-    flat_macro = self.model.encode_macro_actions(flat_actions, flat_mask)  # (B*K, D_l)
+    preembed_actions = bool(cfg.wm.high_level.get("preembed_actions", False))
+    flat_macro = self.model.encode_macro_actions(flat_actions, flat_mask, preembed=preembed_actions)  # (B*K, D_l)
     macro_actions = flat_macro.reshape(b, k, -1)  # (B, N-1, D_l)
 
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
     output["l2_pred_loss"] = (z_pred - z_target).pow(2).mean()
+
+    lambda_var = float(cfg.loss.get("lambda_var", 0.0))
+    if lambda_var > 0.0:
+        z_flat = z_pred.reshape(-1, z_pred.size(-1))
+        std_per_dim = z_flat.var(dim=0).add(1e-4).sqrt()
+        output["var_loss"] = torch.relu(1.0 - std_per_dim).mean()
+    else:
+        output["var_loss"] = torch.zeros((), device=device, dtype=z_pred.dtype)
 
     if train_low_level:
         if emb is None:
@@ -385,6 +394,7 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         alpha * output["l1_pred_loss"]
         + beta * output["l2_pred_loss"]
         + lambd * output["sigreg_loss"]
+        + lambda_var * output["var_loss"]
     )
 
     output["waypoint_gap_mean"] = gaps.float().mean()
@@ -396,6 +406,7 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         "l1_pred_loss",
         "l2_pred_loss",
         "sigreg_loss",
+        "var_loss",
         "waypoint_gap_mean",
         "waypoint_gap_max",
         "macro_action_norm",
@@ -583,11 +594,11 @@ def run(cfg):
     num_waypoints = int(cfg.wm.high_level.waypoints.num)
     if num_waypoints < 3:
         raise ValueError("wm.high_level.waypoints.num must be >= 3")
-    high_num_frames = num_waypoints - 1
+    high_history_size = int(cfg.wm.high_level.get("history_size", num_waypoints - 1))
 
     high_pred_cfg = dict(cfg.predictor_high)
     high_predictor = ARPredictor(
-        num_frames=high_num_frames,
+        num_frames=high_history_size,
         input_dim=embed_dim,
         hidden_dim=hidden_dim,
         output_dim=hidden_dim,
@@ -595,9 +606,11 @@ def run(cfg):
     )
 
     latent_action_dim = int(cfg.wm.high_level.get("latent_action_dim", embed_dim))
+    preembed_actions = bool(cfg.wm.high_level.get("preembed_actions", False))
+    latent_enc_input_dim = embed_dim if preembed_actions else effective_act_dim
     latent_encoder_cfg = dict(cfg.latent_action_encoder)
     latent_action_encoder = LatentActionEncoder(
-        input_dim=effective_act_dim,
+        input_dim=latent_enc_input_dim,
         latent_dim=latent_action_dim,
         **latent_encoder_cfg,
     )

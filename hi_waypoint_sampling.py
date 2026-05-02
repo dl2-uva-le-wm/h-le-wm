@@ -118,16 +118,17 @@ def _sample_random_sorted(
     )  # (B, max_residual_or_1)
 
     gaps = torch.full((batch_size, n_gaps), min_stride, device=device, dtype=torch.long)
-    if int(residual.max().item()) > 0:
-        for b in range(batch_size):
-            r = int(residual[b].item())
-            if r > 0:
-                idx = residual_alloc[b, :r]
-                gaps[b].scatter_add_(
-                    0,
-                    idx,
-                    torch.ones_like(idx, dtype=torch.long, device=device),
-                )
+    max_r = int(residual.max().item()) if int(residual.max().item()) > 0 else 0
+    if max_r > 0:
+        r_mask = torch.arange(max_r, device=device).unsqueeze(0) < residual.unsqueeze(1)
+        b_idx = torch.arange(batch_size, device=device).unsqueeze(1).expand_as(residual_alloc)
+        global_idx = b_idx * n_gaps + residual_alloc  # flat index into gaps
+        valid_mask = r_mask.reshape(-1)
+        if valid_mask.any():
+            valid_idx = global_idx.reshape(-1)[valid_mask]
+            gaps.reshape(-1).scatter_add_(
+                0, valid_idx, torch.ones(valid_mask.sum(), device=device, dtype=torch.long)
+            )
 
     t1 = torch.full((batch_size, 1), ctx_len - 1, device=device, dtype=torch.long)
     waypoints = torch.cat([t1, t1 + gaps.cumsum(dim=1)], dim=1)  # (B, N)
