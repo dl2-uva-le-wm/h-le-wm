@@ -88,7 +88,7 @@ latent_action_encoder:
   num_heads: 4
   mlp_dim: 768
   dropout: 0.1
-  max_seq_len: ${wm.high_level.waypoints.stride}  # RC-3: chunk length = stride (1 action per hop)
+  max_seq_len: ${wm.high_level.waypoints.max_span}  # Must cover the largest sampled waypoint span.
 
 predictor:
   depth: 6

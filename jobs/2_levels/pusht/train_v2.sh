@@ -22,7 +22,7 @@
 #SBATCH --job-name=hi_l2_pusht_v2
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=06:00:00
+#SBATCH --time=00:30:00
 #SBATCH --output=train_v2_%j.out
 #SBATCH --error=train_v2_%j.err
 
@@ -65,7 +65,11 @@ eval "$(conda shell.bash hook)"
 conda activate lewm-gpu
 set -u
 
-WANDB_ENV_FILE="${WANDB_ENV_FILE:-$HOME/.config/wandb.env}"
+DEFAULT_WANDB_ENV_FILE="${REPO_ROOT}/.env.wandb"
+if [[ ! -f "${DEFAULT_WANDB_ENV_FILE}" ]]; then
+  DEFAULT_WANDB_ENV_FILE="$HOME/.config/wandb.env"
+fi
+WANDB_ENV_FILE="${WANDB_ENV_FILE:-${DEFAULT_WANDB_ENV_FILE}}"
 if [[ -f "${WANDB_ENV_FILE}" ]]; then
   set -a; source "${WANDB_ENV_FILE}"; set +a
 fi
@@ -131,7 +135,7 @@ CMD=(
   wm.high_level.waypoints.num="${NUM_WP}"
   wm.high_level.waypoints.stride="${STRIDE}"
   wm.high_level.waypoints.max_span="${MAX_SPAN}"
-  latent_action_encoder.max_seq_len="${STRIDE}"
+  latent_action_encoder.max_seq_len="${MAX_SPAN}"
   predictor_high.depth="${DEPTH_HIGH}"
   predictor_high.mlp_dim="${MLP_HIGH}"
   loss.alpha=0.0
