@@ -17,12 +17,12 @@
 #   MAX_EPOCHS=100 RUN_NAME=hi_lewm_v2_e100 sbatch train_v2.sh
 #   LATENT_DIM=64 sbatch train_v2.sh
 
-#SBATCH --partition=gpu_a100
+#SBATCH --partition=gpu_h100
 #SBATCH --gpus=1
 #SBATCH --job-name=hi_l2_pusht_v2
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=00:30:00
+#SBATCH --time=06:00:00
 #SBATCH --output=train_v2_%j.out
 #SBATCH --error=train_v2_%j.err
 
