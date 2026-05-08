@@ -1,0 +1,25 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+REPO_ROOT=/gpfs/home2/scur0200/salvatore_branch/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+DATASETS=cube
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+
+==> Scanning quentinll/lewm-cube
+[skip] already exists: /scratch-shared/scur0200/stablewm_data/cube_single_expert.tar.zst
+[extract] /scratch-shared/scur0200/stablewm_data/cube_single_expert.tar.zst -> /scratch-shared/scur0200/stablewm_data/cube_single_expert.tar
+/scratch-shared/scur0200/stablewm_data/cube_single_expert.tar.zst : Read error (39) : premature end 
+zstd extract failed: /scratch-shared/scur0200/stablewm_data/cube_single_expert.tar.zst

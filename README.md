@@ -102,6 +102,13 @@ Reacher:
 python hi_eval.py --config-name=hi_reacher policy=reacher/hi_lewm
 ```
 
+OGBench-Cube:
+
+```bash
+python hi_train.py data=hi_cube output_model_name=hi_lewm_cube
+python hi_eval.py --config-name=hi_cube policy=cube/hi_lewm
+```
+
 Example 2-level eval command:
 
 ```bash

@@ -56,7 +56,11 @@ conda activate lewm-gpu
 set -u
 
 ####################################### WANDB SETUP #######################################
-WANDB_ENV_FILE="${WANDB_ENV_FILE:-$HOME/.config/wandb.env}"
+DEFAULT_WANDB_ENV_FILE="${REPO_ROOT}/.env.wandb"
+if [[ ! -f "${DEFAULT_WANDB_ENV_FILE}" ]]; then
+  DEFAULT_WANDB_ENV_FILE="$HOME/.config/wandb.env"
+fi
+WANDB_ENV_FILE="${WANDB_ENV_FILE:-${DEFAULT_WANDB_ENV_FILE}}"
 if [[ -f "${WANDB_ENV_FILE}" ]]; then
   set -a
   source "${WANDB_ENV_FILE}"

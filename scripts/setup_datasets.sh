@@ -152,25 +152,152 @@ allowed_suffixes = (
 for s in data.get("siblings", []):
     name = s.get("rfilename", "")
     if name.endswith(allowed_suffixes):
-        print(name)
+        size = s.get("size")
+        if size is None:
+            lfs = s.get("lfs")
+            if isinstance(lfs, dict):
+                size = lfs.get("size")
+        if isinstance(size, int):
+            print(f"{name}\t{size}")
+        else:
+            print(name)
 PY
+}
+
+file_size_bytes() {
+  local path="$1"
+  if [[ ! -f "$path" ]]; then
+    return 1
+  fi
+
+  stat -c %s "$path" 2>/dev/null || stat -f %z "$path" 2>/dev/null
+}
+
+archive_extract_target() {
+  local path="$1"
+
+  case "$path" in
+    *.h5.zst|*.hdf5.zst|*.tar.zst)
+      echo "${path%.zst}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+archive_needs_validation() {
+  local path="$1"
+  local target=""
+
+  target="$(archive_extract_target "$path")" || return 1
+  [[ ! -f "$target" ]]
+}
+
+validate_archive() {
+  local path="$1"
+
+  case "$path" in
+    *.zst)
+      zstd -t -q "$path" >/dev/null 2>&1
+      ;;
+    *.tar.gz|*.tgz)
+      gzip -t "$path" >/dev/null 2>&1
+      ;;
+    *)
+      return 0
+      ;;
+  esac
 }
 
 download_file() {
   local repo="$1"
   local relpath="$2"
+  local expected_size="${3:-}"
   local out_path="${STABLEWM_HOME}/${relpath}"
+  local part_path="${out_path}.part"
+  local current_size=""
+  local part_size=""
 
   mkdir -p "$(dirname "$out_path")"
   if [[ -f "$out_path" ]]; then
-    echo "[skip] already exists: $out_path"
-    return 0
+    if [[ -n "$expected_size" ]] && current_size="$(file_size_bytes "$out_path")"; then
+      if [[ "$current_size" == "$expected_size" ]]; then
+        if archive_needs_validation "$out_path" && ! validate_archive "$out_path"; then
+          echo "[redownload] corrupt archive detected: $out_path"
+          rm -f "$out_path" "$part_path"
+        else
+          echo "[skip] already exists: $out_path"
+          return 0
+        fi
+      fi
+
+      if [[ -f "$out_path" ]]; then
+        echo "[resume] detected incomplete file (${current_size}/${expected_size} bytes): $out_path"
+        if [[ -f "$part_path" ]]; then
+          if part_size="$(file_size_bytes "$part_path")" && [[ "$part_size" -ge "$current_size" ]]; then
+            rm -f "$out_path"
+          else
+            mv -f "$out_path" "$part_path"
+          fi
+        else
+          mv -f "$out_path" "$part_path"
+        fi
+      fi
+    else
+      if archive_needs_validation "$out_path" && ! validate_archive "$out_path"; then
+        echo "[redownload] corrupt archive detected: $out_path"
+        rm -f "$out_path" "$part_path"
+      else
+        echo "[skip] already exists: $out_path"
+        return 0
+      fi
+    fi
+  fi
+
+  if [[ -f "$part_path" ]] && [[ -n "$expected_size" ]] && part_size="$(file_size_bytes "$part_path")"; then
+    if [[ "$part_size" == "$expected_size" ]]; then
+      mv -f "$part_path" "$out_path"
+      echo "[resume] recovered completed file: $out_path"
+      return 0
+    fi
   fi
 
   local url="https://huggingface.co/datasets/${repo}/resolve/main/${relpath}?download=true"
   echo "[download] $repo/$relpath"
-  curl -L --fail --progress-bar "$url" -o "$out_path" || {
+
+  local -a curl_cmd=(
+    curl
+    -L
+    --fail
+    --progress-bar
+    --retry 5
+    --retry-delay 5
+    --retry-all-errors
+  )
+  if [[ -f "$part_path" ]]; then
+    if part_size="$(file_size_bytes "$part_path")"; then
+      echo "[resume] continuing partial download (${part_size} bytes present): $part_path"
+    else
+      echo "[resume] continuing partial download: $part_path"
+    fi
+    curl_cmd+=(--continue-at -)
+  fi
+
+  "${curl_cmd[@]}" -o "$part_path" "$url" || {
     _abort "Download failed: $url"
+    return 1
+  }
+
+  if [[ -n "$expected_size" ]] && current_size="$(file_size_bytes "$part_path")"; then
+    if [[ "$current_size" != "$expected_size" ]]; then
+      _abort "Downloaded size mismatch for ${relpath}: got ${current_size}, expected ${expected_size}"
+      return 1
+    fi
+  fi
+
+  mv -f "$part_path" "$out_path" || {
+    _abort "Failed to finalize download: $out_path"
     return 1
   }
 }
@@ -186,6 +313,7 @@ extract_if_needed() {
       else
         echo "[extract] $path -> $target"
         zstd -d --rm -f "$path" -o "$target" || {
+          rm -f "$target"
           _abort "zstd extract failed: $path"
           return 1
         }
@@ -196,6 +324,7 @@ extract_if_needed() {
       if [[ ! -f "$tar_path" ]]; then
         echo "[extract] $path -> $tar_path"
         zstd -d --rm -f "$path" -o "$tar_path" || {
+          rm -f "$tar_path"
           _abort "zstd extract failed: $path"
           return 1
         }
@@ -240,8 +369,9 @@ for repo in "${REPOS[@]}"; do
     return 1 2>/dev/null || exit 1
   fi
 
-  for f in "${files[@]}"; do
-    download_file "$repo" "$f" || return 1 2>/dev/null || exit 1
+  for file_spec in "${files[@]}"; do
+    IFS=$'\t' read -r f size <<< "$file_spec"
+    download_file "$repo" "$f" "$size" || return 1 2>/dev/null || exit 1
     extract_if_needed "${STABLEWM_HOME}/${f}" || return 1 2>/dev/null || exit 1
   done
 

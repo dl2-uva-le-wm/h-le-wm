@@ -1,27 +1,28 @@
 #!/bin/bash
 
-# Snellius training job (simple):
+# Snellius training job (Reacher):
 # - Read dataset + pretrained checkpoint from node-local TMPDIR (scratch-node)
 # - Save training artifacts directly to shared scratch
 #
 # Usage:
-#   cd jobs/train/pusht
-#   sbatch train_hope1_smoke.sh
+#   cd jobs/train/reacher
+#   sbatch train_hope1.sh
 #
 # Optional overrides:
-#   MAX_EPOCHS=1 sbatch train_hope1_smoke.sh
-#   TRAIN_RUN_NAME=hi_lewm_p2_train_hope1_smoke_custom sbatch train_hope1_smoke.sh
-#   SCRATCH_STABLEWM_HOME=/scratch-shared/$USER/stablewm_data sbatch train_hope1_smoke.sh
+#   MAX_EPOCHS=10 sbatch train_hope1.sh
+#   TRAIN_RUN_NAME=hi_lewm_reacher_train_hope1_custom sbatch train_hope1.sh
+#   SCRATCH_STABLEWM_HOME=/scratch-shared/$USER/stablewm_data sbatch train_hope1.sh
+#   PRETRAINED_LEWM_CKPT=/scratch-shared/$USER/stablewm_data/reacher/lewm_object.ckpt sbatch train_hope1.sh
 
-#SBATCH --partition=gpu_a100
+#SBATCH --partition=gpu_h100
 #SBATCH --constraint=scratch-node
 #SBATCH --gpus=1
-#SBATCH --job-name=hi_l2_pusht_train_hope1_smoke
+#SBATCH --job-name=hi_l2_reacher_train_hope1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
-#SBATCH --time=01:00:00
-#SBATCH --output=train_hope1_smoke_%j.out
-#SBATCH --error=train_hope1_smoke_%j.err
+#SBATCH --time=10:00:00
+#SBATCH --output=train_reacher_hope1_%j.out
+#SBATCH --error=train_reacher_hope1_%j.err
 
 set -euo pipefail
 
@@ -46,6 +47,28 @@ resolve_repo_root() {
     done
   done
   return 1
+}
+
+resolve_shared_stablewm_home() {
+  local candidates=()
+  if [[ -n "${SCRATCH_STABLEWM_HOME:-}" ]]; then
+    candidates+=("${SCRATCH_STABLEWM_HOME}")
+  fi
+  candidates+=(
+    "/scratch-shared/${USER}/stablewm_data"
+    "/scratch_shared/${USER}/stablewm_data"
+  )
+
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    [[ -z "${candidate}" ]] && continue
+    if [[ -d "${candidate}" ]]; then
+      echo "${candidate}"
+      return 0
+    fi
+  done
+
+  echo "${candidates[0]}"
 }
 
 if ! REPO_ROOT="$(resolve_repo_root)"; then
@@ -87,7 +110,7 @@ if [[ -f "${WANDB_ENV_FILE}" ]]; then
 fi
 if [[ -z "${WANDB_API_KEY:-}" ]]; then
   echo "ERROR: WANDB_API_KEY is not set." >&2
-  echo "Set it in ${WANDB_ENV_FILE} or submit with: sbatch --export=ALL,WANDB_API_KEY=<your_key> train_hope1_smoke.sh" >&2
+  echo "Set it in ${WANDB_ENV_FILE} or submit with: sbatch --export=ALL,WANDB_API_KEY=<your_key> train_hope1.sh" >&2
   exit 2
 fi
 wandb login --relogin "${WANDB_API_KEY}"
@@ -97,27 +120,27 @@ WANDB_PROJECT="${WANDB_PROJECT:-hi_lewm}"
 
 ######################################## TRAIN SETUP #######################################
 
-SCRATCH_STABLEWM_HOME="${SCRATCH_STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
-DATASET_FILE="${DATASET_FILE:-pusht_expert_train.h5}"
-CKPT_REL="${CKPT_REL:-pusht/lewm_object.ckpt}"
-MAX_EPOCHS="${MAX_EPOCHS:-1}"
-TRAIN_RUN_NAME="${TRAIN_RUN_NAME:-hi_lewm_p2_train_hope1_smoke_${SLURM_JOB_ID:-manual}}"
+SCRATCH_STABLEWM_HOME="$(resolve_shared_stablewm_home)"
+DATASET_FILE="${DATASET_FILE:-reacher.h5}"
+CKPT_REL="${CKPT_REL:-reacher/lewm_object.ckpt}"
+PRETRAINED_LEWM_CKPT="${PRETRAINED_LEWM_CKPT:-${SCRATCH_STABLEWM_HOME}/${CKPT_REL}}"
+MAX_EPOCHS="${MAX_EPOCHS:-10}"
+TRAIN_RUN_NAME="${TRAIN_RUN_NAME:-hi_lewm_reacher_train_hope1_${SLURM_JOB_ID:-manual}}"
 WANDB_RUN_ID="${WANDB_RUN_ID:-run_${SLURM_JOB_ID:-manual}}"
 
 SRC_DATASET="${SCRATCH_STABLEWM_HOME}/${DATASET_FILE}"
-SRC_CKPT="${SCRATCH_STABLEWM_HOME}/${CKPT_REL}"
 if [[ ! -f "${SRC_DATASET}" ]]; then
   echo "ERROR: dataset file not found: ${SRC_DATASET}" >&2
   exit 2
 fi
-if [[ ! -f "${SRC_CKPT}" ]]; then
-  echo "ERROR: checkpoint not found: ${SRC_CKPT}" >&2
+if [[ ! -f "${PRETRAINED_LEWM_CKPT}" ]]; then
+  echo "ERROR: checkpoint not found: ${PRETRAINED_LEWM_CKPT}" >&2
   exit 2
 fi
 
 LOCAL_STABLEWM_HOME="${LOCAL_STABLEWM_HOME:-${TMPDIR}/${USER}_stablewm_data_${SLURM_JOB_ID:-manual}}"
 LOCAL_DATASET="${LOCAL_STABLEWM_HOME}/${DATASET_FILE}"
-LOCAL_CKPT="${LOCAL_STABLEWM_HOME}/${CKPT_REL}"
+LOCAL_CKPT="${LOCAL_STABLEWM_HOME}/reacher/lewm_object.ckpt"
 PERSIST_RUN_DIR="${PERSIST_RUN_DIR:-${SCRATCH_STABLEWM_HOME}/runs/${TRAIN_RUN_NAME}}"
 
 # Read data/checkpoint from local scratch for speed.
@@ -130,7 +153,7 @@ echo "STABLEWM_HOME (read path): ${STABLEWM_HOME}"
 echo "Output run dir (shared): ${PERSIST_RUN_DIR}"
 echo "TMPDIR: ${TMPDIR}"
 echo "Dataset: ${DATASET_FILE}"
-echo "Checkpoint: ${CKPT_REL}"
+echo "Checkpoint: ${PRETRAINED_LEWM_CKPT}"
 echo "Run name: ${TRAIN_RUN_NAME}"
 echo "W&B run id: ${WANDB_RUN_ID}"
 echo "Max epochs: ${MAX_EPOCHS}"
@@ -140,13 +163,13 @@ echo ""
 echo "==> Preparing node-local copy in ${LOCAL_STABLEWM_HOME}"
 mkdir -p "$(dirname "${LOCAL_DATASET}")" "$(dirname "${LOCAL_CKPT}")" "${PERSIST_RUN_DIR}"
 rsync -ah --info=progress2 "${SRC_DATASET}" "${LOCAL_DATASET}"
-rsync -ah --info=progress2 "${SRC_CKPT}" "${LOCAL_CKPT}"
+rsync -ah --info=progress2 "${PRETRAINED_LEWM_CKPT}" "${LOCAL_CKPT}"
 
 cd "${REPO_ROOT}"
 
 CMD=(
   python hi_train.py
-  data=hi_pusht
+  data=hi_reacher
   output_model_name="${TRAIN_RUN_NAME}"
   subdir="${PERSIST_RUN_DIR}"
   wandb.config.entity="${WANDB_ENTITY_OVERRIDE}"

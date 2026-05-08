@@ -7,6 +7,8 @@ It is organized to stay clean when moving work across branches (including the la
 
 - `setup/`: environment bootstrap + dataset download/test jobs.
 - `train/pusht/`: PushT training and benchmark jobs.
+- `train/reacher/`: Reacher training jobs.
+- `train/cube/`: OGBench-Cube training jobs.
 - `eval/original/`: baseline LeWM eval jobs.
 - `eval/hi/`: hierarchical eval jobs and eval-specific docs.
 

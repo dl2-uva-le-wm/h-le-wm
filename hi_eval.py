@@ -325,6 +325,29 @@ def build_policy(cfg, model, dataset, process, transform):
     )
 
 
+def resolve_runtime_device(cfg: DictConfig) -> str:
+    """Pick the device used to place the loaded model during evaluation."""
+    preferred = str(cfg.get("device", "")).strip().lower()
+    if not preferred:
+        mode = str(cfg.planning.get("mode", "hierarchical")).lower()
+        if mode == "hierarchical":
+            preferred = str(cfg.planning.high.solver.device).strip().lower()
+        else:
+            preferred = str(cfg.solver.device).strip().lower()
+
+    if preferred == "auto":
+        preferred = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if preferred.startswith("cuda") and not torch.cuda.is_available():
+        print(
+            "[hi_eval] CUDA requested but unavailable; falling back to CPU.",
+            flush=True,
+        )
+        preferred = "cpu"
+
+    return preferred or "cpu"
+
+
 @hydra.main(version_base=None, config_path="./config/eval", config_name="hi_pusht")
 def run(cfg: DictConfig):
     mode = str(cfg.planning.get("mode", "hierarchical")).lower()
@@ -365,8 +388,10 @@ def run(cfg: DictConfig):
 
     policy_name = cfg.get("policy", "random")
     if policy_name != "random":
+        runtime_device = resolve_runtime_device(cfg)
+        print(f"[hi_eval] runtime device: {runtime_device}")
         model = swm.policy.AutoCostModel(cfg.policy)
-        model = model.to("cuda")
+        model = model.to(runtime_device)
         model = model.eval()
         model.requires_grad_(False)
         model.interpolate_pos_encoding = True
