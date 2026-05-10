@@ -29,6 +29,8 @@ def _load_hi_train_functions():
         "build_action_chunks",
         "build_action_chunks_batched",
         "is_p2_frozen_optimization_enabled",
+        "encode_macro_actions_with_aux",
+        "add_macro_action_aux_losses",
         "build_p2_frozen_waypoint_collate",
         "hi_lejepa_forward",
         "hi_lejepa_forward_p2_frozen",
@@ -171,6 +173,21 @@ class DummyModule:
         self.logged.append((metrics, on_step, sync_dist))
 
 
+class DummyVQModel(DummyModel):
+    def encode_macro_actions_with_info(self, action_chunks: torch.Tensor, action_mask: torch.Tensor):
+        macro_actions = super().encode_macro_actions(action_chunks, action_mask)
+        device = action_chunks.device
+        dtype = action_chunks.dtype
+        return {
+            "macro_actions": macro_actions,
+            "recon_loss": torch.tensor(2.0, device=device, dtype=dtype),
+            "commitment_loss": torch.tensor(3.0, device=device, dtype=dtype),
+            "codebook_loss": torch.tensor(4.0, device=device, dtype=dtype),
+            "perplexity": torch.tensor(5.0, device=device, dtype=dtype),
+            "active_codes": torch.tensor(6.0, device=device, dtype=dtype),
+        }
+
+
 def _sample_waypoints_stub(_cfg, batch_size: int, seq_len: int, device):
     assert seq_len >= 11
     base = torch.tensor([2, 4, 6, 8, 10], device=device, dtype=torch.long)
@@ -195,6 +212,11 @@ def _make_cfg(*, train_low_level: bool, sigreg_weight: float):
         loss=Node(
             alpha=0.0,
             beta=1.0,
+            vq=Node(
+                recon_weight=1.0,
+                commitment_weight=0.25,
+                codebook_weight=1.0,
+            ),
             sigreg=Node(weight=float(sigreg_weight)),
         ),
         wm=Node(
@@ -344,6 +366,28 @@ def test_hi_lejepa_forward_smoke_multiple_steps_logs_metrics():
         assert torch.isfinite(out["loss"])
 
     assert len(module.logged) == 3
+
+
+def test_hi_lejepa_forward_accumulates_vq_aux_losses():
+    HI_LEJEPA_FORWARD.__globals__["sample_waypoints"] = _sample_waypoints_stub
+
+    model = DummyVQModel(embed_dim=8, latent_dim=5)
+    module = DummyModule(model)
+    cfg = _make_cfg(train_low_level=False, sigreg_weight=0.0)
+
+    batch = {
+        "pixels": torch.randn(2, 12, 3, 4, 4),
+        "action": torch.randn(2, 12, 6),
+    }
+
+    out = HI_LEJEPA_FORWARD(module, batch, "train", cfg)
+
+    assert out["vq_recon_loss"].item() == 2.0
+    assert out["vq_commitment_loss"].item() == 3.0
+    assert out["vq_codebook_loss"].item() == 4.0
+    assert out["vq_perplexity"].item() == 5.0
+    assert out["vq_active_codes"].item() == 6.0
+    assert out["vq_loss"].item() == pytest.approx(6.75)
 
 
 def test_is_p2_frozen_optimization_enabled_matches_expected_modes():

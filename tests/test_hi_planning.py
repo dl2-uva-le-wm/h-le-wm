@@ -77,6 +77,23 @@ class MeanLatentActionEncoder(nn.Module):
         return self.output_proj(pooled)
 
 
+class RoundingLatentActionEncoder(nn.Module):
+    def __init__(self, dim: int):
+        super().__init__()
+        self.latent_dim = dim
+
+    def forward(self, x: torch.Tensor, action_mask: torch.Tensor | None = None) -> torch.Tensor:
+        x = x.float()
+        if action_mask is not None:
+            mask = action_mask.to(x.dtype).unsqueeze(-1)
+            denom = mask.sum(dim=1).clamp(min=1.0)
+            return (x * mask).sum(dim=1) / denom
+        return x.mean(dim=1)
+
+    def quantize_latents(self, latents: torch.Tensor) -> torch.Tensor:
+        return torch.round(latents)
+
+
 class ScaleProjection(nn.Module):
     def __init__(self, scale: float):
         super().__init__()
@@ -188,6 +205,28 @@ def test_hijepa_rollout_shapes():
     low_actions = torch.randn(2, 3, 6, 4)
     low = model.rollout_low(z_hist, None, low_actions)
     assert low.shape == (2, 3, 6, 4)
+
+
+def test_rollout_high_quantizes_planner_latents_when_supported():
+    dim = 3
+    model = HiJEPA(
+        encoder=DummyVisionEncoder(dim),
+        low_predictor=AdditivePredictor(dim),
+        action_encoder=IdentityActionEncoder(dim),
+        high_predictor=AdditivePredictor(dim),
+        latent_action_encoder=RoundingLatentActionEncoder(dim),
+        macro_to_condition=nn.Identity(),
+        projector=nn.Identity(),
+        low_pred_proj=nn.Identity(),
+        high_pred_proj=nn.Identity(),
+    )
+
+    z_init = torch.zeros(1, dim)
+    latent_actions = torch.tensor([[[0.49, 1.51, -0.49]]])
+    pred = model.rollout_high(z_init, latent_actions)
+
+    expected = torch.tensor([[[[0.0, 2.0, 0.0]]]])
+    assert torch.allclose(pred, expected)
 
 
 def test_get_cost_high_zero_for_matching_goal():

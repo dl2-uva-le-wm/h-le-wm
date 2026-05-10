@@ -163,6 +163,24 @@ class HiJEPA(nn.Module):
         # action_chunks: (B, T_chunk, A), action_mask: (B, T_chunk)
         return self.latent_action_encoder(action_chunks, action_mask=action_mask)
 
+    def encode_macro_actions_with_info(
+        self,
+        action_chunks: torch.Tensor,
+        action_mask: torch.Tensor | None = None,
+    ) -> dict[str, torch.Tensor]:
+        if hasattr(self.latent_action_encoder, "encode_with_info"):
+            return self.latent_action_encoder.encode_with_info(
+                action_chunks,
+                action_mask=action_mask,
+            )
+        macro_actions = self.encode_macro_actions(action_chunks, action_mask=action_mask)
+        return {"macro_actions": macro_actions}
+
+    def quantize_macro_actions_for_planning(self, macro_actions: torch.Tensor) -> torch.Tensor:
+        if hasattr(self.latent_action_encoder, "quantize_latents"):
+            return self.latent_action_encoder.quantize_latents(macro_actions)
+        return macro_actions
+
     def project_macro_to_condition_space(self, macro_actions: torch.Tensor) -> torch.Tensor:
         if macro_actions.ndim != 3:
             raise ValueError("macro_actions must be shape (B, T, latent_action_dim)")
@@ -321,6 +339,7 @@ class HiJEPA(nn.Module):
             act_k = latent_actions[:, :, k, :].reshape(bs, d_l)
             act_hist.append(act_k)
             act_seq = torch.stack(act_hist, dim=1)
+            act_seq = self.quantize_macro_actions_for_planning(act_seq)
             ctx = min(high_ctx, z_hist.size(1), act_seq.size(1))
             z_ctx = z_hist[:, -ctx:]
             a_ctx = act_seq[:, -ctx:]

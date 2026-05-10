@@ -29,6 +29,7 @@ from baseline_adapter import (
 )
 from hi_jepa import HiJEPA
 from hi_module import LatentActionEncoder
+from hi_vq import VQActionEncoder
 from hi_waypoint_sampling import sample_waypoints
 
 
@@ -307,6 +308,62 @@ def is_p2_frozen_optimization_enabled(cfg) -> bool:
     return all(required_frozen)
 
 
+def encode_macro_actions_with_aux(model, action_chunks: torch.Tensor, action_mask: torch.Tensor) -> dict:
+    """Return macro-actions plus optional auxiliary losses/metrics."""
+    if hasattr(model, "encode_macro_actions_with_info"):
+        output = model.encode_macro_actions_with_info(action_chunks, action_mask)
+        if "macro_actions" not in output:
+            raise ValueError("encode_macro_actions_with_info must return `macro_actions`.")
+        return output
+    macro_actions = model.encode_macro_actions(action_chunks, action_mask)
+    return {"macro_actions": macro_actions}
+
+
+def add_macro_action_aux_losses(output: dict, macro_output: dict, cfg, *, device, dtype) -> None:
+    """Accumulate optional VQ auxiliary losses onto the training output dict."""
+    zero = torch.zeros((), device=device, dtype=dtype)
+    output["vq_recon_loss"] = macro_output.get("recon_loss", zero)
+    output["vq_commitment_loss"] = macro_output.get("commitment_loss", zero)
+    output["vq_codebook_loss"] = macro_output.get("codebook_loss", zero)
+    output["vq_perplexity"] = macro_output.get("perplexity", zero)
+    output["vq_active_codes"] = macro_output.get("active_codes", zero)
+
+    vq_cfg = cfg.loss.get("vq", {})
+    recon_weight = float(vq_cfg.get("recon_weight", 0.0))
+    commitment_weight = float(vq_cfg.get("commitment_weight", 0.0))
+    codebook_weight = float(vq_cfg.get("codebook_weight", 0.0))
+    output["vq_loss"] = (
+        recon_weight * output["vq_recon_loss"]
+        + commitment_weight * output["vq_commitment_loss"]
+        + codebook_weight * output["vq_codebook_loss"]
+    )
+
+
+def build_macro_action_encoder(cfg, *, input_dim: int, latent_dim: int) -> torch.nn.Module:
+    """Instantiate the configured macro-action encoder backend."""
+    encoder_cfg = dict(cfg.latent_action_encoder)
+    encoder_type = str(encoder_cfg.pop("type", "continuous")).lower()
+    vq_cfg = dict(encoder_cfg.pop("vq", {}))
+
+    if encoder_type == "continuous":
+        return LatentActionEncoder(
+            input_dim=input_dim,
+            latent_dim=latent_dim,
+            **encoder_cfg,
+        )
+    if encoder_type == "vq":
+        return VQActionEncoder(
+            input_dim=input_dim,
+            latent_dim=latent_dim,
+            **encoder_cfg,
+            **vq_cfg,
+        )
+    raise ValueError(
+        f"Unsupported latent_action_encoder.type={encoder_type}. "
+        "Use one of: continuous, vq."
+    )
+
+
 def build_p2_frozen_waypoint_collate(cfg, pixel_preprocessor):
     """Build collate_fn that preprocesses only sampled waypoint pixel frames."""
     if pixel_preprocessor is None:
@@ -421,7 +478,8 @@ def hi_lejepa_forward(self, batch, stage, cfg):
     _, k, l_max, act_dim = chunk_actions.shape
     flat_actions = chunk_actions.reshape(b * k, l_max, act_dim)
     flat_mask = chunk_mask.reshape(b * k, l_max)
-    flat_macro = self.model.encode_macro_actions(flat_actions, flat_mask)  # (B*K, D_l)
+    macro_output = encode_macro_actions_with_aux(self.model, flat_actions, flat_mask)
+    flat_macro = macro_output["macro_actions"]  # (B*K, D_l)
     macro_actions = flat_macro.reshape(b, k, -1)  # (B, N-1, D_l)
 
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
@@ -450,10 +508,18 @@ def hi_lejepa_forward(self, batch, stage, cfg):
 
     alpha = float(cfg.loss.get("alpha", 0.0))
     beta = float(cfg.loss.get("beta", 1.0))
+    add_macro_action_aux_losses(
+        output,
+        macro_output,
+        cfg,
+        device=device,
+        dtype=z_waypoints.dtype,
+    )
     output["loss"] = (
         alpha * output["l1_pred_loss"]
         + beta * output["l2_pred_loss"]
         + lambd * output["sigreg_loss"]
+        + output["vq_loss"]
     )
 
     output["waypoint_gap_mean"] = gaps.float().mean()
@@ -465,6 +531,12 @@ def hi_lejepa_forward(self, batch, stage, cfg):
         "l1_pred_loss",
         "l2_pred_loss",
         "sigreg_loss",
+        "vq_loss",
+        "vq_recon_loss",
+        "vq_commitment_loss",
+        "vq_codebook_loss",
+        "vq_perplexity",
+        "vq_active_codes",
         "waypoint_gap_mean",
         "waypoint_gap_max",
         "macro_action_norm",
@@ -507,7 +579,8 @@ def hi_lejepa_forward_p2_frozen(self, batch, stage, cfg):
     _, k, l_max, act_dim = chunk_actions.shape
     flat_actions = chunk_actions.reshape(b * k, l_max, act_dim)
     flat_mask = chunk_mask.reshape(b * k, l_max)
-    flat_macro = self.model.encode_macro_actions(flat_actions, flat_mask)  # (B*K, D_l)
+    macro_output = encode_macro_actions_with_aux(self.model, flat_actions, flat_mask)
+    flat_macro = macro_output["macro_actions"]  # (B*K, D_l)
     macro_actions = flat_macro.reshape(b, k, -1)  # (B, N-1, D_l)
 
     z_pred = self.model.predict_high(z_context, macro_actions)  # (B, N-1, D_z)
@@ -517,7 +590,18 @@ def hi_lejepa_forward_p2_frozen(self, batch, stage, cfg):
 
     alpha = float(cfg.loss.get("alpha", 0.0))
     beta = float(cfg.loss.get("beta", 1.0))
-    output["loss"] = alpha * output["l1_pred_loss"] + beta * output["l2_pred_loss"]
+    add_macro_action_aux_losses(
+        output,
+        macro_output,
+        cfg,
+        device=device,
+        dtype=z_waypoints.dtype,
+    )
+    output["loss"] = (
+        alpha * output["l1_pred_loss"]
+        + beta * output["l2_pred_loss"]
+        + output["vq_loss"]
+    )
 
     gaps = waypoints[:, 1:] - waypoints[:, :-1]
     output["waypoint_gap_mean"] = gaps.float().mean()
@@ -529,6 +613,12 @@ def hi_lejepa_forward_p2_frozen(self, batch, stage, cfg):
         "l1_pred_loss",
         "l2_pred_loss",
         "sigreg_loss",
+        "vq_loss",
+        "vq_recon_loss",
+        "vq_commitment_loss",
+        "vq_codebook_loss",
+        "vq_perplexity",
+        "vq_active_codes",
         "waypoint_gap_mean",
         "waypoint_gap_max",
         "macro_action_norm",
@@ -769,11 +859,10 @@ def run(cfg):
     )
 
     latent_action_dim = int(cfg.wm.high_level.get("latent_action_dim", embed_dim))
-    latent_encoder_cfg = dict(cfg.latent_action_encoder)
-    latent_action_encoder = LatentActionEncoder(
+    latent_action_encoder = build_macro_action_encoder(
+        cfg,
         input_dim=effective_act_dim,
         latent_dim=latent_action_dim,
-        **latent_encoder_cfg,
     )
 
     cond_dim = embed_dim

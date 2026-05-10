@@ -22,6 +22,8 @@ class LatentActionEncoder(nn.Module):
         super().__init__()
         if max_seq_len <= 0:
             raise ValueError("max_seq_len must be > 0")
+        self.input_dim = int(input_dim)
+        self.latent_dim = int(latent_dim)
         self.max_seq_len = int(max_seq_len)
         self.input_proj = nn.Linear(input_dim, model_dim)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, model_dim))
@@ -82,3 +84,13 @@ class LatentActionEncoder(nn.Module):
         h = self.encoder(x, src_key_padding_mask=key_padding_mask)
         macro = self.output_proj(h[:, 0])
         return macro
+
+    def encode_with_info(
+        self,
+        action_chunks: torch.Tensor,
+        action_mask: torch.Tensor | None = None,
+    ) -> dict[str, torch.Tensor]:
+        return {"macro_actions": self.forward(action_chunks, action_mask=action_mask)}
+
+    def quantize_latents(self, latents: torch.Tensor) -> torch.Tensor:
+        return latents
