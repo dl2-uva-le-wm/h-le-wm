@@ -421,10 +421,11 @@ def run(cfg: DictConfig):
                     "Hierarchical eval requires high/low solver devices to match so the "
                     f"loaded policy model can live on one device, got {sorted(model_devices)}"
                 )
-            model_device = model_devices.pop()
+            default_model_device = model_devices.pop()
         else:
-            model_device = str(cfg.solver.device)
+            default_model_device = str(cfg.solver.device)
 
+        model_device = str(cfg.get("model_device", default_model_device))
         model = swm.policy.AutoCostModel(cfg.policy)
         model = model.to(model_device)
         model = model.eval()

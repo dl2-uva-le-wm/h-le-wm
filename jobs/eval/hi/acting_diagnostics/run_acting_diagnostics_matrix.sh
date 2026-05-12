@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=08:00:00
-#SBATCH --chdir=/gpfs/home2/scur0200/main/jobs/eval/hi/acting_diagnostics
+#SBATCH --chdir=/gpfs/home2/scur0200/h-lewm/jobs/eval/hi/acting_diagnostics
 #SBATCH --output=run_acting_diagnostics_matrix_%A_%a.out
 #SBATCH --error=run_acting_diagnostics_matrix_%A_%a.err
 
@@ -27,7 +27,11 @@ resolve_repo_root() {
     "${PROJECT_ROOT:-}" \
     "${SLURM_SUBMIT_DIR:-}" \
     "${PWD:-}" \
+    "${HOME}/h-le-wm" \
+    "${HOME}/h-lewm" \
     "${HOME}/main" \
+    "/gpfs/home2/${USER}/h-le-wm" \
+    "/gpfs/home2/${USER}/h-lewm" \
     "/gpfs/home2/${USER}/main"; do
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.." "${c}/../../../.."; do

@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# Snellius job: download/convert the official Reacher LeWM checkpoint from Hugging Face.
+# Usage:
+#   sbatch jobs/setup/download_reacher_model.sh
+# Optional overrides:
+#   sbatch --export=ALL,STABLEWM_HOME=/scratch-shared/$USER/stablewm_data jobs/setup/download_reacher_model.sh
+#   sbatch --export=ALL,HF_URL=https://huggingface.co/quentinll/lewm-reacher/tree/main jobs/setup/download_reacher_model.sh
+
+#SBATCH --partition=rome
+#SBATCH --job-name=DownloadReacherModel
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --time=01:00:00
+
+set -eo pipefail
+
+module purge
+module load 2025
+module load Anaconda3/2025.06-1
+
+eval "$(conda shell.bash hook)"
+if conda env list | grep -E '(^|[[:space:]])lewm-gpu([[:space:]]|$)' >/dev/null 2>&1; then
+  conda activate lewm-gpu
+elif conda env list | grep -E '(^|[[:space:]])lewm([[:space:]]|$)' >/dev/null 2>&1; then
+  conda activate lewm
+fi
+
+resolve_repo_root() {
+  local c p
+  for c in \
+    "${PROJECT_ROOT:-}" \
+    "${SLURM_SUBMIT_DIR:-}" \
+    "${PWD:-}" \
+    "${HOME}/h-lewm" \
+    "${HOME}/h-le-wm" \
+    "/gpfs/home2/${USER}/h-lewm" \
+    "/gpfs/home2/${USER}/h-le-wm"; do
+    [[ -z "${c}" ]] && continue
+    for p in "${c}" "${c}/.." "${c}/../.."; do
+      if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
+        if [[ -f "${p}/scripts/convert_hf_weights_to_object_ckpt.py" ]]; then
+          echo "${p}"
+          return 0
+        fi
+      fi
+    done
+  done
+  return 1
+}
+
+if ! REPO_ROOT="$(resolve_repo_root)"; then
+  echo "ERROR: Could not locate repo root with scripts/convert_hf_weights_to_object_ckpt.py" >&2
+  echo "Checked: PROJECT_ROOT='${PROJECT_ROOT:-}', SLURM_SUBMIT_DIR='${SLURM_SUBMIT_DIR:-}', PWD='${PWD:-}', HOME='${HOME:-}'" >&2
+  exit 2
+fi
+
+LOG_DIR="${REPO_ROOT}/jobs/setup/out"
+mkdir -p "${LOG_DIR}"
+JOB_TAG="${SLURM_JOB_ID:-manual_$(date +%s)}"
+exec > >(tee -a "${LOG_DIR}/download_reacher_model_${JOB_TAG}.out") \
+     2> >(tee -a "${LOG_DIR}/download_reacher_model_${JOB_TAG}.err" >&2)
+
+export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
+HF_URL="${HF_URL:-https://huggingface.co/quentinll/lewm-reacher/tree/main}"
+RUN_NAME="${RUN_NAME:-reacher/lewm}"
+CKPT_OBJECT_PATH="${STABLEWM_HOME}/${RUN_NAME}_object.ckpt"
+
+echo "REPO_ROOT=${REPO_ROOT}"
+echo "STABLEWM_HOME=${STABLEWM_HOME}"
+echo "HF_URL=${HF_URL}"
+echo "RUN_NAME=${RUN_NAME}"
+echo "Expected checkpoint: ${CKPT_OBJECT_PATH}"
+
+mkdir -p "${STABLEWM_HOME}"
+
+if [[ -f "${CKPT_OBJECT_PATH}" ]]; then
+  echo "Checkpoint already exists: ${CKPT_OBJECT_PATH}"
+  exit 0
+fi
+
+cd "${REPO_ROOT}"
+
+python scripts/convert_hf_weights_to_object_ckpt.py \
+  --hf-url "${HF_URL}" \
+  --run-name "${RUN_NAME}"
+
+if [[ ! -f "${CKPT_OBJECT_PATH}" ]]; then
+  echo "ERROR: expected checkpoint missing after conversion: ${CKPT_OBJECT_PATH}" >&2
+  exit 3
+fi
+
+echo ""
+echo "Model job completed."
+echo "Checkpoint saved at: ${CKPT_OBJECT_PATH}"

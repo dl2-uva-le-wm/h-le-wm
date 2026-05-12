@@ -26,7 +26,7 @@ if ! [[ "${NUM_CHECKPOINTS}" =~ ^[0-9]+$ ]] || (( NUM_CHECKPOINTS <= 0 )); then
 fi
 
 mapfile -t CHECKPOINT_ROWS < <(grep -Ev '^[[:space:]]*($|#)' "${CHECKPOINT_FILE}")
-NUM_CONFIGS=7
+NUM_CONFIGS=11
 LOG_ROOT="${LOG_ROOT:-${SCRIPT_DIR}/logs}"
 mkdir -p "${LOG_ROOT}"
 

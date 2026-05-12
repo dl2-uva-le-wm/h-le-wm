@@ -94,6 +94,7 @@ GOAL_OFFSET_STEPS="${GOAL_OFFSET_STEPS:-25}"
 EVAL_BUDGET="${EVAL_BUDGET:-50}"
 EVAL_SUBDIR="${EVAL_SUBDIR:-eval_hope2_d${GOAL_OFFSET_STEPS}_job_${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}}"
 EVAL_DEVICE="${EVAL_DEVICE:-cpu}"
+PLANNING_MODE="${PLANNING_MODE:-hierarchical}"
 
 HIGH_NUM_SAMPLES="${HIGH_NUM_SAMPLES:-900}"
 HIGH_N_STEPS="${HIGH_N_STEPS:-20}"
@@ -109,6 +110,8 @@ LOW_TOPK="${LOW_TOPK:-150}"
 LOW_HORIZON="${LOW_HORIZON:-2}"
 LOW_RECEDING_HORIZON="${LOW_RECEDING_HORIZON:-1}"
 LOW_ACTION_BLOCK="${LOW_ACTION_BLOCK:-5}"
+STAGED_STAGE_DURATION_STEPS="${STAGED_STAGE_DURATION_STEPS:-}"
+STAGED_CLEAR_LOW_BUFFER_ON_STAGE_CHANGE="${STAGED_CLEAR_LOW_BUFFER_ON_STAGE_CHANGE:-}"
 
 RUN_DIR="${STABLEWM_HOME}/runs/${RUN_NAME}"
 DATASET_PATH="${STABLEWM_HOME}/pusht_expert_train.h5"
@@ -173,9 +176,13 @@ echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
 echo "Eval budget: ${EVAL_BUDGET}"
 echo "Eval device: ${EVAL_DEVICE}"
-echo "Planning mode: hierarchical"
+echo "Planning mode: ${PLANNING_MODE}"
 echo "High-level planner: horizon=${HIGH_HORIZON}, receding=${HIGH_RECEDING_HORIZON}, block=${HIGH_ACTION_BLOCK}, samples=${HIGH_NUM_SAMPLES}, iters=${HIGH_N_STEPS}, topk=${HIGH_TOPK}, k=${HIGH_REPLAN_INTERVAL}"
 echo "Low-level planner: horizon=${LOW_HORIZON}, receding=${LOW_RECEDING_HORIZON}, block=${LOW_ACTION_BLOCK}, samples=${LOW_NUM_SAMPLES}, iters=${LOW_N_STEPS}, topk=${LOW_TOPK}"
+if [[ "${PLANNING_MODE}" == "hierarchical_staged" ]]; then
+  echo "Staged stage duration steps: ${STAGED_STAGE_DURATION_STEPS:-auto}"
+  echo "Staged clear low buffer on stage change: ${STAGED_CLEAR_LOW_BUFFER_ON_STAGE_CHANGE:-auto}"
+fi
 echo "Output subdir: ${EVAL_SUBDIR}"
 echo "Artifacts dir: ${ARTIFACTS_DIR}"
 echo "Result file: ${RESULT_PATH}"
@@ -199,7 +206,7 @@ CMD=(
   python hi_eval.py
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
-  "planning.mode=hierarchical"
+  "planning.mode=${PLANNING_MODE}"
   "eval.goal_offset_steps=${GOAL_OFFSET_STEPS}"
   "eval.eval_budget=${EVAL_BUDGET}"
   "output.subdir=${EVAL_SUBDIR}"
@@ -221,6 +228,15 @@ CMD=(
   "planning.low.plan_config.action_block=${LOW_ACTION_BLOCK}"
   "output.filename=${RESULT_FILENAME}"
 )
+
+if [[ "${PLANNING_MODE}" == "hierarchical_staged" ]]; then
+  if [[ -n "${STAGED_STAGE_DURATION_STEPS}" ]]; then
+    CMD+=("planning.staged.stage_duration_steps=${STAGED_STAGE_DURATION_STEPS}")
+  fi
+  if [[ -n "${STAGED_CLEAR_LOW_BUFFER_ON_STAGE_CHANGE}" ]]; then
+    CMD+=("planning.staged.clear_low_buffer_on_stage_change=${STAGED_CLEAR_LOW_BUFFER_ON_STAGE_CHANGE}")
+  fi
+fi
 
 echo ""
 echo "==> Launching eval command:"

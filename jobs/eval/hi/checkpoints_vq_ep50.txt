@@ -1,0 +1,2 @@
+# RUN_NAME CHECKPOINT_EPOCH
+hi_lewm_p2_vq_train_hope1_22607223 50

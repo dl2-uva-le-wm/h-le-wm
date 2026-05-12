@@ -23,6 +23,10 @@ This directory holds PushT training and benchmark jobs.
   - `benchmark.sh`: short P2 throughput benchmark.
   - `benchmark_ab_io.sh`: A/B benchmark for shared scratch vs node-local TMPDIR I/O.
   - `benchmark_cpu_optimization.sh`: single node-local benchmark path.
+- Root-level VQ helpers
+  - `train_vq_hope1.sh`: scratch-node PushT training run with the VQ macro-action encoder.
+  - `train_vq_hope1_resume.sh`: resume the VQ PushT run in place from its saved checkpoint/state.
+  - `train_vq_hope1_resume_40.sh`: dedicated wrapper for extending the resumed VQ PushT run from epoch 20 to epoch 40.
 
 ## Local artifacts
 

@@ -13,8 +13,12 @@
 #   3. d=25, high_h=2, low_h=2, low_receding_h=1
 #   4. d=50, high_h=1, low_h=2, low_receding_h=1
 #   5. d=50, high_h=2, low_h=2, low_receding_h=1
-#   6. d=50, high_h=2, low_h=5, low_receding_h=1
-#   7. d=50, high_h=2, low_h=5, low_receding_h=5
+#   6. d=50, high_h=2, low_h=2, low_receding_h=1, high_replan=10
+#   7. d=50, high_h=2, low_h=2, low_receding_h=1, high_replan=15
+#   8. d=50, high_h=2, low_h=5, low_receding_h=1
+#   9. d=50, high_h=2, low_h=5, low_receding_h=5
+#  10. d=50, high_h=2, low_h=1, low_receding_h=1
+#  11. d=50, high_h=2, low_h=2, low_receding_h=1, staged
 #
 # Submit with:
 #  cd /home/scur0200/main/jobs/eval/hi/matrix
@@ -28,7 +32,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=10:00:00
-#SBATCH --chdir=/gpfs/home2/scur0200/main/jobs/eval/hi/matrix
+#SBATCH --chdir=/gpfs/home2/scur0200/h-lewm/jobs/eval/hi/matrix
 #SBATCH --output=eval_fixed_stride_matrix_%A_%a.out
 #SBATCH --error=eval_fixed_stride_matrix_%A_%a.err
 
@@ -76,7 +80,7 @@ fi
 
 mapfile -t CHECKPOINT_ROWS < <(grep -Ev '^[[:space:]]*($|#)' "${CHECKPOINT_FILE}")
 NUM_CHECKPOINTS="${#CHECKPOINT_ROWS[@]}"
-NUM_CONFIGS=7
+NUM_CONFIGS=11
 
 if (( NUM_CHECKPOINTS == 0 )); then
   echo "ERROR: no checkpoint rows found in ${CHECKPOINT_FILE}" >&2
@@ -125,6 +129,7 @@ export MODEL_LABEL
 
 export EVAL_DEVICE="${EVAL_DEVICE:-cpu}"
 export EVAL_BUDGET="${EVAL_BUDGET:-50}"
+export PLANNING_MODE="${PLANNING_MODE:-hierarchical}"
 
 export HIGH_RECEDING_HORIZON=1
 export HIGH_ACTION_BLOCK=1
@@ -199,6 +204,34 @@ case "${CONFIG_INDEX}" in
     export LOW_TOPK=150
     ;;
   6)
+    LABEL="d50_hh2_lh2_lrh1_hr10"
+    export GOAL_OFFSET_STEPS=50
+    export HIGH_HORIZON=2
+    export HIGH_REPLAN_INTERVAL=10
+    export LOW_HORIZON=2
+    export LOW_RECEDING_HORIZON=1
+    export HIGH_NUM_SAMPLES=1500
+    export HIGH_N_STEPS=40
+    export HIGH_TOPK=10
+    export LOW_NUM_SAMPLES=900
+    export LOW_N_STEPS=20
+    export LOW_TOPK=150
+    ;;
+  7)
+    LABEL="d50_hh2_lh2_lrh1_hr15"
+    export GOAL_OFFSET_STEPS=50
+    export HIGH_HORIZON=2
+    export HIGH_REPLAN_INTERVAL=15
+    export LOW_HORIZON=2
+    export LOW_RECEDING_HORIZON=1
+    export HIGH_NUM_SAMPLES=1500
+    export HIGH_N_STEPS=40
+    export HIGH_TOPK=10
+    export LOW_NUM_SAMPLES=900
+    export LOW_N_STEPS=20
+    export LOW_TOPK=150
+    ;;
+  8)
     LABEL="d50_hh2_lh5_lrh1"
     export GOAL_OFFSET_STEPS=50
     export HIGH_HORIZON=2
@@ -211,12 +244,39 @@ case "${CONFIG_INDEX}" in
     export LOW_N_STEPS=20
     export LOW_TOPK=150
     ;;
-  7)
+  9)
     LABEL="d50_hh2_lh5_lrh5"
     export GOAL_OFFSET_STEPS=50
     export HIGH_HORIZON=2
     export LOW_HORIZON=5
     export LOW_RECEDING_HORIZON=5
+    export HIGH_NUM_SAMPLES=1500
+    export HIGH_N_STEPS=40
+    export HIGH_TOPK=10
+    export LOW_NUM_SAMPLES=900
+    export LOW_N_STEPS=20
+    export LOW_TOPK=150
+    ;;
+  10)
+    LABEL="d50_hh2_lh1_lrh1"
+    export GOAL_OFFSET_STEPS=50
+    export HIGH_HORIZON=2
+    export LOW_HORIZON=1
+    export LOW_RECEDING_HORIZON=1
+    export HIGH_NUM_SAMPLES=1500
+    export HIGH_N_STEPS=40
+    export HIGH_TOPK=10
+    export LOW_NUM_SAMPLES=900
+    export LOW_N_STEPS=20
+    export LOW_TOPK=150
+    ;;
+  11)
+    LABEL="d50_hh2_lh2_lrh1_staged"
+    export GOAL_OFFSET_STEPS=50
+    export PLANNING_MODE=hierarchical_staged
+    export HIGH_HORIZON=2
+    export LOW_HORIZON=2
+    export LOW_RECEDING_HORIZON=1
     export HIGH_NUM_SAMPLES=1500
     export HIGH_N_STEPS=40
     export HIGH_TOPK=10
