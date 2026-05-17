@@ -1,0 +1,64 @@
+defaults:
+  - _self_
+
+cache_dir: null
+
+world:
+  env_name: swm/PushT-v1
+  num_envs: 1
+  max_episode_steps: ??? # set in script to 2 * experiment.n_frames
+  history_size: 1
+  frame_skip: 1
+
+dataset:
+  stats: ${eval.dataset_name}
+  keys_to_cache:
+    - action
+    - proprio
+    - state
+
+seed: 42
+policy: hi_lewm
+
+planning:
+  high:
+    replan_interval: 5
+    plan_config:
+      horizon: 1
+      receding_horizon: 1
+      action_block: 1
+  low:
+    solver:
+      _target_: stable_worldmodel.solver.CEMSolver
+      model: ???
+      batch_size: 1
+      num_samples: 600
+      var_scale: 1.0
+      n_steps: 30
+      topk: 60
+      device: "cuda"
+      seed: ${seed}
+    plan_config:
+      horizon: 5
+      receding_horizon: 1
+      action_block: 5
+
+eval:
+  img_size: 224
+  dataset_name: pusht_expert_train
+  goal_offset_steps: 25
+  callables:
+    - method: _set_state
+      args:
+        state:
+          value: state
+    - method: _set_goal_state
+      args:
+        goal_state:
+          value: goal_state
+
+experiment:
+  n_frames: 50          # total env steps per codebook entry rollout
+  num_codes: null       # null = use all codes from the checkpoint; set lower for quick test
+  start_step_seed: 0    # seed for picking the starting state from the dataset
+  output_dir: ./codebook_rollouts
