@@ -1,14 +1,18 @@
 """Codebook rollout experiment.
 
 For each entry in the VQ codebook, runs one environment rollout by replacing
-the high-level CEM with a fixed codebook vector.  The low-level CEM is kept
+the high-level CEM with a fixed codebook vector. The low-level CEM is kept
 intact so the agent actually moves in the environment.
+
+Each video is written with a stable action-index filename:
+    videos/action_000.mp4, videos/action_001.mp4, ...
 
 Usage:
     python scripts/codebook_rollout_experiment.py \\
         --config-name=codebook_rollout \\
         policy=runs/<run_name>_epoch_<N> \\
         experiment.n_frames=50 \\
+        experiment.num_actions=100 \\
         experiment.output_dir=/path/to/output
 
 Submit on Snellius via:
@@ -99,6 +103,32 @@ def get_codebook(model: torch.nn.Module) -> torch.Tensor | None:
     vq = getattr(enc, "quantizer", None)
     cb = getattr(vq, "codebook", None)
     return cb.weight if cb is not None else None
+
+
+def _resolve_num_actions(cfg: DictConfig, total_codes: int) -> int:
+    """Resolve how many codebook actions to render."""
+    num_actions_cfg = cfg.experiment.get("num_actions", None)
+    num_codes_cfg = cfg.experiment.get("num_codes", None)
+
+    if num_actions_cfg is not None and num_codes_cfg is not None:
+        if int(num_actions_cfg) != int(num_codes_cfg):
+            raise ValueError(
+                "experiment.num_actions and deprecated experiment.num_codes "
+                "were both set to different values."
+            )
+
+    requested = num_actions_cfg if num_actions_cfg is not None else num_codes_cfg
+    if requested is None:
+        return total_codes
+
+    num_actions = int(requested)
+    if num_actions <= 0:
+        raise ValueError(f"experiment.num_actions must be positive; got {num_actions}.")
+    if num_actions > total_codes:
+        raise ValueError(
+            f"Requested {num_actions} actions, but the codebook has only {total_codes} entries."
+        )
+    return num_actions
 
 
 # ---------------------------------------------------------------------------
@@ -253,10 +283,13 @@ def run(cfg: DictConfig) -> None:
             "This experiment requires a checkpoint trained with a VQ action encoder."
         )
     total_codes = int(codebook.size(0))
-    num_codes_cfg = cfg.experiment.get("num_codes", None)
-    num_codes = int(num_codes_cfg) if num_codes_cfg is not None else total_codes
-    num_codes = min(num_codes, total_codes)
-    print(f"[codebook_rollout] codebook size={total_codes}, running {num_codes} entries, "
+    num_actions = _resolve_num_actions(cfg, total_codes)
+    index_width = max(3, len(str(total_codes - 1)))
+    videos_dir = output_dir / "videos"
+    work_dir = output_dir / "per_action_work"
+    videos_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
+    print(f"[codebook_rollout] codebook size={total_codes}, running {num_actions} actions, "
           f"latent_dim={codebook.size(1)}")
 
     # ----- dataset / preprocessing -----
@@ -301,13 +334,18 @@ def run(cfg: DictConfig) -> None:
     summary: list[dict] = []
     t_start_all = time.time()
 
-    for idx in range(num_codes):
+    for idx in range(num_actions):
         t0 = time.time()
-        print(f"[codebook_rollout] code {idx:3d}/{num_codes} ...", end=" ", flush=True)
+        action_id = f"action_{idx:0{index_width}d}"
+        print(
+            f"[codebook_rollout] {action_id} ({idx + 1}/{num_actions}) ...",
+            end=" ",
+            flush=True,
+        )
 
         policy.set_codebook_index(idx)
 
-        entry_video_dir = output_dir / f"codebook_{idx:03d}"
+        entry_video_dir = work_dir / action_id
         entry_video_dir.mkdir(parents=True, exist_ok=True)
 
         metrics = world.evaluate_from_dataset(
@@ -325,10 +363,23 @@ def run(cfg: DictConfig) -> None:
         success = bool(successes[0]) if successes else False
 
         video_files = sorted(entry_video_dir.rglob("*.mp4"))
-        video_path_str = str(video_files[0]) if video_files else ""
+        if len(video_files) != 1:
+            raise RuntimeError(
+                f"Expected exactly one video for action index {idx}, "
+                f"found {len(video_files)} in {entry_video_dir}."
+            )
+
+        canonical_video_path = videos_dir / f"{action_id}.mp4"
+        if canonical_video_path.exists():
+            canonical_video_path.unlink()
+        video_files[0].replace(canonical_video_path)
+        video_path_str = str(canonical_video_path)
 
         cb_vec = codebook[idx].detach().cpu()
         entry_summary = {
+            "action_index": idx,
+            "action_id": action_id,
+            "video_filename": canonical_video_path.name,
             "codebook_index": idx,
             "codebook_vector_norm": float(cb_vec.norm().item()),
             "success": success,
@@ -345,8 +396,8 @@ def run(cfg: DictConfig) -> None:
         print(f"[{status}] ({elapsed:.1f}s)  video={video_path_str or 'none'}")
 
     total_elapsed = time.time() - t_start_all
-    print(f"\n[codebook_rollout] Done. {num_codes} rollouts in {total_elapsed:.1f}s "
-          f"({total_elapsed / num_codes:.1f}s/code average)")
+    print(f"\n[codebook_rollout] Done. {num_actions} rollouts in {total_elapsed:.1f}s "
+          f"({total_elapsed / num_actions:.1f}s/action average)")
 
     # ----- save summary -----
     summary_path = output_dir / "summary.json"
@@ -355,8 +406,12 @@ def run(cfg: DictConfig) -> None:
             {
                 "policy": cfg.policy,
                 "n_frames": n_frames,
+                "num_actions_total": total_codes,
+                "num_actions_run": num_actions,
                 "num_codes_total": total_codes,
-                "num_codes_run": num_codes,
+                "num_codes_run": num_actions,
+                "video_dir": str(videos_dir),
+                "video_naming": "videos/action_<zero-padded action index>.mp4",
                 "start_episode_id": start_episode_id,
                 "start_step": start_step,
                 "total_elapsed_s": round(total_elapsed, 2),

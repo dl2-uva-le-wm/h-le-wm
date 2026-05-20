@@ -7,8 +7,9 @@
 #   sbatch --export=ALL,CHECKPOINT_NAME=<run>_epoch_<N> jobs/diagnostics/codebook_rollout.sh
 #
 # Optional env overrides:
-#   N_FRAMES=50          total env steps per codebook entry (default: 50)
-#   NUM_CODES=128        how many codebook entries to run; unset = all (default: all)
+#   N_FRAMES=50          total env steps per codebook action (default: 50)
+#   NUM_ACTIONS=128      how many codebook actions to render; unset = all
+#   NUM_CODES=128        deprecated alias for NUM_ACTIONS
 #   START_STEP_SEED=0    seed for picking the starting state from the dataset
 #   LOW_NUM_SAMPLES=600  low-level CEM samples (reduce for faster/cheaper runs)
 #   LOW_N_STEPS=30       low-level CEM iterations
@@ -20,7 +21,7 @@
 #   Change --partition=rome, --gpus=0, and export EVAL_DEVICE=cpu
 #   Also export LOW_NUM_SAMPLES=200 LOW_N_STEPS=10 to keep runtime under 4h.
 
-#SBATCH --partition=gpu_mig
+#SBATCH --partition=gpu_h100
 #SBATCH --gpus=1
 #SBATCH --job-name=codebook_rollout
 #SBATCH --ntasks=1
@@ -131,6 +132,15 @@ LOW_NUM_SAMPLES="${LOW_NUM_SAMPLES:-600}"
 LOW_N_STEPS="${LOW_N_STEPS:-30}"
 LOW_TOPK="${LOW_TOPK:-60}"
 REPLAN_INTERVAL="${REPLAN_INTERVAL:-5}"
+NUM_ACTIONS="${NUM_ACTIONS:-}"
+if [[ -n "${NUM_CODES:-}" ]]; then
+  if [[ -n "${NUM_ACTIONS}" && "${NUM_ACTIONS}" != "${NUM_CODES}" ]]; then
+    echo "ERROR: NUM_ACTIONS and deprecated NUM_CODES were both set differently." >&2
+    echo "Use NUM_ACTIONS only." >&2
+    exit 7
+  fi
+  NUM_ACTIONS="${NUM_CODES}"
+fi
 JOB_TOKEN="${SLURM_JOB_ID:-$(date +%Y%m%d_%H%M%S)}"
 OUTPUT_SUBDIR="${OUTPUT_SUBDIR:-codebook_rollout_job_${JOB_TOKEN}}"
 OUTPUT_BASE="${STABLEWM_HOME}/$(dirname "${POLICY}")/diagnostics"
@@ -154,6 +164,7 @@ echo "POLICY=${POLICY}"
 echo "CHECKPOINT=${CKPT_OBJECT_PATH}"
 echo "EVAL_DEVICE=${EVAL_DEVICE}"
 echo "N_FRAMES=${N_FRAMES}"
+echo "NUM_ACTIONS=${NUM_ACTIONS:-all}"
 echo "START_STEP_SEED=${START_STEP_SEED}"
 echo "LOW CEM: num_samples=${LOW_NUM_SAMPLES}, n_steps=${LOW_N_STEPS}, topk=${LOW_TOPK}"
 echo "REPLAN_INTERVAL=${REPLAN_INTERVAL}"
@@ -175,9 +186,9 @@ CMD=(
   "planning.low.solver.topk=${LOW_TOPK}"
 )
 
-# Optionally limit the number of codebook entries (useful for quick tests).
-if [[ -n "${NUM_CODES:-}" ]]; then
-  CMD+=( "experiment.num_codes=${NUM_CODES}" )
+# Optionally limit the number of codebook actions (useful for quick tests).
+if [[ -n "${NUM_ACTIONS}" ]]; then
+  CMD+=( "experiment.num_actions=${NUM_ACTIONS}" )
 fi
 
 echo "==> Launching codebook rollout:"
@@ -190,3 +201,4 @@ echo
 echo
 echo "Codebook rollout finished."
 echo "Videos and summary.json: ${OUTPUT_BASE}/${OUTPUT_SUBDIR}/"
+echo "Canonical action videos: ${OUTPUT_BASE}/${OUTPUT_SUBDIR}/videos/action_<index>.mp4"

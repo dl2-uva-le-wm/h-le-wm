@@ -1,0 +1,26 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+/home/scur0200/.conda/envs/lewm-gpu/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+Error executing job with overrides: ['policy=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50', 'experiment.n_frames=10', 'experiment.start_step_seed=0', 'experiment.output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815678', 'planning.high.replan_interval=5', 'planning.low.solver.device=cuda', 'planning.low.solver.num_samples=600', 'planning.low.solver.n_steps=30', 'planning.low.solver.topk=60', 'experiment.num_codes=2']
+Traceback (most recent call last):
+  File "/gpfs/home2/scur0200/salvatore_branch/h-le-wm/scripts/codebook_rollout_experiment.py", line 313, in run
+    metrics = world.evaluate_from_dataset(
+  File "/home/scur0200/.conda/envs/lewm-gpu/lib/python3.10/site-packages/stable_worldmodel/world.py", line 786, in evaluate_from_dataset
+    or self.envs.envs[0].spec.max_episode_steps >= goal_offset_steps
+AssertionError: env max_episode_steps must be greater than eval_budget
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

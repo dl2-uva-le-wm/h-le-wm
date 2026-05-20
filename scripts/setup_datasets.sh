@@ -223,6 +223,24 @@ extract_if_needed() {
   esac
 }
 
+normalize_known_layouts() {
+  local legacy_reacher canonical_reacher canonical_dir
+
+  legacy_reacher="${STABLEWM_HOME}/reacher.h5"
+  canonical_reacher="${STABLEWM_HOME}/dmc/reacher_random.h5"
+  canonical_dir="$(dirname "${canonical_reacher}")"
+
+  if [[ -f "${canonical_reacher}" || -L "${canonical_reacher}" ]]; then
+    return 0
+  fi
+
+  if [[ -f "${legacy_reacher}" ]]; then
+    mkdir -p "${canonical_dir}"
+    ln -s "../reacher.h5" "${canonical_reacher}"
+    echo "[link] ${canonical_reacher} -> ${legacy_reacher}"
+  fi
+}
+
 for repo in "${REPOS[@]}"; do
   echo ""
   echo "==> Scanning ${repo}"
@@ -245,7 +263,11 @@ for repo in "${REPOS[@]}"; do
     extract_if_needed "${STABLEWM_HOME}/${f}" || return 1 2>/dev/null || exit 1
   done
 
+  normalize_known_layouts || return 1 2>/dev/null || exit 1
+
 done
+
+normalize_known_layouts || return 1 2>/dev/null || exit 1
 
 echo ""
 echo "Done. STABLEWM_HOME is set to: ${STABLEWM_HOME}"

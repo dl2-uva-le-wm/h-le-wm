@@ -1,0 +1,34 @@
+REPO_ROOT=/gpfs/home2/scur0200/salvatore_branch/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+POLICY=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50
+CHECKPOINT=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50_object.ckpt
+EVAL_DEVICE=cuda
+N_FRAMES=10
+START_STEP_SEED=0
+LOW CEM: num_samples=600, n_steps=30, topk=60
+REPLAN_INTERVAL=5
+Output: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815564
+==> Launching codebook rollout:
+  python  scripts/codebook_rollout_experiment.py  --config-name=codebook_rollout  policy=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50  experiment.n_frames=10  experiment.start_step_seed=0  experiment.output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815564  planning.high.replan_interval=5  planning.low.solver.device=cuda  planning.low.solver.num_samples=600  planning.low.solver.n_steps=30  planning.low.solver.topk=60  experiment.num_codes=2
+
+15:48:32.609 | ERROR   (1411337, richuru) | Exception:
+Traceback (most recent call last):
+
+> File "/gpfs/home2/scur0200/salvatore_branch/h-le-wm/scripts/codebook_rollout_experiment.py", line 42, in <module>
+    _ = _baseline_adapter.ARPredictor
+        └ <module 'baseline_adapter' from '/gpfs/home2/scur0200/salvatore_branch/h-le-wm/baseline_adapter.py'>
+
+  File "/gpfs/home2/scur0200/salvatore_branch/h-le-wm/baseline_adapter.py", line 116, in __getattr__
+    module = _load_baseline_module(module_name, relpath)
+             │                     │            └ 'module.py'
+             │                     └ 'module'
+             └ <function _load_baseline_module at 0x14cde9042710>
+
+  File "/gpfs/home2/scur0200/salvatore_branch/h-le-wm/baseline_adapter.py", line 44, in _load_baseline_module
+    root = ensure_baseline_available()
+           └ <function ensure_baseline_available at 0x14cdeb2a6050>
+
+  File "/gpfs/home2/scur0200/salvatore_branch/h-le-wm/baseline_adapter.py", line 28, in ensure_baseline_available
+    raise RuntimeError(
+
+RuntimeError: Baseline submodule is present but incomplete at third_party/lewm. Missing required files: module.py, utils.py. Run: git submodule update --init --recursive third_party/lewm

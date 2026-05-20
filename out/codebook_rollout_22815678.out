@@ -1,0 +1,49 @@
+REPO_ROOT=/gpfs/home2/scur0200/salvatore_branch/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+POLICY=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50
+CHECKPOINT=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50_object.ckpt
+EVAL_DEVICE=cuda
+N_FRAMES=10
+START_STEP_SEED=0
+LOW CEM: num_samples=600, n_steps=30, topk=60
+REPLAN_INTERVAL=5
+Output: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815678
+==> Launching codebook rollout:
+  python  scripts/codebook_rollout_experiment.py  --config-name=codebook_rollout  policy=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50  experiment.n_frames=10  experiment.start_step_seed=0  experiment.output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815678  planning.high.replan_interval=5  planning.low.solver.device=cuda  planning.low.solver.num_samples=600  planning.low.solver.n_steps=30  planning.low.solver.topk=60  experiment.num_codes=2
+
+[codebook_rollout] output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815678
+[codebook_rollout] codebook size=128, running 2 entries, latent_dim=16
+[2026-05-17 15:59:06,426][root][INFO] - Cached 'action' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[2026-05-17 15:59:18,893][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[2026-05-17 15:59:23,609][root][INFO] - Cached 'state' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[codebook_rollout] start episode=15905, step=101
+15:59:50.039 | INFO    (1420466, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+15:59:50.040 | INFO    (1420466, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+15:59:50.040 | INFO    (1420466, stable_worldmodel.world) | Box(-1.0, 1.0, (1, 2), float32)
+15:59:50.040 | INFO    (1420466, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+15:59:50.040 | INFO    (1420466, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (1, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (1, 7), float64))
+15:59:50.040 | INFO    (1420466, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[codebook_rollout] code   0/2 ... 

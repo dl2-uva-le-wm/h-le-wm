@@ -1,0 +1,956 @@
+REPO_ROOT=/gpfs/home2/scur0200/salvatore_branch/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+POLICY=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50
+CHECKPOINT=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50_object.ckpt
+EVAL_DEVICE=cuda
+N_FRAMES=25
+NUM_ACTIONS=100
+START_STEP_SEED=0
+LOW CEM: num_samples=600, n_steps=30, topk=60
+REPLAN_INTERVAL=5
+Output: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749
+==> Launching codebook rollout:
+  python  scripts/codebook_rollout_experiment.py  --config-name=codebook_rollout  policy=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50  experiment.n_frames=25  experiment.start_step_seed=0  experiment.output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749  planning.high.replan_interval=5  planning.low.solver.device=cuda  planning.low.solver.num_samples=600  planning.low.solver.n_steps=30  planning.low.solver.topk=60  experiment.num_actions=100
+
+[codebook_rollout] output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749
+[codebook_rollout] codebook size=128, running 100 actions, latent_dim=16
+[2026-05-17 16:48:18,265][root][INFO] - Cached 'action' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[2026-05-17 16:48:42,075][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[2026-05-17 16:48:59,640][root][INFO] - Cached 'state' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[codebook_rollout] start episode=15905, step=101
+16:49:56.183 | INFO    (1242041, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+16:49:56.183 | INFO    (1242041, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+16:49:56.183 | INFO    (1242041, stable_worldmodel.world) | Box(-1.0, 1.0, (1, 2), float32)
+16:49:56.183 | INFO    (1242041, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+16:49:56.183 | INFO    (1242041, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (1, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (1, 7), float64))
+16:49:56.183 | INFO    (1242041, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[codebook_rollout] action_000 (1/100) ... CEM solve time: 0.6447 seconds
+CEM solve time: 0.5707 seconds
+CEM solve time: 0.5739 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5721 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_000
+[fail] (3.8s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_000.mp4
+[codebook_rollout] action_001 (2/100) ... CEM solve time: 0.5726 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5735 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_001
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_001.mp4
+[codebook_rollout] action_002 (3/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5741 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5715 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_002
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_002.mp4
+[codebook_rollout] action_003 (4/100) ... CEM solve time: 0.5710 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5740 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5717 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_003
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_003.mp4
+[codebook_rollout] action_004 (5/100) ... CEM solve time: 0.5722 seconds
+CEM solve time: 0.5709 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5710 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_004
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_004.mp4
+[codebook_rollout] action_005 (6/100) ... CEM solve time: 0.5722 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5740 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_005
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_005.mp4
+[codebook_rollout] action_006 (7/100) ... CEM solve time: 0.5743 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5725 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_006
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_006.mp4
+[codebook_rollout] action_007 (8/100) ... CEM solve time: 0.5750 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5711 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_007
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_007.mp4
+[codebook_rollout] action_008 (9/100) ... CEM solve time: 0.5717 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5731 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_008
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_008.mp4
+[codebook_rollout] action_009 (10/100) ... CEM solve time: 0.5735 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5728 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_009
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_009.mp4
+[codebook_rollout] action_010 (11/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5723 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5736 seconds
+CEM solve time: 0.5727 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_010
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_010.mp4
+[codebook_rollout] action_011 (12/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5740 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_011
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_011.mp4
+[codebook_rollout] action_012 (13/100) ... CEM solve time: 0.5736 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5710 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5710 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_012
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_012.mp4
+[codebook_rollout] action_013 (14/100) ... CEM solve time: 0.5728 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5685 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5733 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_013
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_013.mp4
+[codebook_rollout] action_014 (15/100) ... CEM solve time: 0.5727 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5712 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5718 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_014
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_014.mp4
+[codebook_rollout] action_015 (16/100) ... CEM solve time: 0.5724 seconds
+CEM solve time: 0.5723 seconds
+CEM solve time: 0.5686 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5725 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_015
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_015.mp4
+[codebook_rollout] action_016 (17/100) ... CEM solve time: 0.5727 seconds
+CEM solve time: 0.5705 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5725 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_016
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_016.mp4
+[codebook_rollout] action_017 (18/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5713 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_017
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_017.mp4
+[codebook_rollout] action_018 (19/100) ... CEM solve time: 0.5732 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5733 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_018
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_018.mp4
+[codebook_rollout] action_019 (20/100) ... CEM solve time: 0.5726 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5742 seconds
+CEM solve time: 0.5718 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_019
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_019.mp4
+[codebook_rollout] action_020 (21/100) ... CEM solve time: 0.5728 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5721 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_020
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_020.mp4
+[codebook_rollout] action_021 (22/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5743 seconds
+CEM solve time: 0.5712 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_021
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_021.mp4
+[codebook_rollout] action_022 (23/100) ... CEM solve time: 0.5726 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5728 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_022
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_022.mp4
+[codebook_rollout] action_023 (24/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5733 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_023
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_023.mp4
+[codebook_rollout] action_024 (25/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5714 seconds
+CEM solve time: 0.5725 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_024
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_024.mp4
+[codebook_rollout] action_025 (26/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5739 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5722 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_025
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_025.mp4
+[codebook_rollout] action_026 (27/100) ... CEM solve time: 0.5741 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5704 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5714 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_026
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_026.mp4
+[codebook_rollout] action_027 (28/100) ... CEM solve time: 0.5739 seconds
+CEM solve time: 0.5704 seconds
+CEM solve time: 0.5736 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5724 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_027
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_027.mp4
+[codebook_rollout] action_028 (29/100) ... CEM solve time: 0.5709 seconds
+CEM solve time: 0.5723 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5723 seconds
+CEM solve time: 0.5661 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_028
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_028.mp4
+[codebook_rollout] action_029 (30/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5733 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_029
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_029.mp4
+[codebook_rollout] action_030 (31/100) ... CEM solve time: 0.5736 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5740 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5712 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_030
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_030.mp4
+[codebook_rollout] action_031 (32/100) ... CEM solve time: 0.5741 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5724 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_031
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_031.mp4
+[codebook_rollout] action_032 (33/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5712 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5711 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_032
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_032.mp4
+[codebook_rollout] action_033 (34/100) ... CEM solve time: 0.5716 seconds
+CEM solve time: 0.5714 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5730 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_033
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_033.mp4
+[codebook_rollout] action_034 (35/100) ... CEM solve time: 0.5728 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5732 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_034
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_034.mp4
+[codebook_rollout] action_035 (36/100) ... CEM solve time: 0.5724 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5726 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_035
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_035.mp4
+[codebook_rollout] action_036 (37/100) ... CEM solve time: 0.5724 seconds
+CEM solve time: 0.5702 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5706 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_036
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_036.mp4
+[codebook_rollout] action_037 (38/100) ... CEM solve time: 0.5732 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5695 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5706 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_037
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_037.mp4
+[codebook_rollout] action_038 (39/100) ... CEM solve time: 0.5729 seconds
+CEM solve time: 0.5711 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5721 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_038
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_038.mp4
+[codebook_rollout] action_039 (40/100) ... CEM solve time: 0.5739 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5730 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_039
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_039.mp4
+[codebook_rollout] action_040 (41/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5717 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_040
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_040.mp4
+[codebook_rollout] action_041 (42/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5736 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5724 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_041
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_041.mp4
+[codebook_rollout] action_042 (43/100) ... CEM solve time: 0.5732 seconds
+CEM solve time: 0.5714 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_042
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_042.mp4
+[codebook_rollout] action_043 (44/100) ... CEM solve time: 0.5722 seconds
+CEM solve time: 0.5741 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5738 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_043
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_043.mp4
+[codebook_rollout] action_044 (45/100) ... CEM solve time: 0.5728 seconds
+CEM solve time: 0.5746 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5736 seconds
+CEM solve time: 0.5721 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_044
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_044.mp4
+[codebook_rollout] action_045 (46/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_045
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_045.mp4
+[codebook_rollout] action_046 (47/100) ... CEM solve time: 0.5741 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5740 seconds
+CEM solve time: 0.5751 seconds
+CEM solve time: 0.5735 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_046
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_046.mp4
+[codebook_rollout] action_047 (48/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5702 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5727 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_047
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_047.mp4
+[codebook_rollout] action_048 (49/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5723 seconds
+CEM solve time: 0.5717 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_048
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_048.mp4
+[codebook_rollout] action_049 (50/100) ... CEM solve time: 0.5722 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5736 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5723 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_049
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_049.mp4
+[codebook_rollout] action_050 (51/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5739 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5719 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_050
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_050.mp4
+[codebook_rollout] action_051 (52/100) ... CEM solve time: 0.5727 seconds
+CEM solve time: 0.5702 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5722 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_051
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_051.mp4
+[codebook_rollout] action_052 (53/100) ... CEM solve time: 0.5741 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5686 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_052
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_052.mp4
+[codebook_rollout] action_053 (54/100) ... CEM solve time: 0.5729 seconds
+CEM solve time: 0.5662 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5728 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_053
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_053.mp4
+[codebook_rollout] action_054 (55/100) ... CEM solve time: 0.5731 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5715 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_054
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_054.mp4
+[codebook_rollout] action_055 (56/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5725 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_055
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_055.mp4
+[codebook_rollout] action_056 (57/100) ... CEM solve time: 0.5739 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5713 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_056
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_056.mp4
+[codebook_rollout] action_057 (58/100) ... CEM solve time: 0.5727 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5707 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_057
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_057.mp4
+[codebook_rollout] action_058 (59/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5711 seconds
+CEM solve time: 0.5712 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_058
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_058.mp4
+[codebook_rollout] action_059 (60/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5718 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_059
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_059.mp4
+[codebook_rollout] action_060 (61/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5734 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_060
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_060.mp4
+[codebook_rollout] action_061 (62/100) ... CEM solve time: 0.5727 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5724 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_061
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_061.mp4
+[codebook_rollout] action_062 (63/100) ... CEM solve time: 0.5736 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5697 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_062
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_062.mp4
+[codebook_rollout] action_063 (64/100) ... CEM solve time: 0.5736 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5730 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_063
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_063.mp4
+[codebook_rollout] action_064 (65/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5722 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_064
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_064.mp4
+[codebook_rollout] action_065 (66/100) ... CEM solve time: 0.5721 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5723 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5745 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_065
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_065.mp4
+[codebook_rollout] action_066 (67/100) ... CEM solve time: 0.5723 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5712 seconds
+CEM solve time: 0.5715 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_066
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_066.mp4
+[codebook_rollout] action_067 (68/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5726 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_067
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_067.mp4
+[codebook_rollout] action_068 (69/100) ... CEM solve time: 0.5734 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5732 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_068
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_068.mp4
+[codebook_rollout] action_069 (70/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5742 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5738 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_069
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_069.mp4
+[codebook_rollout] action_070 (71/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5714 seconds
+CEM solve time: 0.5714 seconds
+CEM solve time: 0.5717 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_070
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_070.mp4
+[codebook_rollout] action_071 (72/100) ... CEM solve time: 0.5737 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5712 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5707 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_071
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_071.mp4
+[codebook_rollout] action_072 (73/100) ... CEM solve time: 0.5746 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5715 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_072
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_072.mp4
+[codebook_rollout] action_073 (74/100) ... CEM solve time: 0.5729 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5709 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_073
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_073.mp4
+[codebook_rollout] action_074 (75/100) ... CEM solve time: 0.5735 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5710 seconds
+CEM solve time: 0.5716 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_074
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_074.mp4
+[codebook_rollout] action_075 (76/100) ... CEM solve time: 0.5715 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5710 seconds
+CEM solve time: 0.5732 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_075
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_075.mp4
+[codebook_rollout] action_076 (77/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5739 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5721 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_076
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_076.mp4
+[codebook_rollout] action_077 (78/100) ... CEM solve time: 0.5724 seconds
+CEM solve time: 0.5735 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5711 seconds
+CEM solve time: 0.5710 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_077
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_077.mp4
+[codebook_rollout] action_078 (79/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5747 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_078
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_078.mp4
+[codebook_rollout] action_079 (80/100) ... CEM solve time: 0.5726 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5730 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_079
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_079.mp4
+[codebook_rollout] action_080 (81/100) ... CEM solve time: 0.5742 seconds
+CEM solve time: 0.5712 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_080
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_080.mp4
+[codebook_rollout] action_081 (82/100) ... CEM solve time: 0.5732 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5712 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_081
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_081.mp4
+[codebook_rollout] action_082 (83/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5731 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5729 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_082
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_082.mp4
+[codebook_rollout] action_083 (84/100) ... CEM solve time: 0.5727 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5727 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_083
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_083.mp4
+[codebook_rollout] action_084 (85/100) ... CEM solve time: 0.5720 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5730 seconds
+CEM solve time: 0.5726 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_084
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_084.mp4
+[codebook_rollout] action_085 (86/100) ... CEM solve time: 0.5721 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5728 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_085
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_085.mp4
+[codebook_rollout] action_086 (87/100) ... CEM solve time: 0.5741 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5715 seconds
+CEM solve time: 0.5722 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_086
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_086.mp4
+[codebook_rollout] action_087 (88/100) ... CEM solve time: 0.5734 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5718 seconds
+CEM solve time: 0.5724 seconds
+CEM solve time: 0.5733 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_087
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_087.mp4
+[codebook_rollout] action_088 (89/100) ... CEM solve time: 0.5742 seconds
+CEM solve time: 0.5710 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5741 seconds
+CEM solve time: 0.5742 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_088
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_088.mp4
+[codebook_rollout] action_089 (90/100) ... CEM solve time: 0.5740 seconds
+CEM solve time: 0.5727 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5737 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_089
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_089.mp4
+[codebook_rollout] action_090 (91/100) ... CEM solve time: 0.5719 seconds
+CEM solve time: 0.5742 seconds
+CEM solve time: 0.5734 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5732 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_090
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_090.mp4
+[codebook_rollout] action_091 (92/100) ... CEM solve time: 0.5724 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5720 seconds
+CEM solve time: 0.5716 seconds
+CEM solve time: 0.5729 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_091
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_091.mp4
+[codebook_rollout] action_092 (93/100) ... CEM solve time: 0.5738 seconds
+CEM solve time: 0.5729 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5730 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_092
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_092.mp4
+[codebook_rollout] action_093 (94/100) ... CEM solve time: 0.5733 seconds
+CEM solve time: 0.5719 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5729 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_093
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_093.mp4
+[codebook_rollout] action_094 (95/100) ... CEM solve time: 0.5726 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5726 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5703 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_094
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_094.mp4
+[codebook_rollout] action_095 (96/100) ... CEM solve time: 0.5712 seconds
+CEM solve time: 0.5713 seconds
+CEM solve time: 0.5728 seconds
+CEM solve time: 0.5742 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_095
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_095.mp4
+[codebook_rollout] action_096 (97/100) ... CEM solve time: 0.5731 seconds
+CEM solve time: 0.5738 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5732 seconds
+CEM solve time: 0.5733 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_096
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_096.mp4
+[codebook_rollout] action_097 (98/100) ... CEM solve time: 0.5736 seconds
+CEM solve time: 0.5703 seconds
+CEM solve time: 0.5722 seconds
+CEM solve time: 0.5725 seconds
+CEM solve time: 0.5726 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_097
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_097.mp4
+[codebook_rollout] action_098 (99/100) ... CEM solve time: 0.5724 seconds
+CEM solve time: 0.5736 seconds
+CEM solve time: 0.5721 seconds
+CEM solve time: 0.5739 seconds
+CEM solve time: 0.5720 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_098
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_098.mp4
+[codebook_rollout] action_099 (100/100) ... CEM solve time: 0.5725 seconds
+CEM solve time: 0.5717 seconds
+CEM solve time: 0.5737 seconds
+CEM solve time: 0.5733 seconds
+CEM solve time: 0.5728 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22816749/per_action_work/action_099
+[fail] (3.4s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_099.mp4
+
+[codebook_rollout] Done. 100 rollouts in 335.8s (3.4s/action average)
+[codebook_rollout] Summary saved to /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/summary.json
+
+Codebook rollout finished.
+Videos and summary.json: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/
+Canonical action videos: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22816749/videos/action_<index>.mp4

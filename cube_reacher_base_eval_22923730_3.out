@@ -1,0 +1,173 @@
+REPO_ROOT=/gpfs/home2/scur0200/salvatore_branch/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+TASK_ID=3
+ENV_NAME=cube
+POLICY=cube/lewm
+CONFIG_NAME=cube
+SOLVER_DEVICE=cpu
+EVAL_BUDGET=50
+GOAL_OFFSET_STEPS=75
+PLAN_HORIZON=5
+EVAL_SUBDIR=eval_cube_base_d75_job_22923730_task_3
+RESULT_FILENAME=ogb_cube_results_base_d75.txt
+Checkpoint=/scratch-shared/scur0200/stablewm_data/cube/lewm_object.ckpt
+Dataset=/scratch-shared/scur0200/stablewm_data/ogbench/cube_single_expert.h5
+
+Launching:
+  python  original_eval_with_manifest.py  --config-name=cube  policy=cube/lewm  solver.device=cpu  eval.eval_budget=50  eval.goal_offset_steps=75  plan_config.horizon=5  output.filename=ogb_cube_results_base_d75.txt  +output.subdir=eval_cube_base_d75_job_22923730_task_3
+
+[2026-05-19 20:50:27,031][OpenGL.acceleratesupport][INFO] - No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[2026-05-19 20:50:29,154][absl][INFO] - MUJOCO_GL=egl, attempting to import specified OpenGL backend.
+[2026-05-19 20:50:29,376][absl][INFO] - MuJoCo library version is: 3.8.1
+20:51:03.145 | INFO    (1693640, stable_worldmodel.world) | 🌍🌍🌍 World swm/OGBCube-v0 initialized 🌍🌍🌍
+20:51:03.145 | INFO    (1693640, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+20:51:03.145 | INFO    (1693640, stable_worldmodel.world) | Box(-1.0, 1.0, (50, 5), float32)
+20:51:03.145 | INFO    (1693640, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+20:51:03.145 | INFO    (1693640, stable_worldmodel.world) | Box(-inf, inf, (50, 28), float64)
+20:51:03.145 | INFO    (1693640, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    color: Box(0.0, 1.0, (3,), float64)
+    ee_start_position: Box([ 0.25 -0.35  0.2 ], [0.6  0.35 0.35], (3,), float64)
+camera:
+    angle_delta: Box(-10.0, 10.0, (1, 2), float64)
+cube:
+    color: Box(0.0, 1.0, (1, 3), float64)
+    goal_position: Box([[ 0.3 -0.3]], [[0.55 0.3 ]], (1, 2), float64)
+    goal_yaw: Box(0.0, 6.283185307179586, (1,), float64)
+    size: Box(0.01, 0.03, (1,), float64)
+    start_position: Box([[ 0.3 -0.3]], [[0.55 0.3 ]], (1, 2), float64)
+    start_yaw: Box(0.0, 6.283185307179586, (1,), float64)
+floor:
+    color: Box(0.0, 1.0, (2, 3), float64)
+light:
+    intensity: Box(0.0, 1.0, (1,), float64)
+[2026-05-19 20:52:48,972][root][INFO] - Cached 'action' from '/scratch-shared/scur0200/stablewm_data/ogbench/cube_single_expert.h5'
+1260000 valid starting points found for evaluation.
+[ 128258  136503  172712  179351  185164  189234  257493  332086  366882
+  404893  456716  556238  712575  745219  808832  870254  882066  891242
+  895764  905197  905370 1005653 1031548 1058142 1096278 1114642 1269590
+ 1294103 1315603 1362601 1401628 1408028 1442045 1478795 1523683 1529832
+ 1555571 1564487 1570879 1579913 1653685 1663504 1687830 1725085 1725669
+ 1784576 1795154 1862723 1951024 1960871]
+CEM solve time: 620.0084 seconds
+CEM solve time: 606.8237 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/cube/eval_cube_base_d75_job_22923730_task
+_3
+{'success_rate': 56.00000000000001, 'episode_successes': array([False, False, False, False, False,  True, False,  True,  True,
+        True,  True, False, False,  True, False,  True,  True, False,
+        True,  True,  True, False, False,  True, False,  True,  True,
+       False,  True,  True, False, False, False, False,  True,  True,
+       False,  True,  True,  True,  True, False, False,  True,  True,
+        True, False,  True,  True,  True]), 'seeds': None}
+==== EPISODE OUTCOMES ====
+FAIL	eval_index=0	episode_id=638	start_step=20
+FAIL	eval_index=1	episode_id=679	start_step=24
+FAIL	eval_index=2	episode_id=859	start_step=53
+FAIL	eval_index=3	episode_id=892	start_step=59
+FAIL	eval_index=4	episode_id=921	start_step=43
+PASS	eval_index=5	episode_id=941	start_step=93
+FAIL	eval_index=6	episode_id=1281	start_step=12
+PASS	eval_index=7	episode_id=1652	start_step=34
+PASS	eval_index=8	episode_id=1825	start_step=57
+PASS	eval_index=9	episode_id=2014	start_step=79
+PASS	eval_index=10	episode_id=2272	start_step=44
+FAIL	eval_index=11	episode_id=2767	start_step=71
+FAIL	eval_index=12	episode_id=3545	start_step=30
+PASS	eval_index=13	episode_id=3707	start_step=112
+FAIL	eval_index=14	episode_id=4024	start_step=8
+PASS	eval_index=15	episode_id=4329	start_step=125
+PASS	eval_index=16	episode_id=4388	start_step=78
+FAIL	eval_index=17	episode_id=4434	start_step=8
+PASS	eval_index=18	episode_id=4456	start_step=108
+PASS	eval_index=19	episode_id=4503	start_step=94
+PASS	eval_index=20	episode_id=4504	start_step=66
+FAIL	eval_index=21	episode_id=5003	start_step=50
+FAIL	eval_index=22	episode_id=5132	start_step=16
+PASS	eval_index=23	episode_id=5264	start_step=78
+FAIL	eval_index=24	episode_id=5454	start_step=24
+PASS	eval_index=25	episode_id=5545	start_step=97
+PASS	eval_index=26	episode_id=6316	start_step=74
+FAIL	eval_index=27	episode_id=6438	start_step=65
+PASS	eval_index=28	episode_id=6545	start_step=58
+PASS	eval_index=29	episode_id=6779	start_step=22
+FAIL	eval_index=30	episode_id=6973	start_step=55
+FAIL	eval_index=31	episode_id=7005	start_step=23
+FAIL	eval_index=32	episode_id=7174	start_step=71
+FAIL	eval_index=33	episode_id=7357	start_step=38
+PASS	eval_index=34	episode_id=7580	start_step=103
+PASS	eval_index=35	episode_id=7611	start_step=21
+FAIL	eval_index=36	episode_id=7739	start_step=32
+PASS	eval_index=37	episode_id=7783	start_step=104
+PASS	eval_index=38	episode_id=7815	start_step=64
+PASS	eval_index=39	episode_id=7860	start_step=53
+PASS	eval_index=40	episode_id=8227	start_step=58
+FAIL	eval_index=41	episode_id=8276	start_step=28
+FAIL	eval_index=42	episode_id=8397	start_step=33
+PASS	eval_index=43	episode_id=8582	start_step=103
+PASS	eval_index=44	episode_id=8585	start_step=84
+PASS	eval_index=45	episode_id=8878	start_step=98
+FAIL	eval_index=46	episode_id=8931	start_step=23
+PASS	eval_index=47	episode_id=9267	start_step=56
+PASS	eval_index=48	episode_id=9706	start_step=118
+PASS	eval_index=49	episode_id=9755	start_step=116
+==== FAILED EPISODES ====
+FAIL	eval_index=0	episode_id=638	start_step=20
+FAIL	eval_index=1	episode_id=679	start_step=24
+FAIL	eval_index=2	episode_id=859	start_step=53
+FAIL	eval_index=3	episode_id=892	start_step=59
+FAIL	eval_index=4	episode_id=921	start_step=43
+FAIL	eval_index=6	episode_id=1281	start_step=12
+FAIL	eval_index=11	episode_id=2767	start_step=71
+FAIL	eval_index=12	episode_id=3545	start_step=30
+FAIL	eval_index=14	episode_id=4024	start_step=8
+FAIL	eval_index=17	episode_id=4434	start_step=8
+FAIL	eval_index=21	episode_id=5003	start_step=50
+FAIL	eval_index=22	episode_id=5132	start_step=16
+FAIL	eval_index=24	episode_id=5454	start_step=24
+FAIL	eval_index=27	episode_id=6438	start_step=65
+FAIL	eval_index=30	episode_id=6973	start_step=55
+FAIL	eval_index=31	episode_id=7005	start_step=23
+FAIL	eval_index=32	episode_id=7174	start_step=71
+FAIL	eval_index=33	episode_id=7357	start_step=38
+FAIL	eval_index=36	episode_id=7739	start_step=32
+FAIL	eval_index=41	episode_id=8276	start_step=28
+FAIL	eval_index=42	episode_id=8397	start_step=33
+FAIL	eval_index=46	episode_id=8931	start_step=23
+==== PASSED EPISODES ====
+PASS	eval_index=5	episode_id=941	start_step=93
+PASS	eval_index=7	episode_id=1652	start_step=34
+PASS	eval_index=8	episode_id=1825	start_step=57
+PASS	eval_index=9	episode_id=2014	start_step=79
+PASS	eval_index=10	episode_id=2272	start_step=44
+PASS	eval_index=13	episode_id=3707	start_step=112
+PASS	eval_index=15	episode_id=4329	start_step=125
+PASS	eval_index=16	episode_id=4388	start_step=78
+PASS	eval_index=18	episode_id=4456	start_step=108
+PASS	eval_index=19	episode_id=4503	start_step=94
+PASS	eval_index=20	episode_id=4504	start_step=66
+PASS	eval_index=23	episode_id=5264	start_step=78
+PASS	eval_index=25	episode_id=5545	start_step=97
+PASS	eval_index=26	episode_id=6316	start_step=74
+PASS	eval_index=28	episode_id=6545	start_step=58
+PASS	eval_index=29	episode_id=6779	start_step=22
+PASS	eval_index=34	episode_id=7580	start_step=103
+PASS	eval_index=35	episode_id=7611	start_step=21
+PASS	eval_index=37	episode_id=7783	start_step=104
+PASS	eval_index=38	episode_id=7815	start_step=64
+PASS	eval_index=39	episode_id=7860	start_step=53
+PASS	eval_index=40	episode_id=8227	start_step=58
+PASS	eval_index=43	episode_id=8582	start_step=103
+PASS	eval_index=44	episode_id=8585	start_step=84
+PASS	eval_index=45	episode_id=8878	start_step=98
+PASS	eval_index=47	episode_id=9267	start_step=56
+PASS	eval_index=48	episode_id=9706	start_step=118
+PASS	eval_index=49	episode_id=9755	start_step=116
+Saved episode manifest to /scratch-shared/scur0200/stablewm_data/cube/eval_cube_base_d75_job_22923730_task_3/ogb_cube_results_base_d75_episodes.tsv
+
+Eval finished.
+Results: /scratch-shared/scur0200/stablewm_data/cube/eval_cube_base_d75_job_22923730_task_3/ogb_cube_results_base_d75.txt
+Manifest: /scratch-shared/scur0200/stablewm_data/cube/eval_cube_base_d75_job_22923730_task_3/ogb_cube_results_base_d75_episodes.tsv
+
+Success-rate lines:
+64:metrics: {'success_rate': 56.00000000000001, 'episode_successes': array([False, False, False, False, False,  True, False,  True,  True,

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Snellius job: set STABLEWM_HOME and download the Reacher dataset.
+# Snellius job: download the Reacher dataset into the path expected by
+# cube_reacher_base_eval_rome.sh.
 # Usage:
 #   sbatch jobs/setup/download_reacher.sh
 # Optional override:
@@ -12,18 +13,20 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --time=02:00:00
 
-set -eo pipefail
+set -euo pipefail
 
 module purge
 module load 2025
 module load Anaconda3/2025.06-1
 
+set +u
 eval "$(conda shell.bash hook)"
 if conda env list | grep -E '(^|[[:space:]])lewm-gpu([[:space:]]|$)' >/dev/null 2>&1; then
   conda activate lewm-gpu
 elif conda env list | grep -E '(^|[[:space:]])lewm([[:space:]]|$)' >/dev/null 2>&1; then
   conda activate lewm
 fi
+set -u
 
 resolve_repo_root() {
   local c p
@@ -62,10 +65,12 @@ exec > >(tee -a "${LOG_DIR}/download_reacher_${JOB_TAG}.out") \
 
 export STABLEWM_HOME="${STABLEWM_HOME:-/scratch-shared/${USER}/stablewm_data}"
 DATASETS="reacher"
+DATASET_PATH="${STABLEWM_HOME}/dmc/reacher_random.h5"
 
 echo "REPO_ROOT=${REPO_ROOT}"
 echo "STABLEWM_HOME=${STABLEWM_HOME}"
 echo "DATASETS=${DATASETS}"
+echo "EXPECTED_DATASET=${DATASET_PATH}"
 
 mkdir -p "${STABLEWM_HOME}"
 
@@ -73,7 +78,11 @@ source "${REPO_ROOT}/scripts/setup_datasets.sh" \
   --home "${STABLEWM_HOME}" \
   --datasets "${DATASETS}"
 
+if [[ ! -f "${DATASET_PATH}" ]]; then
+  echo "ERROR: expected dataset missing after setup: ${DATASET_PATH}" >&2
+  exit 3
+fi
+
 echo ""
 echo "Dataset job completed."
-echo "Use this in future jobs:"
-echo "  export STABLEWM_HOME=\"${STABLEWM_HOME}\""
+echo "Dataset saved at: ${DATASET_PATH}"

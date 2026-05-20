@@ -58,7 +58,8 @@ eval:
           value: goal_state
 
 experiment:
-  n_frames: 50          # total env steps per codebook entry rollout
-  num_codes: null       # null = use all codes from the checkpoint; set lower for quick test
+  n_frames: 50          # total env steps per codebook action rollout
+  num_actions: null     # null = use all codebook actions; set lower for quick tests
+  num_codes: null       # deprecated alias for num_actions
   start_step_seed: 0    # seed for picking the starting state from the dataset
   output_dir: ./codebook_rollouts

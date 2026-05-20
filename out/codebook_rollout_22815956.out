@@ -1,0 +1,72 @@
+REPO_ROOT=/gpfs/home2/scur0200/salvatore_branch/h-le-wm
+STABLEWM_HOME=/scratch-shared/scur0200/stablewm_data
+POLICY=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50
+CHECKPOINT=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50_object.ckpt
+EVAL_DEVICE=cuda
+N_FRAMES=25
+START_STEP_SEED=0
+LOW CEM: num_samples=600, n_steps=30, topk=60
+REPLAN_INTERVAL=5
+Output: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956
+==> Launching codebook rollout:
+  python  scripts/codebook_rollout_experiment.py  --config-name=codebook_rollout  policy=runs/hi_lewm_p2_vq_train_hope1_22607223/hi_lewm_p2_vq_train_hope1_22607223_epoch_50  experiment.n_frames=25  experiment.start_step_seed=0  experiment.output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956  planning.high.replan_interval=5  planning.low.solver.device=cuda  planning.low.solver.num_samples=600  planning.low.solver.n_steps=30  planning.low.solver.topk=60  experiment.num_codes=2
+
+[codebook_rollout] output_dir=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956
+[codebook_rollout] codebook size=128, running 2 entries, latent_dim=16
+[2026-05-17 16:18:54,334][root][INFO] - Cached 'action' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[2026-05-17 16:19:07,792][root][INFO] - Cached 'proprio' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[2026-05-17 16:19:15,910][root][INFO] - Cached 'state' from '/scratch-shared/scur0200/stablewm_data/pusht_expert_train.h5'
+[codebook_rollout] start episode=15905, step=101
+16:19:44.891 | INFO    (1249152, stable_worldmodel.world) | 🌍🌍🌍 World swm/PushT-v1 initialized 🌍🌍🌍
+16:19:44.892 | INFO    (1249152, stable_worldmodel.world) | 🕹️ 🕹️ 🕹️ Action space 🕹️ 🕹️ 🕹️
+16:19:44.892 | INFO    (1249152, stable_worldmodel.world) | Box(-1.0, 1.0, (1, 2), float32)
+16:19:44.892 | INFO    (1249152, stable_worldmodel.world) | 👁️ 👁️ 👁️ Observation space 👁️ 👁️ 👁️
+16:19:44.892 | INFO    (1249152, stable_worldmodel.world) | Dict('proprio': Box(0.0, 512.0, (1, 4), float64), 'state': Box(0.0, [[512.         512.         512.         512.           6.28318531
+  512.         512.        ]], (1, 7), float64))
+16:19:44.892 | INFO    (1249152, stable_worldmodel.world) | ⚗️ ⚗️ ⚗️ Variation space ⚗️ ⚗️ ⚗️
+agent:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(8)
+    start_position: Box(50.0, 450.0, (2,), float64)
+    velocity: Box(0.0, 512.0, (2,), float64)
+background:
+    color: Box(0, 255, (3,), uint8)
+block:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    scale: Box(20.0, 60.0, (), float32)
+    shape: Discrete(7, start=1)
+    start_position: Box(100.0, 400.0, (2,), float64)
+goal:
+    angle: Box(-6.283185307179586, 6.283185307179586, (), float64)
+    color: Box(0, 255, (3,), uint8)
+    position: Box(50.0, 450.0, (2,), float64)
+    scale: Box(20.0, 60.0, (), float32)
+rendering:
+    render_goal: Discrete(2)
+[codebook_rollout] code   0/2 ... CEM solve time: 0.6694 seconds
+CEM solve time: 0.5690 seconds
+CEM solve time: 0.5695 seconds
+CEM solve time: 0.5681 seconds
+CEM solve time: 0.5686 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22815956/codebook_000
+[fail] (4.0s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956/codebook_000/rollout_0.mp4
+[codebook_rollout] code   1/2 ... CEM solve time: 0.5688 seconds
+CEM solve time: 0.5680 seconds
+CEM solve time: 0.5674 seconds
+CEM solve time: 0.5679 seconds
+CEM solve time: 0.5681 seconds
+Video saved to 
+/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/d
+iagnostics/codebook_rollout_job_22815956/codebook_001
+[fail] (3.3s)  video=/scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956/codebook_001/rollout_0.mp4
+
+[codebook_rollout] Done. 2 rollouts in 7.4s (3.7s/code average)
+[codebook_rollout] Summary saved to /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956/summary.json
+
+Codebook rollout finished.
+Videos and summary.json: /scratch-shared/scur0200/stablewm_data/runs/hi_lewm_p2_vq_train_hope1_22607223/diagnostics/codebook_rollout_job_22815956/
