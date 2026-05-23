@@ -40,6 +40,8 @@ data/stablewm/
 *.pt
 *.pth
 *.h5
+*.h5.zst
+*.zst
 
 # Local environment variables
 .env
@@ -50,3 +52,5 @@ jobs_github_ready_*.zip
 
 
 *_frozen.txt
+# Added by code-review-graph
+.code-review-graph/
