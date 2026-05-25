@@ -50,7 +50,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/hi_train.py" && -f "${p}/config/train/hi_lewm.yaml" ]]; then
+        if [[ -f "${p}/h_le_wm/train/hierarchical.py" && -f "${p}/h_le_wm/config/train/hi_lewm.yaml" ]]; then
           echo "${p}"
           return 0
         fi
@@ -171,7 +171,7 @@ rsync -ah --info=progress2 "${SRC_CKPT}" "${LOCAL_CKPT}"
 cd "${REPO_ROOT}"
 
 CMD=(
-  python hi_train.py
+  python -m h_le_wm.train.hierarchical
   data=hi_pusht
   output_model_name="${TRAIN_RUN_NAME}"
   subdir="${PERSIST_RUN_DIR}"

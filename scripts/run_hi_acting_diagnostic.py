@@ -33,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
         ],
     )
     p.add_argument("--dataset-name", default="pusht_expert_train")
-    p.add_argument("--eval-config", default="config/eval/hi_pusht.yaml")
+    p.add_argument("--eval-config", default="h_le_wm/config/eval/hi_pusht.yaml")
     p.add_argument("--cache-dir", default=None)
     p.add_argument("--img-size", type=int, default=224)
     p.add_argument("--num-eval", type=int, default=50)

@@ -25,7 +25,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.." "${c}/../../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/run_hi_diagnostic.py" && -f "${p}/hi_eval.py" ]]; then
+        if [[ -f "${p}/scripts/run_hi_diagnostic.py" && -f "${p}/h_le_wm/eval/hierarchical.py" ]]; then
           echo "${p}"
           return 0
         fi

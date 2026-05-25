@@ -17,7 +17,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/hi_eval.py" && -f "${p}/config/eval/hi_cube.yaml" ]]; then
+        if [[ -f "${p}/h_le_wm/eval/hierarchical.py" && -f "${p}/h_le_wm/config/eval/hi_cube.yaml" ]]; then
           echo "${p}"
           return 0
         fi
@@ -122,7 +122,7 @@ echo "STABLEWM_HOME: ${STABLEWM_HOME}"
 echo "Run name: ${RUN_NAME}"
 echo "Checkpoint epoch: ${CHECKPOINT_EPOCH}"
 echo "Checkpoint object: ${CKPT_OBJECT_PATH}"
-echo "Policy arg for hi_eval.py: ${POLICY}"
+echo "Policy arg for hierarchical eval: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Planning mode: ${PLANNING_MODE}"
 echo "Goal offset steps: ${GOAL_OFFSET_STEPS}"
@@ -141,7 +141,7 @@ fi
 cd "${REPO_ROOT}"
 
 CMD=(
-  python hi_eval.py
+  python -m h_le_wm.eval.hierarchical
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
   "seed=${EVAL_SEED}"

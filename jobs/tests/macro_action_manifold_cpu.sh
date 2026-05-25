@@ -40,7 +40,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/test_macro_action_manifold.py" && -f "${p}/hi_eval.py" ]]; then
+        if [[ -f "${p}/scripts/test_macro_action_manifold.py" && -f "${p}/h_le_wm/eval/hierarchical.py" ]]; then
           echo "${p}"
           return 0
         fi

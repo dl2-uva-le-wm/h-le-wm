@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--acting-log-root", type=Path, required=True)
     p.add_argument("--output-dir", type=Path, required=True)
     p.add_argument("--matrix-csv", type=Path, required=True)
-    p.add_argument("--baseline-md", type=Path, required=True)
+    p.add_argument("--baseline-md", type=Path, required=True, help="Baseline markdown snapshot or generated baseline summary CSV.")
     return p.parse_args()
 
 
@@ -49,6 +49,16 @@ def save_fig(fig, out_base: Path) -> None:
 
 
 def baseline_d50_best(path: Path) -> float | None:
+    if path.suffix.lower() == ".csv":
+        df = pd.read_csv(path)
+        if "goal_offset_steps" not in df.columns or "success_rate_mean" not in df.columns:
+            return None
+        rows = df[df["goal_offset_steps"].astype(str) == "50"]
+        if rows.empty:
+            return None
+        values = pd.to_numeric(rows["success_rate_mean"], errors="coerce").dropna()
+        return float(values.max()) if not values.empty else None
+
     text = path.read_text()
     m = re.search(r"\| `D50` \| 6 \| `([0-9.]+)` \| `([0-9.]+)` \| `([0-9.]+)` \|", text)
     return float(m.group(2)) if m else None

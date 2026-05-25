@@ -39,7 +39,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/hi_train_decoder_probe.py" && -f "${p}/config/train/hi_decoder_probe.yaml" ]]; then
+        if [[ -f "${p}/h_le_wm/probe/train.py" && -f "${p}/h_le_wm/config/train/hi_decoder_probe.yaml" ]]; then
           echo "${p}"
           return 0
         fi
@@ -158,7 +158,7 @@ rsync -ah --info=progress2 "${SRC_HOPE2_CKPT}" "${LOCAL_HOPE2_CKPT}"
 cd "${REPO_ROOT}"
 
 CMD=(
-  python hi_train_decoder_probe.py
+  python -m h_le_wm.probe.train
   data=hi_pusht
   output_model_name="${TRAIN_RUN_NAME}"
   subdir="${PERSIST_RUN_DIR}"

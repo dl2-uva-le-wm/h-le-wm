@@ -71,7 +71,7 @@ fi
 
 COMMON_ARGS=(
   --policy "${POLICY}"
-  --eval-config "${REPO_ROOT}/config/eval/hi_pusht.yaml"
+  --eval-config "${REPO_ROOT}/h_le_wm/config/eval/hi_pusht.yaml"
   --cache-dir "${STABLEWM_HOME}"
   --goal-offset-steps 50
   --eval-budget 50

@@ -15,7 +15,7 @@ active `jobs/eval/hi` PushT scripts.
   - Points at the finished cube HOPE2 checkpoint.
 - `matrix/eval_hope_hierarchical_matrix.sh`
   - Array worker that maps one cube checkpoint row and one config row into a
-    `hi_eval.py --config-name=hi_cube` run.
+    `python -m h_le_wm.eval.hierarchical --config-name=hi_cube` run.
 - `matrix/submit_hope_hierarchical_matrix.sh`
   - Convenience submit helper that launches one 39-task array per checkpoint.
 - `matrix/run_hi_cube_matrix_eval.sh`

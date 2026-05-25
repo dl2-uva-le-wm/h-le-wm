@@ -3,10 +3,10 @@
 # Array-driven baseline LeWM sweep for PushT.
 #
 # This launcher intentionally stays on the original baseline path:
-# - Runs `original_eval_with_manifest.py`
+# - Runs `h_le_wm.eval.baseline_manifest`
 # - Uses `third_party/lewm/config/eval/pusht.yaml`
 # - Uses the original flat LeWM checkpoint `pusht/lewm`
-# - Does NOT call `hi_eval.py` or any hierarchical planner path
+# - Does NOT call `python -m h_le_wm.eval.hierarchical` or any hierarchical planner path
 #
 # CSV mapping:
 # - `goal_offset` -> `eval.goal_offset_steps` after stripping the `D` prefix
@@ -197,8 +197,8 @@ else
   export MUJOCO_GL="${MUJOCO_GL:-egl}"
 fi
 
-if [[ ! -f "original_eval_with_manifest.py" ]]; then
-  echo "ERROR: original_eval_with_manifest.py not found at ${REPO_ROOT}" >&2
+if [[ ! -f "h_le_wm/eval/baseline_manifest.py" ]]; then
+  echo "ERROR: h_le_wm/eval/baseline_manifest.py not found at ${REPO_ROOT}" >&2
   exit 12
 fi
 
@@ -236,7 +236,7 @@ echo "Artifacts subdir: ${EVAL_SUBDIR}"
 echo "Result filename: ${RESULT_FILENAME}"
 echo "Expected checkpoint: ${CKPT_OBJECT_PATH}"
 echo "Expected dataset: ${DATASET_PATH}"
-echo "Baseline entrypoint: third_party/lewm/eval.py via original_eval_with_manifest.py"
+echo "Baseline entrypoint: third_party/lewm/eval.py via h_le_wm.eval.baseline_manifest"
 print_eval_determinism_env
 
 if [[ ! -f "${DATASET_PATH}" ]]; then
@@ -252,7 +252,7 @@ if [[ ! -f "${CKPT_OBJECT_PATH}" ]]; then
 fi
 
 CMD=(
-  python original_eval_with_manifest.py
+  python -m h_le_wm.eval.baseline_manifest
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
   "seed=${EVAL_SEED}"

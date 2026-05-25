@@ -127,7 +127,7 @@ echo ""
 # Test 7: Import test for project modules
 echo "[TEST 7] Testing project module imports..."
 cd "${REPO_ROOT}"
-if python -c "from hi_module import *" 2>/dev/null; then
+if python -c "from h_le_wm.models.latent_action import *" 2>/dev/null; then
   echo "✓ Project modules can be imported"
 else
   echo "✗ WARNING: Could not import project modules (this may be expected)"

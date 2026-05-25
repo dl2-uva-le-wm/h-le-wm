@@ -30,7 +30,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/hi_eval.py" && -f "${p}/config/eval/hi_pusht.yaml" ]]; then
+        if [[ -f "${p}/h_le_wm/eval/hierarchical.py" && -f "${p}/h_le_wm/config/eval/hi_pusht.yaml" ]]; then
           echo "${p}"
           return 0
         fi
@@ -155,7 +155,7 @@ echo "Checkpoint name: ${CHECKPOINT_BASE}"
 echo "Run name: ${RUN_NAME}"
 echo "Checkpoint epoch: ${CHECKPOINT_EPOCH}"
 echo "Checkpoint object: ${CKPT_OBJECT_PATH}"
-echo "Policy arg for hi_eval.py: ${POLICY}"
+echo "Policy arg for hierarchical eval: ${POLICY}"
 echo "Config name: ${CONFIG_NAME}"
 echo "Goal offset steps (d): ${GOAL_OFFSET_STEPS}"
 echo "Eval budget: ${EVAL_BUDGET}"
@@ -166,7 +166,7 @@ echo "Low-level planner: horizon=${LOW_HORIZON}, receding=${LOW_RECEDING_HORIZON
 if [[ -n "${STAGE_DURATION_STEPS:-}" ]]; then
   echo "Stage duration override: ${STAGE_DURATION_STEPS} env steps"
 else
-  echo "Stage duration override: auto (derived inside hi_eval.py)"
+  echo "Stage duration override: auto (derived inside h_le_wm.eval.hierarchical)"
 fi
 echo "Output subdir: ${OUTPUT_SUBDIR}"
 
@@ -174,7 +174,7 @@ echo
 cd "${REPO_ROOT}"
 
 CMD=(
-  python hi_eval.py
+  python -m h_le_wm.eval.hierarchical
   --config-name="${CONFIG_NAME}"
   "policy=${POLICY}"
   "planning.mode=hierarchical_staged"

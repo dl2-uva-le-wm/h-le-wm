@@ -22,7 +22,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import baseline_adapter as _baseline_adapter
+import h_le_wm.baseline.adapter as _baseline_adapter
 
 # Backward-compatibility for torch.load on object checkpoints saved by hi_train.
 _ = _baseline_adapter.ARPredictor

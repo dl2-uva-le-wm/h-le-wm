@@ -41,8 +41,8 @@ from hi_diagnostics import (
     to_serializable,
     write_json,
 )
-from hi_eval import build_process_map
-from hi_policy import (
+from h_le_wm.eval.hierarchical import build_process_map
+from h_le_wm.planning.policies import (
     HierarchicalWorldModelPolicy,
     StagedHierarchicalWorldModelPolicy,
     calibrate_latent_prior,
@@ -54,7 +54,7 @@ class ActingDiagnosticConfig:
     policy: str
     experiment_kind: str
     dataset_name: str = "pusht_expert_train"
-    eval_config: str = "config/eval/hi_pusht.yaml"
+    eval_config: str = "h_le_wm/config/eval/hi_pusht.yaml"
     cache_dir: str | None = None
     img_size: int = 224
     num_eval: int = 50

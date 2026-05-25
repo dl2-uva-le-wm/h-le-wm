@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from eval_determinism import DEFAULT_SEED, configure_process_determinism
+from h_le_wm.eval.determinism import DEFAULT_SEED, configure_process_determinism
 
 
 if "EVAL_DETERMINISM" in os.environ or "EVAL_SEED" in os.environ:

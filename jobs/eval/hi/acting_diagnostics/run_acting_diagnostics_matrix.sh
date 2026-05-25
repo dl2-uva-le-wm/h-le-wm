@@ -32,7 +32,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.." "${c}/../../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/run_hi_acting_diagnostic.py" && -f "${p}/hi_eval.py" ]]; then
+        if [[ -f "${p}/scripts/run_hi_acting_diagnostic.py" && -f "${p}/h_le_wm/eval/hierarchical.py" ]]; then
           echo "${p}"
           return 0
         fi
@@ -214,7 +214,7 @@ CMD=(
   python scripts/run_hi_acting_diagnostic.py
   --policy "${POLICY}"
   --experiment-kind "${EXPERIMENT_KIND}"
-  --eval-config "${REPO_ROOT}/config/eval/hi_pusht.yaml"
+  --eval-config "${REPO_ROOT}/h_le_wm/config/eval/hi_pusht.yaml"
   --cache-dir "${CACHE_DIR}"
   --num-eval "${NUM_EVAL}"
   --goal-offset-steps "${GOAL_OFFSET_STEPS}"

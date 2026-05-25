@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from hi_decoder_probe import (
+from h_le_wm.probe.model import (
     LatentToPixelDecoder,
     compute_psnr,
     denormalize_imagenet,
@@ -27,8 +27,8 @@ from hi_decoder_probe import (
     load_decoder_state_dict,
     load_hi_checkpoint,
 )
-from hi_train import build_action_chunks_batched
-from hi_train_decoder_probe import build_dataset_and_loaders
+from h_le_wm.train.hierarchical import build_action_chunks_batched
+from h_le_wm.probe.train import build_dataset_and_loaders
 
 
 DEFAULT_HI_CKPT = (

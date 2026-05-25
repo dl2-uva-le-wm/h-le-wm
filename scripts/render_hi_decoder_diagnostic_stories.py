@@ -18,7 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from hi_decoder_probe import LatentToPixelDecoder, denormalize_imagenet, load_decoder_state_dict
+from h_le_wm.probe.model import LatentToPixelDecoder, denormalize_imagenet, load_decoder_state_dict
 from decoder_probe_notebook_utils import find_latest_probe_checkpoint
 from hi_diagnostics import get_row_data_safe, partition_total, resolve_cache_dir
 
@@ -79,8 +79,23 @@ def load_dataset(*, dataset_name: str, cache_dir: str | None):
     return swm.data.HDF5Dataset(dataset_name, keys_to_cache=["action"], cache_dir=resolved_cache)
 
 
+def load_probe_cfg(run_dir: Path, probe_ckpt: Path | None):
+    config_path = run_dir / "config.yaml"
+    if config_path.exists():
+        return OmegaConf.load(config_path)
+
+    ckpt = probe_ckpt if probe_ckpt is not None else find_latest_probe_checkpoint(run_dir)
+    payload = torch.load(ckpt, map_location="cpu", weights_only=False)
+    cfg = payload.get("cfg") if isinstance(payload, dict) else None
+    if cfg is None:
+        raise FileNotFoundError(
+            f"Missing probe config at {config_path} and no embedded cfg found in {ckpt}."
+        )
+    return OmegaConf.create(OmegaConf.to_container(cfg, resolve=False))
+
+
 def load_decoder(*, run_dir: Path, probe_ckpt: Path | None, latent_dim: int, device: torch.device):
-    cfg = OmegaConf.load(run_dir / "config.yaml")
+    cfg = load_probe_cfg(run_dir, probe_ckpt)
     ckpt = probe_ckpt if probe_ckpt is not None else find_latest_probe_checkpoint(run_dir)
     decoder_cfg = OmegaConf.to_container(cfg.probe.decoder, resolve=True)
     decoder = LatentToPixelDecoder(
