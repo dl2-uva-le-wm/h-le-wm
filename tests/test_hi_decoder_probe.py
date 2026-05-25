@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import pytest
 import torch
 
-from hi_decoder_probe import LatentToPixelDecoder, compute_psnr, compute_ssim
+pytest.importorskip("stable_pretraining")
+
+from h_le_wm.probe.model import LatentToPixelDecoder, compute_psnr, compute_ssim
 
 
 def test_latent_to_pixel_decoder_output_shape():

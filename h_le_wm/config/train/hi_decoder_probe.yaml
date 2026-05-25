@@ -1,0 +1,83 @@
+defaults:
+  - _self_
+  - data: hi_pusht
+
+output_model_name: hi_decoder_probe
+subdir: ${hydra:job.id}
+
+num_workers: 6
+train_split: 0.9
+seed: 3072
+img_size: 224
+
+trainer:
+  max_epochs: 10
+  devices: auto
+  accelerator: gpu
+  precision: bf16
+  gradient_clip_val: 1.0
+  log_every_n_steps: 10
+  limit_train_batches: 1.0
+  limit_val_batches: 1.0
+
+loader:
+  batch_size: 128
+  num_workers: ${num_workers}
+  persistent_workers: True
+  prefetch_factor: 3
+  pin_memory: True
+
+optimizer:
+  type: AdamW
+  lr: 2e-4
+  weight_decay: 1e-4
+
+wandb:
+  enabled: True
+  image_log_interval: 1
+  config:
+    entity: ${oc.env:WANDB_ENTITY,null}
+    project: ${oc.env:WANDB_PROJECT,hi_decoder_probe}
+    name: ${output_model_name}
+    id: ${subdir}
+    resume: allow
+    log_model: False
+
+wm:
+  history_size: 3
+  high_level:
+    waypoints:
+      num: 5
+      strategy: random_sorted
+      min_stride: 1
+      max_span: 15
+      stride: -1
+      beta_alpha: 2.0
+      beta_beta: 2.0
+
+probe:
+  mode: true_only # one of: true_only, pred_exposed
+  checkpoint:
+    path: null
+  init_decoder_checkpoint: null
+  loss:
+    pred_weight: 0.5
+  decoder:
+    patch_size: 16
+    hidden_dim: 256
+    depth: 4
+    heads: 4
+    mlp_ratio: 4.0
+    dropout: 0.0
+  visualization:
+    num_grids: 4
+
+checkpointing:
+  bundle_epoch_interval: 1
+  resume_from: null
+
+eval:
+  decoder_checkpoint_path: null
+  split: val # one of: train, val
+  max_batches: null
+  output_subdir: decoder_probe_eval

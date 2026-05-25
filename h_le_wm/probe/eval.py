@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 from omegaconf import OmegaConf
 
-from hi_decoder_probe import (
+from h_le_wm.probe.model import (
     LatentToPixelDecoder,
     compute_psnr,
     compute_ssim,
@@ -21,8 +21,8 @@ from hi_decoder_probe import (
     make_comparison_panel,
     save_panel,
 )
-from hi_train import build_action_chunks_batched
-from hi_train_decoder_probe import build_dataset_and_loaders, validate_probe_config
+from h_le_wm.train.hierarchical import build_action_chunks_batched
+from h_le_wm.probe.train import build_dataset_and_loaders, validate_probe_config
 
 
 @torch.inference_mode()
@@ -120,7 +120,7 @@ def evaluate_loader(cfg, hi_model, decoder, loader, output_dir: Path) -> dict[st
     }
 
 
-@hydra.main(version_base=None, config_path="./config/train", config_name="hi_decoder_probe")
+@hydra.main(version_base=None, config_path="../config/train", config_name="hi_decoder_probe")
 def run(cfg):
     validate_probe_config(cfg)
     decoder_ckpt = str(cfg.eval.decoder_checkpoint_path or "").strip()

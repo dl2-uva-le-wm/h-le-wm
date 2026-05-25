@@ -11,18 +11,20 @@ import torch
 from torch import nn
 from torch.utils.data import default_collate
 
+pytest.importorskip("einops")
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from hi_jepa import HiJEPA
-from hi_module import LatentActionEncoder
-from hi_vq import VQActionEncoder
+from h_le_wm.models.jepa import HiJEPA
+from h_le_wm.models.latent_action import LatentActionEncoder
+from h_le_wm.models.vq import VQActionEncoder
 
 
 def _load_hi_train_functions():
-    """Load selected functions from hi_train.py without importing heavy deps."""
-    src_path = Path(__file__).resolve().parents[1] / "hi_train.py"
+    """Load selected functions from the canonical hierarchical train module without importing heavy deps."""
+    src_path = Path(__file__).resolve().parents[1] / "h_le_wm" / "train" / "hierarchical.py"
     source = src_path.read_text()
     mod = ast.parse(source)
 

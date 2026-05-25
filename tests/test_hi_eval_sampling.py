@@ -9,8 +9,8 @@ import pytest
 
 
 def _load_hi_eval_helpers():
-    """Load selected helpers from hi_eval.py without importing heavy runtime deps."""
-    src_path = Path(__file__).resolve().parents[1] / "hi_eval.py"
+    """Load selected helpers from the canonical hierarchical eval module without heavy deps."""
+    src_path = Path(__file__).resolve().parents[1] / "h_le_wm" / "eval" / "hierarchical.py"
     source = src_path.read_text()
     mod = ast.parse(source)
 

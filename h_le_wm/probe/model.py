@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from torch import nn
 from torchvision.utils import make_grid, save_image
 
-from baseline_adapter import BASELINE_ROOT
+from h_le_wm.baseline.adapter import BASELINE_ROOT
 
 
 class DecoderBlock(nn.Module):

@@ -1,0 +1,129 @@
+defaults:
+  - _self_
+  - data: hi_pusht
+
+output_model_name: hi_lewm_h2
+subdir: ${hydra:job.id}
+
+num_workers: 6
+train_split: 0.9
+seed: 3072
+img_size: 224
+patch_size: 14
+encoder_scale: tiny
+dump_object: True
+
+trainer:
+  max_epochs: 100
+  devices: auto
+  accelerator: gpu
+  precision: bf16
+  gradient_clip_val: 1.0
+
+loader:
+  batch_size: 128
+  num_workers: ${num_workers}
+  persistent_workers: True
+  prefetch_factor: 3
+  pin_memory: True
+
+optimizer:
+  type: AdamW
+  lr: 5e-5
+  weight_decay: 1e-3
+
+wandb:
+  enabled: True
+  config:
+    entity: ${oc.env:WANDB_ENTITY,null}
+    project: ${oc.env:WANDB_PROJECT,hi_lewm}
+    name: ${output_model_name}
+    id: ${subdir}
+    resume: allow
+    log_model: False
+
+wm:
+  type: hi_lewm
+  history_size: 3
+  num_preds: 1
+  embed_dim: 192
+
+  high_level:
+    enabled: True
+    latent_action_dim: ${wm.embed_dim}
+    macro_to_condition_proj: auto # (D_l -> D_z), one of: auto, identity, linear
+    waypoints:
+      num: 5
+      strategy: random_sorted # one of: random_middle, random_sorted, fixed_stride
+      min_stride: 1
+      max_span: 15
+      stride: -1 # set >0 only when strategy=fixed_stride; otherwise ignored with warning
+      beta_alpha: 2.0
+      beta_beta: 2.0
+
+pretrained_low_level:
+  enabled: True
+  source_policy: lewm
+  checkpoint:
+    search_dir: null
+    path: null
+    selection_mode: latest # one of: latest, best, epoch, explicit_path
+    epoch: 1
+  freeze:
+    encoder: True
+    low_level_predictor: True
+    low_level_action_encoder: True
+    projector: True
+    low_pred_proj: True
+    high_pred_proj: False
+
+training:
+  train_low_level: False
+
+latent_action_encoder:
+  type: continuous # one of: continuous, vq
+  model_dim: ${wm.embed_dim}
+  num_layers: 2
+  num_heads: 4
+  mlp_dim: 768
+  dropout: 0.1
+  max_seq_len: ${wm.high_level.waypoints.max_span}
+  vq:
+    num_codes: 128
+    decoder_hidden_dim: 768
+
+predictor:
+  depth: 6
+  heads: 16
+  mlp_dim: 2048
+  dim_head: 64
+  dropout: 0.1
+  emb_dropout: 0.0
+
+predictor_high:
+  depth: 6
+  heads: 16
+  mlp_dim: 2048
+  dim_head: 64
+  dropout: 0.1
+  emb_dropout: 0.0
+
+loss:
+  alpha: 0.0
+  beta: 1.0
+  vq:
+    recon_weight: 1.0
+    commitment_weight: 0.25
+    codebook_weight: 1.0
+  sigreg:
+    weight: 0.0
+    kwargs:
+      knots: 17
+      num_proj: 1024
+
+checkpointing:
+  object_dump:
+    epoch_interval: 1
+  weights_dump:
+    enabled: True
+    epoch_interval: 1

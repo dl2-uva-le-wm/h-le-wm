@@ -14,8 +14,8 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 import stable_worldmodel as swm
-import baseline_adapter as _baseline_adapter
-from eval_determinism import (
+import h_le_wm.baseline.adapter as _baseline_adapter
+from h_le_wm.eval.determinism import (
     configure_process_determinism,
     format_determinism_report,
 )
@@ -24,11 +24,12 @@ from eval_determinism import (
 # LeWM checkpoints were serialized with classes from a top-level `jepa` module.
 # Add the vendored source directory so torch.load can resolve that module on clusters
 # where the package is not installed separately.
-_VENDORED_LEWM_DIR = Path(__file__).resolve().parent / "third_party" / "lewm"
+_VENDORED_LEWM_DIR = Path(__file__).resolve().parents[2] / "third_party" / "lewm"
 if _VENDORED_LEWM_DIR.is_dir():
     sys.path.insert(0, str(_VENDORED_LEWM_DIR))
 
-# Backward-compatibility for object checkpoints saved by `hi_train.py`:
+# Backward-compatibility for object checkpoints saved by the old root
+# hierarchical entrypoint (`hi_train.py` before package consolidation):
 # those pickles may reference classes under the dynamic module name
 # `_baseline_lewm_module` created by baseline_adapter.
 # Touch one exported symbol so that module alias is registered in sys.modules
@@ -103,6 +104,18 @@ def resolve_output_dir(cfg: DictConfig) -> Path:
     if output_cfg is None:
         return base_dir
 
+    output_root_dir = str(output_cfg.get("root_dir", "")).strip()
+    if output_root_dir:
+        root_dir = Path(output_root_dir)
+        if root_dir.is_absolute():
+            base_dir = root_dir
+        else:
+            if ".." in root_dir.parts:
+                raise ValueError(
+                    "output.root_dir must be an absolute path or a relative path without '..' segments."
+                )
+            base_dir = Path(swm.data.utils.get_cache_dir()) / root_dir
+
     output_subdir = str(output_cfg.get("subdir", "")).strip()
     if output_subdir:
         subdir = Path(output_subdir)
@@ -129,7 +142,7 @@ def format_episode_outcomes(eval_episodes, eval_start_idx, episode_successes):
 
 @hydra.main(
     version_base=None,
-    config_path="third_party/lewm/config/eval",
+    config_path="../../third_party/lewm/config/eval",
     config_name="pusht",
 )
 def run(cfg: DictConfig):

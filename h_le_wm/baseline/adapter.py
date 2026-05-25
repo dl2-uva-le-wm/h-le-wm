@@ -8,7 +8,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Dict, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 BASELINE_ROOT = REPO_ROOT / "third_party" / "lewm"
 BASELINE_REQUIRED_FILES = (
     "module.py",

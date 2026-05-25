@@ -6,6 +6,13 @@ import sys
 from copy import deepcopy
 
 import numpy as np
+import pytest
+
+pytest.importorskip("hydra")
+pytest.importorskip("omegaconf")
+pytest.importorskip("stable_worldmodel")
+pytest.importorskip("einops")
+
 from omegaconf import OmegaConf
 import stable_worldmodel as swm
 import torch
@@ -15,16 +22,16 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from hi_eval import build_policy
-from hi_jepa import HiJEPA
-from hi_policy import (
+from h_le_wm.eval.hierarchical import build_policy
+from h_le_wm.models.jepa import HiJEPA
+from h_le_wm.planning.policies import (
     EmpiricalMacroActionSolver,
     HierarchicalWorldModelPolicy,
     StagedHierarchicalWorldModelPolicy,
     build_empirical_macro_action_bank,
     calibrate_latent_prior,
 )
-from hi_vq import VectorQuantizer
+from h_le_wm.models.vq import VectorQuantizer
 
 
 class _EncOut:

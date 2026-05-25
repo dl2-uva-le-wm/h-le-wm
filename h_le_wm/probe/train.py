@@ -13,8 +13,8 @@ from lightning.pytorch.callbacks import Callback, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import OmegaConf, open_dict
 
-from baseline_adapter import get_column_normalizer, get_img_preprocessor
-from hi_decoder_probe import (
+from h_le_wm.baseline.adapter import get_column_normalizer, get_img_preprocessor
+from h_le_wm.probe.model import (
     LatentToPixelDecoder,
     compute_psnr,
     compute_ssim,
@@ -29,7 +29,10 @@ from hi_decoder_probe import (
     save_panel,
     save_probe_bundle,
 )
-from hi_train import build_action_chunks_batched, build_p2_frozen_waypoint_collate
+from h_le_wm.train.hierarchical import (
+    build_action_chunks_batched,
+    build_p2_frozen_waypoint_collate,
+)
 
 
 def validate_probe_config(cfg) -> None:
@@ -275,7 +278,7 @@ class DecoderProbeModule(pl.LightningModule):
             )
 
 
-@hydra.main(version_base=None, config_path="./config/train", config_name="hi_decoder_probe")
+@hydra.main(version_base=None, config_path="../config/train", config_name="hi_decoder_probe")
 def run(cfg):
     torch.set_float32_matmul_precision("high")
     validate_probe_config(cfg)

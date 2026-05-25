@@ -1,0 +1,124 @@
+defaults:
+  - _self_
+
+cache_dir: null
+
+world:
+  env_name: swm/OGBCube-v0
+  num_envs: ${eval.num_eval}
+  max_episode_steps: ??? # make sure it's >= eval_budget
+  history_size: 1
+  frame_skip: 1
+  env_type: single
+  ob_type: states
+  multiview: false
+  width: 224
+  height: 224
+  visualize_info: false
+  terminate_at_goal: true
+
+dataset:
+  stats: ${eval.dataset_name}
+  keys_to_cache:
+    - action
+    - observation
+
+seed: 42
+policy: hi_lewm
+
+planning:
+  mode: hierarchical # one of: hierarchical, hierarchical_staged, flat
+  high:
+    replan_interval: 5
+    solver:
+      _target_: stable_worldmodel.solver.CEMSolver
+      model: ???
+      batch_size: 1
+      num_samples: 900
+      var_scale: 1.0
+      n_steps: 20
+      topk: 30
+      device: "cuda"
+      seed: ${seed}
+    plan_config:
+      horizon: 2
+      receding_horizon: 1
+      action_block: 1
+    latent_prior:
+      enabled: true
+      num_chunks: 2048
+      min_chunks_for_stats: 64
+      chunk_len: 5
+      lower_q: 5.0
+      upper_q: 95.0
+      margin_ratio: 0.05
+      clamp_abs: 3.0
+      fallback_abs: 1.0
+    empirical_macro:
+      enabled: false
+      num_sequences: 4096
+      chunk_len: 5
+      residual_scale: 0.1
+      min_residual_std: 1.0e-3
+      return_top_candidates: 8
+      encode_batch_size: 4096
+      stage_sampling: sequence # sequence or independent
+      seed: ${seed}
+  low:
+    solver:
+      _target_: stable_worldmodel.solver.CEMSolver
+      model: ???
+      batch_size: 1
+      num_samples: 300
+      var_scale: 1.0
+      n_steps: 30
+      topk: 150
+      device: "cuda"
+      seed: ${seed}
+    plan_config:
+      horizon: 5
+      receding_horizon: 1
+      action_block: 5
+
+solver:
+  _target_: stable_worldmodel.solver.CEMSolver
+  model: ???
+  batch_size: 1
+  num_samples: 300
+  var_scale: 1.0
+  n_steps: 30
+  topk: 30
+  device: "cuda"
+  seed: ${seed}
+
+plan_config:
+  horizon: 1
+  receding_horizon: 1
+  action_block: 5
+
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: ogbench/cube_single_expert
+  callables:
+    - method: set_state
+      args:
+        qpos:
+          value: qpos
+        qvel:
+          value: qvel
+    - method: set_target_pos
+      args:
+        cube_id:
+          value: 0
+          in_dataset: false
+        target_pos:
+          value: goal_privileged_block_0_pos
+        target_quat:
+          value: goal_privileged_block_0_quat
+
+output:
+  filename: hi_cube_results.txt
+  subdir: null

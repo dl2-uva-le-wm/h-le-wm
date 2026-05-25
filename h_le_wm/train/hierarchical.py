@@ -17,7 +17,7 @@ from lightning.pytorch.loggers import WandbLogger
 from omegaconf import OmegaConf, open_dict
 from torch.utils.data import default_collate
 
-from baseline_adapter import (
+from h_le_wm.baseline.adapter import (
     ARPredictor,
     BASELINE_ROOT,
     Embedder,
@@ -27,10 +27,10 @@ from baseline_adapter import (
     get_column_normalizer,
     get_img_preprocessor,
 )
-from hi_jepa import HiJEPA
-from hi_module import LatentActionEncoder
-from hi_vq import VQActionEncoder
-from hi_waypoint_sampling import sample_waypoints
+from h_le_wm.models.jepa import HiJEPA
+from h_le_wm.models.latent_action import LatentActionEncoder
+from h_le_wm.models.vq import VQActionEncoder
+from h_le_wm.models.waypoint_sampling import sample_waypoints
 
 
 def _object_epoch(path: Path, source_policy: str) -> int | None:
@@ -728,7 +728,7 @@ def validate_high_level_config(cfg):
         )
 
 
-@hydra.main(version_base=None, config_path="./config/train", config_name="hi_lewm")
+@hydra.main(version_base=None, config_path="../config/train", config_name="hi_lewm")
 def run(cfg):
     """Main training entrypoint for high-level predictor training.
 

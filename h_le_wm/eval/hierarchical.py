@@ -15,12 +15,12 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn import preprocessing
 from torchvision.transforms import v2 as transforms
 
-import baseline_adapter as _baseline_adapter
-from eval_determinism import (
+import h_le_wm.baseline.adapter as _baseline_adapter
+from h_le_wm.eval.determinism import (
     configure_process_determinism,
     format_determinism_report,
 )
-from hi_policy import (
+from h_le_wm.planning.policies import (
     EmpiricalMacroActionSolver,
     HierarchicalWorldModelPolicy,
     StagedHierarchicalWorldModelPolicy,
@@ -71,6 +71,7 @@ def resolve_output_dir(cfg: DictConfig) -> Path:
     """Resolve directory used for videos and result text output.
 
     Uses policy parent directory by default and optionally appends output.subdir.
+    When ``output.root_dir`` is set, it overrides the default base directory.
     """
     base_dir = (
         Path(swm.data.utils.get_cache_dir(), cfg.policy).parent
@@ -78,7 +79,23 @@ def resolve_output_dir(cfg: DictConfig) -> Path:
         else Path(__file__).parent
     )
 
-    output_subdir = str(cfg.output.get("subdir", "")).strip()
+    output_cfg = cfg.get("output")
+    if output_cfg is None:
+        return base_dir
+
+    output_root_dir = str(output_cfg.get("root_dir", "")).strip()
+    if output_root_dir:
+        root_dir = Path(output_root_dir)
+        if root_dir.is_absolute():
+            base_dir = root_dir
+        else:
+            if ".." in root_dir.parts:
+                raise ValueError(
+                    "output.root_dir must be an absolute path or a relative path without '..' segments."
+                )
+            base_dir = Path(swm.data.utils.get_cache_dir()) / root_dir
+
+    output_subdir = str(output_cfg.get("subdir", "")).strip()
     if output_subdir:
         subdir = Path(output_subdir)
         if subdir.is_absolute() or ".." in subdir.parts:
@@ -447,7 +464,7 @@ def build_policy(cfg, model, dataset, process, transform):
     )
 
 
-@hydra.main(version_base=None, config_path="./config/eval", config_name="hi_pusht")
+@hydra.main(version_base=None, config_path="../config/eval", config_name="hi_pusht")
 def run(cfg: DictConfig):
     determinism_report = configure_process_determinism(
         seed=int(cfg.seed),

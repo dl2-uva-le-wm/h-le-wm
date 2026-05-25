@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import sys
 
-from baseline_adapter import run_baseline_script
+from h_le_wm.baseline.adapter import run_baseline_script
 
 
 def main() -> int:
-    # Delegate baseline training to the pinned upstream submodule.
     return run_baseline_script("train.py", sys.argv[1:])
 
 
