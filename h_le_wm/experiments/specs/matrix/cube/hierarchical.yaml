@@ -1,0 +1,43 @@
+name: matrix/cube/hierarchical
+kind: matrix
+operation: matrix
+backend: hierarchical
+config_name: hi_cube
+num_eval: 50
+eval_device: cpu
+result_filename: hi_cube_results.txt
+sweep_csv: h_le_wm/experiments/matrix/cube/hierarchical_matrix.csv
+seeds:
+  - 42
+checkpoints:
+  - slug: hope2
+    run_name: cube_hierarchical_hope2
+    checkpoint_epoch: 15
+summary:
+  group_by:
+    - checkpoint_slug
+    - goal_offset
+    - config_note
+    - eval_budget
+    - high_horizon
+    - low_horizon
+    - high_receding_horizon
+    - low_receding_horizon
+    - high_replan_interval
+    - high_action_block
+    - low_action_block
+    - high_num_samples
+    - high_n_steps
+    - high_topk
+    - low_num_samples
+    - low_n_steps
+    - low_topk
+  value_field: success_rate
+requirements:
+  checkpoints:
+    - "{run_root}/cube_hierarchical_hope2/cube_hierarchical_hope2_epoch_15_object.ckpt"
+outputs:
+  root_kind: repro
+  raw_csv: "{output_root}/raw_rows.csv"
+  summary_csv: "{output_root}/summary.csv"
+  completion_file: "{output_root}/COMPLETE"

@@ -1,0 +1,35 @@
+name: matrix/pusht/baseline
+kind: matrix
+operation: matrix
+backend: baseline
+config_name: pusht
+dataset_name: pusht_expert_train
+num_eval: 50
+eval_device: cpu
+result_filename: pusht_results.txt
+sweep_csv: h_le_wm/experiments/matrix/pusht/baseline_matrix.csv
+seeds:
+  - 42
+checkpoints:
+  - slug: lewm
+    policy: pusht/lewm
+    object_relpath: pusht/lewm_object.ckpt
+summary:
+  group_by:
+    - checkpoint_slug
+    - goal_offset
+    - eval_budget
+    - low_horizon
+    - low_receding_horizon
+    - low_action_block
+    - low_num_samples
+    - low_n_steps
+  value_field: success_rate
+requirements:
+  checkpoints:
+    - "{stablewm_home}/pusht/lewm_object.ckpt"
+outputs:
+  root_kind: repro
+  raw_csv: "{output_root}/raw_rows.csv"
+  summary_csv: "{output_root}/summary.csv"
+  completion_file: "{output_root}/COMPLETE"

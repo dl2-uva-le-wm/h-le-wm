@@ -1,0 +1,33 @@
+checkpoints:
+  - name: baseline/pusht/lewm
+    relpath: pusht/lewm_object.ckpt
+    tiers:
+      - required-now
+      - supported-first-class
+    description: Baseline flat PushT object checkpoint required for the paper setup path.
+  - name: baseline/cube/lewm
+    relpath: cube/lewm_object.ckpt
+    tiers:
+      - required-now
+      - supported-first-class
+    description: Baseline flat Cube object checkpoint required for the paper setup path.
+  - name: hierarchical/pusht/hope2_epoch15
+    relpath: runs/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt
+    tiers:
+      - supported-first-class
+    description: Canonical PushT hierarchical HOPE2 checkpoint consumed by the first-class matrix surface.
+  - name: hierarchical/cube/hope2_epoch15
+    relpath: runs/cube_hierarchical_hope2/cube_hierarchical_hope2_epoch_15_object.ckpt
+    tiers:
+      - supported-first-class
+    description: Canonical Cube hierarchical HOPE2 checkpoint consumed by the first-class matrix surface.
+  - name: probe/pusht/phase_a
+    relpath: runs/pusht_probe_phase_a/pusht_probe_phase_a_probe.pt
+    tiers:
+      - supported-first-class
+    description: Canonical Phase A decoder probe bundle for reader-facing probe workflows.
+  - name: probe/pusht/phase_b
+    relpath: runs/pusht_probe_phase_b/pusht_probe_phase_b_probe.pt
+    tiers:
+      - supported-first-class
+    description: Canonical Phase B decoder probe bundle for reader-facing probe workflows.

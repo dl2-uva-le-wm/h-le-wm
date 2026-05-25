@@ -1,0 +1,26 @@
+name: diagnostics/pusht/offline
+kind: command
+operation: diagnostics
+outputs:
+  root_kind: repro
+  root_name: pusht_offline_diagnostics
+  completion_file: "{output_root}/COMPLETE"
+requirements:
+  checkpoints:
+    - "{run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt"
+command:
+  argv:
+    - python
+    - -m
+    - h_le_wm.experiments.pusht_diagnostics
+    - offline
+    - --policy
+    - runs/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15
+    - --output-root
+    - "{output_root}"
+    - --cache-dir
+    - "{stablewm_home}"
+    - --device
+    - cuda
+    - --seed
+    - "42"

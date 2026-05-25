@@ -1,0 +1,11 @@
+name: render/pusht/decoder_story_figures
+kind: workflow
+operation: render
+outputs:
+  root_kind: repro
+  root_name: pusht_decoder_story_figures
+  completion_file: "{output_root}/WORKFLOW_COMPLETE"
+steps:
+  - diagnostics/pusht/offline
+  - diagnostics/pusht/acting
+  - h_le_wm/experiments/specs/render/pusht/decoder_story_figures_render.yaml

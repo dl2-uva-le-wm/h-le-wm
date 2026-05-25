@@ -1,0 +1,53 @@
+specs:
+  - name: matrix/pusht/baseline
+    kind: matrix
+    operation: matrix
+    path: h_le_wm/experiments/specs/matrix/pusht/baseline.yaml
+  - name: matrix/pusht/hierarchical
+    kind: matrix
+    operation: matrix
+    path: h_le_wm/experiments/specs/matrix/pusht/hierarchical.yaml
+  - name: matrix/cube/baseline
+    kind: matrix
+    operation: matrix
+    path: h_le_wm/experiments/specs/matrix/cube/baseline.yaml
+  - name: matrix/cube/hierarchical
+    kind: matrix
+    operation: matrix
+    path: h_le_wm/experiments/specs/matrix/cube/hierarchical.yaml
+  - name: smoke/pusht
+    kind: workflow
+    operation: smoke
+    path: h_le_wm/experiments/specs/smoke/pusht.yaml
+  - name: diagnostics/pusht/offline
+    kind: command
+    operation: diagnostics
+    path: h_le_wm/experiments/specs/diagnostics/pusht/offline.yaml
+  - name: diagnostics/pusht/acting
+    kind: command
+    operation: diagnostics
+    path: h_le_wm/experiments/specs/diagnostics/pusht/acting.yaml
+  - name: probe/pusht/phase_a/train
+    kind: command
+    operation: train
+    path: h_le_wm/experiments/specs/probe/pusht/phase_a_train.yaml
+  - name: probe/pusht/phase_b/train
+    kind: workflow
+    operation: train
+    path: h_le_wm/experiments/specs/probe/pusht/phase_b.yaml
+  - name: render/pusht/paper_diagnostics
+    kind: workflow
+    operation: render
+    path: h_le_wm/experiments/specs/render/pusht/paper_diagnostics.yaml
+  - name: render/pusht/decoder_story_figures
+    kind: workflow
+    operation: render
+    path: h_le_wm/experiments/specs/render/pusht/decoder_story_figures.yaml
+  - name: render/pusht/story_figures
+    kind: workflow
+    operation: render
+    path: h_le_wm/experiments/specs/render/pusht/story_figures.yaml
+  - name: paper/reproduction
+    kind: workflow
+    operation: workflow
+    path: h_le_wm/experiments/specs/workflow/paper_reproduction.yaml

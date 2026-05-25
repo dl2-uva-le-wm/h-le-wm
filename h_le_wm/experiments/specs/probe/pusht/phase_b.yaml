@@ -1,0 +1,10 @@
+name: probe/pusht/phase_b/train
+kind: workflow
+operation: train
+outputs:
+  root_kind: runs
+  root_name: pusht_probe_phase_b
+  completion_file: "{output_root}/WORKFLOW_COMPLETE"
+steps:
+  - probe/pusht/phase_a/train
+  - h_le_wm/experiments/specs/probe/pusht/phase_b_train.yaml

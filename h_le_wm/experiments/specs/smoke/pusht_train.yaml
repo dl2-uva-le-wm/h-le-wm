@@ -1,0 +1,31 @@
+name: smoke/pusht/train
+kind: command
+operation: train
+outputs:
+  root_kind: runs
+  root_name: pusht_smoke
+  completion_file: "{output_root}/TRAIN_COMPLETE"
+requirements:
+  checkpoints:
+    - "{stablewm_home}/pusht/lewm_object.ckpt"
+command:
+  argv:
+    - python
+    - -m
+    - h_le_wm.train.hierarchical
+    - data=hi_pusht
+    - output_model_name=pusht_smoke
+    - subdir=runs/pusht_smoke
+    - trainer.max_epochs=1
+    - trainer.devices=1
+    - trainer.accelerator=gpu
+    - trainer.limit_train_batches=2
+    - trainer.limit_val_batches=1
+    - loader.batch_size=8
+    - loader.num_workers=1
+    - loader.prefetch_factor=2
+    - loader.persistent_workers=False
+    - loader.pin_memory=True
+    - wandb.enabled=False
+    - pretrained_low_level.checkpoint.selection_mode=explicit_path
+    - pretrained_low_level.checkpoint.path={stablewm_home}/pusht/lewm_object.ckpt

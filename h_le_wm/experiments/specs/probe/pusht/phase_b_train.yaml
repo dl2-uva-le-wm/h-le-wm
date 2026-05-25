@@ -1,0 +1,26 @@
+name: probe/pusht/phase_b/train/command
+kind: command
+operation: train
+outputs:
+  root_kind: runs
+  root_name: pusht_probe_phase_b
+  completion_file: "{output_root}/COMPLETE"
+requirements:
+  checkpoints:
+    - "{run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt"
+    - "{run_root}/pusht_probe_phase_a/pusht_probe_phase_a_probe.pt"
+command:
+  argv:
+    - python
+    - -m
+    - h_le_wm.probe.train
+    - data=hi_pusht
+    - output_model_name=pusht_probe_phase_b
+    - subdir=runs/pusht_probe_phase_b
+    - trainer.max_epochs=10
+    - trainer.devices=1
+    - trainer.accelerator=gpu
+    - wandb.enabled=False
+    - probe.mode=pred_exposed
+    - probe.checkpoint.path={run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt
+    - probe.init_decoder_checkpoint={run_root}/pusht_probe_phase_a/pusht_probe_phase_a_probe.pt

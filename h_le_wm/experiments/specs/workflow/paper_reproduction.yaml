@@ -1,0 +1,17 @@
+name: paper/reproduction
+kind: workflow
+operation: workflow
+outputs:
+  root_kind: repro
+  root_name: paper_reproduction
+  completion_file: "{output_root}/COMPLETE"
+steps:
+  - matrix/pusht/baseline
+  - matrix/pusht/hierarchical
+  - matrix/cube/baseline
+  - matrix/cube/hierarchical
+  - diagnostics/pusht/offline
+  - diagnostics/pusht/acting
+  - render/pusht/paper_diagnostics
+  - render/pusht/decoder_story_figures
+  - render/pusht/story_figures

@@ -1,0 +1,38 @@
+name: smoke/pusht/eval
+kind: command
+operation: eval
+outputs:
+  root_kind: repro
+  root_name: pusht_smoke
+  completion_file: "{output_root}/COMPLETE"
+requirements:
+  checkpoints:
+    - "{run_root}/pusht_smoke/pusht_smoke_epoch_1_object.ckpt"
+command:
+  argv:
+    - python
+    - -m
+    - h_le_wm.eval.hierarchical
+    - --config-name=hi_pusht
+    - policy=runs/pusht_smoke/pusht_smoke_epoch_1
+    - seed=42
+    - planning.mode=hierarchical
+    - eval.num_eval=8
+    - eval.goal_offset_steps=25
+    - eval.eval_budget=25
+    - planning.high.solver.device=cuda
+    - planning.low.solver.device=cuda
+    - solver.device=cuda
+    - planning.high.solver.num_samples=64
+    - planning.high.solver.n_steps=5
+    - planning.high.solver.topk=4
+    - planning.high.plan_config.horizon=2
+    - planning.high.plan_config.receding_horizon=1
+    - planning.high.replan_interval=5
+    - planning.low.solver.num_samples=64
+    - planning.low.solver.n_steps=10
+    - planning.low.solver.topk=8
+    - planning.low.plan_config.horizon=5
+    - planning.low.plan_config.receding_horizon=1
+    - output.filename=hi_pusht_smoke_results.txt
+    - +output.root_dir={output_root}

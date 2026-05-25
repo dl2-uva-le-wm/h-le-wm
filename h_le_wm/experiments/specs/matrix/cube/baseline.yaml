@@ -1,0 +1,35 @@
+name: matrix/cube/baseline
+kind: matrix
+operation: matrix
+backend: baseline
+config_name: cube
+dataset_name: ogbench/cube_single_expert
+num_eval: 50
+eval_device: cpu
+result_filename: ogb_cube_results.txt
+sweep_csv: h_le_wm/experiments/matrix/cube/baseline_matrix.csv
+seeds:
+  - 42
+checkpoints:
+  - slug: lewm
+    policy: cube/lewm
+    object_relpath: cube/lewm_object.ckpt
+summary:
+  group_by:
+    - checkpoint_slug
+    - goal_offset
+    - eval_budget
+    - low_horizon
+    - low_receding_horizon
+    - low_action_block
+    - low_num_samples
+    - low_n_steps
+  value_field: success_rate
+requirements:
+  checkpoints:
+    - "{stablewm_home}/cube/lewm_object.ckpt"
+outputs:
+  root_kind: repro
+  raw_csv: "{output_root}/raw_rows.csv"
+  summary_csv: "{output_root}/summary.csv"
+  completion_file: "{output_root}/COMPLETE"

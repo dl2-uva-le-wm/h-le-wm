@@ -27,9 +27,8 @@ jobs:
         env:
           LEWM_WRAPPER_DRY_RUN: "1"
         run: |
-          python train.py data=pusht
-          python eval.py --config-name=pusht
-          python hi_eval.py --config-name=hi_pusht
+          python -m h_le_wm.train.baseline data=pusht
+          python -m h_le_wm.eval.baseline --config-name=pusht
 
       - name: Hierarchy Compile Smoke
-        run: python -m py_compile baseline_adapter.py hi_module.py hi_jepa.py hi_train.py
+        run: python -m py_compile h_le_wm/baseline/adapter.py h_le_wm/models/latent_action.py h_le_wm/models/jepa.py h_le_wm/train/hierarchical.py h_le_wm/eval/hierarchical.py

@@ -1,0 +1,26 @@
+name: render/pusht/paper_diagnostics/render
+kind: command
+operation: render
+context:
+  offline_root: "{repro_root}/pusht_offline_diagnostics"
+  acting_root: "{repro_root}/pusht_acting_diagnostics"
+  matrix_summary: "{repro_root}/matrix__pusht__hierarchical/summary.csv"
+  baseline_summary: "{repro_root}/matrix__pusht__baseline/summary.csv"
+outputs:
+  root_kind: repro
+  root_name: pusht_paper_diagnostics_render
+  completion_file: "{output_root}/COMPLETE"
+command:
+  argv:
+    - python
+    - scripts/render_hi_paper_diagnostics.py
+    - --offline-log-root
+    - "{offline_root}"
+    - --acting-log-root
+    - "{acting_root}"
+    - --output-dir
+    - "{output_root}"
+    - --matrix-csv
+    - "{matrix_summary}"
+    - --baseline-md
+    - "{baseline_summary}"

@@ -1,0 +1,10 @@
+name: render/pusht/story_figures
+kind: workflow
+operation: render
+outputs:
+  root_kind: repro
+  root_name: pusht_story_figures
+  completion_file: "{output_root}/WORKFLOW_COMPLETE"
+steps:
+  - render/pusht/paper_diagnostics
+  - h_le_wm/experiments/specs/render/pusht/story_figures_render.yaml

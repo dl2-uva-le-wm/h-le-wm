@@ -1,0 +1,10 @@
+name: smoke/pusht
+kind: workflow
+operation: smoke
+outputs:
+  root_kind: repro
+  root_name: pusht_smoke
+  completion_file: "{output_root}/WORKFLOW_COMPLETE"
+steps:
+  - h_le_wm/experiments/specs/smoke/pusht_train.yaml
+  - h_le_wm/experiments/specs/smoke/pusht_eval.yaml

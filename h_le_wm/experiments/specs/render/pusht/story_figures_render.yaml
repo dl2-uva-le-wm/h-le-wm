@@ -1,0 +1,49 @@
+name: render/pusht/story_figures/render
+kind: command
+operation: render
+context:
+  phase_b_dir: "{run_root}/pusht_probe_phase_b"
+  phase_b_probe_ckpt: "{run_root}/pusht_probe_phase_b/pusht_probe_phase_b_probe.pt"
+  teacher_artifact: "{repro_root}/pusht_offline_diagnostics/teacher_vs_open_loop_d50_hh2_lh2.npz"
+  oracle_artifact: "{repro_root}/pusht_acting_diagnostics/oracle_subgoal_acting_d50_hh2_lh2_lrh1.npz"
+  generated_artifact: "{repro_root}/pusht_acting_diagnostics/generated_subgoal_acting_d50_hh2_lh2_lrh1.npz"
+  online_artifact: "{repro_root}/pusht_acting_diagnostics/online_hierarchical_logging_d50_hh2_lh2_lrh1.npz"
+  paper_tables_dir: "{repro_root}/pusht_paper_diagnostics_render/tables"
+  baseline_summary: "{repro_root}/matrix__pusht__baseline/summary.csv"
+outputs:
+  root_kind: repro
+  root_name: pusht_story_figures
+  completion_file: "{output_root}/COMPLETE"
+requirements:
+  checkpoints:
+    - "{run_root}/pusht_probe_phase_b/pusht_probe_phase_b_probe.pt"
+command:
+  argv:
+    - python
+    - scripts/render_hi_story_figures.py
+    - --probe-run-dir
+    - "{phase_b_dir}"
+    - --probe-ckpt
+    - "{phase_b_probe_ckpt}"
+    - --teacher-artifact
+    - "{teacher_artifact}"
+    - --oracle-artifact
+    - "{oracle_artifact}"
+    - --generated-artifact
+    - "{generated_artifact}"
+    - --online-artifact
+    - "{online_artifact}"
+    - --paper-tables-dir
+    - "{paper_tables_dir}"
+    - --baseline-md
+    - "{baseline_summary}"
+    - --output-dir
+    - "{output_root}"
+    - --cache-dir
+    - "{stablewm_home}"
+    - --goal-offset-steps
+    - "50"
+    - --frame-skip
+    - "5"
+    - --rows
+    - "4"

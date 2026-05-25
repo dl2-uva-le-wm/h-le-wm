@@ -1,0 +1,11 @@
+name: render/pusht/paper_diagnostics
+kind: workflow
+operation: render
+outputs:
+  root_kind: repro
+  root_name: pusht_paper_diagnostics_render
+  completion_file: "{output_root}/WORKFLOW_COMPLETE"
+steps:
+  - diagnostics/pusht/offline
+  - diagnostics/pusht/acting
+  - h_le_wm/experiments/specs/render/pusht/paper_diagnostics_render.yaml
