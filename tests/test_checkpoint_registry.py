@@ -13,6 +13,7 @@ from h_le_wm.checkpoints import (
     KNOWN_TIERS,
     iter_registry_entries,
     load_checkpoint_registry,
+    parse_checkpoint_assignment,
     resolve_checkpoint_target,
 )
 
@@ -81,3 +82,8 @@ checkpoints:
 
     with pytest.raises(ValueError, match="Duplicate checkpoint registry name"):
         load_checkpoint_registry(path=registry_path)
+
+
+def test_docs_placeholder_checkpoint_path_is_rejected_early():
+    with pytest.raises(FileNotFoundError, match="docs placeholder path"):
+        parse_checkpoint_assignment("baseline/pusht/lewm=/absolute/path/to/pusht_lewm_object.ckpt")

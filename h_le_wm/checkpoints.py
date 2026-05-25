@@ -133,6 +133,11 @@ def parse_checkpoint_assignment(raw: str) -> tuple[str, Path]:
         raise ValueError(
             f"Invalid checkpoint assignment '{raw}'. Use the form --checkpoint name=/absolute/path/to/file"
         )
+    if parsed_source.startswith("/absolute/path/to/"):
+        raise FileNotFoundError(
+            "Checkpoint source still uses the docs placeholder path. Replace "
+            f"'{parsed_source}' with the real local file path."
+        )
     return parsed_name, Path(parsed_source).expanduser().resolve()
 
 

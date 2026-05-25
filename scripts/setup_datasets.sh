@@ -90,7 +90,7 @@ REPOS=()
 
 normalize_dataset() {
   local x
-  x="$(echo "$1" | tr '[:upper:]' '[:lower:]' | tr -d ' ')"
+  x="$(echo "$1" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
   case "$x" in
     pusht) echo "quentinll/lewm-pusht" ;;
     tworoom|tworooms) echo "quentinll/lewm-tworooms" ;;
@@ -109,7 +109,21 @@ if [[ "${DATASETS}" == "all" ]]; then
     "quentinll/lewm-reacher"
   )
 else
-  for item in ${DATASETS//,/ }; do
+  dataset_items=()
+  if [[ -n "${BASH_VERSION:-}" ]]; then
+    IFS=',' read -r -a dataset_items <<< "${DATASETS}"
+  elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    IFS=',' read -rA dataset_items <<< "${DATASETS}"
+  else
+    OLD_IFS="${IFS}"
+    IFS=','
+    # shellcheck disable=SC2086
+    set -- ${DATASETS}
+    IFS="${OLD_IFS}"
+    dataset_items=("$@")
+  fi
+
+  for item in "${dataset_items[@]}"; do
     repo="$(normalize_dataset "$item")"
     if [[ -z "$repo" || "$repo" == "all" ]]; then
       _abort "Unsupported dataset key: '$item'. Use: pusht,tworooms,cube,reacher,all"
