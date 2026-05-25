@@ -1,8 +1,0 @@
-goal_offset;eval_budget;low_horizon;low_receding_horizon;low_action_block;low_num_samples;low_n_steps
-D25;50;5;5;5;300;30
-D50;100;5;5;5;300;30
-D50;100;10;5;5;300;30
-D50;100;5;1;5;300;30
-D75;150;10;5;5;300;30
-D75;150;5;5;5;300;30
-D75;150;15;5;5;300;30

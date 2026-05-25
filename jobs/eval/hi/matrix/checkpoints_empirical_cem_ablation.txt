@@ -1,4 +1,0 @@
-# RUN_NAME CHECKPOINT_EPOCH
-# Empirical-CEM ablation for the reduced D50/D75 hierarchical matrix sweep.
-# Intentionally restricted to the HOPE2 checkpoint only.
-hi_lewm_p2_train_hope2_22253175 15

@@ -1,5 +1,0 @@
-model,d,hh,low_horizon,step1_terminal_cost,step1_terminal_error,step1_dataset_distance,step1_same_traj_distance,step2_terminal_cost,step2_terminal_error,step2_dataset_distance,step2_same_traj_distance
-hope2,25,1,2,0.1639,0.1639,5.0071,1.2698,,,,
-hope2,25,2,2,0.0128,0.0128,4.9118,2.7779,0.0161,0.0161,4.8708,0.9386
-hope2,50,1,2,0.5289,0.5289,5.6839,2.8625,,,,
-hope2,50,2,2,0.1086,0.1086,5.5547,5.2670,0.1173,0.1173,5.3101,1.1151

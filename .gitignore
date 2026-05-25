@@ -53,5 +53,9 @@ environment.json
 .codex
 jobs_github_ready_*.zip
 
+/AGENTS.md
+/.agents/
+/jobs/
+/roadmap/
 
 *_frozen.txt

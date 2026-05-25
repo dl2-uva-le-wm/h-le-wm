@@ -1,5 +1,0 @@
-model,d,hh,teacher_mse,open_loop_true_mse,open_loop_cem_mse,open_true_over_teacher,open_cem_over_open_true,planner_flag,predictor_flag,step1_teacher,step1_open_true,step1_open_cem,step2_teacher,step2_open_true,step2_open_cem
-hope2,25,1,0.1177,0.1177,0.0108,1.0000,0.0914,False,False,0.1177,0.1177,0.0108,,,
-hope2,25,2,0.0281,0.0466,0.0837,1.6569,1.7970,True,True,0.0195,0.0195,0.1614,0.0367,0.0737,0.0060
-hope2,50,1,0.5378,0.5378,0.0598,1.0000,0.1112,False,False,0.5378,0.5378,0.0598,,,
-hope2,50,2,0.0924,0.1486,0.1764,1.6082,1.1873,False,True,0.0812,0.0812,0.3398,0.1036,0.2160,0.0131

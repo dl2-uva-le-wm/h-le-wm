@@ -1,8 +1,0 @@
-# RUN_NAME CHECKPOINT_EPOCH
-# VQ-VAE ablation models for the reduced D50/D75 hierarchical matrix sweep.
-# Verified from each run's config.yaml:
-# - hi_lewm_p2_vq_train_hope1_22607223 -> latent_action_encoder.vq.num_codes: 128
-# - hi_lewm_p2_vq16_ep50_22906948 -> latent_action_encoder.vq.num_codes: 16
-# Both runs have an object checkpoint at epoch 50.
-hi_lewm_p2_vq_train_hope1_22607223 50
-hi_lewm_p2_vq16_ep50_22906948 50

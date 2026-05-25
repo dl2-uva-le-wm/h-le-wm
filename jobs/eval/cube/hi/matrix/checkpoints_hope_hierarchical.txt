@@ -1,3 +1,0 @@
-# RUN_NAME CHECKPOINT_EPOCH
-# Edit this list to choose which checkpoints receive the hope hierarchical sweep.
-hi_lewm_cube_train_hope2_23052898 15
