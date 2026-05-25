@@ -57,5 +57,8 @@ jobs_github_ready_*.zip
 /.agents/
 /jobs/
 /roadmap/
+/skills-lock.json
+/refactor.md
+/.github/
 
 *_frozen.txt
