@@ -64,6 +64,11 @@ def test_wrapper_help_surfaces_are_available():
         assert result.returncode == 0, result.stderr
 
 
+def test_scripts_root_keeps_python_helpers_in_subfolders():
+    py_files = sorted(path.name for path in (ROOT / "scripts").glob("*.py"))
+    assert py_files == ["__init__.py"]
+
+
 @pytest.mark.parametrize("shell", [shell for shell in ("bash", "zsh") if shutil.which(shell)])
 def test_sourceable_dataset_wrappers_support_bash_and_zsh(shell: str):
     for wrapper in SOURCEABLE_WRAPPERS:

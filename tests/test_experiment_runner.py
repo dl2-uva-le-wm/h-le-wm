@@ -237,8 +237,8 @@ def test_render_and_reproduction_dry_runs_reference_canonical_surface(
     assert render.returncode == 0, render_output
     assert reproduction.returncode == 0, reproduction_output
     assert "-m h_le_wm.experiments.pusht_diagnostics offline" in render_output
-    assert "scripts/render_hi_paper_diagnostics.py" in render_output
+    assert "scripts/diagnostics/render_hi_paper_diagnostics.py" in render_output
     assert f"{stablewm_home / 'repro' / 'matrix__pusht__baseline' / 'summary.csv'}" in render_output
     assert "-m h_le_wm.eval.baseline_manifest" in reproduction_output
     assert "-m h_le_wm.eval.hierarchical" in reproduction_output
-    assert "scripts/render_hi_story_figures.py" in reproduction_output
+    assert "scripts/diagnostics/render_hi_story_figures.py" in reproduction_output

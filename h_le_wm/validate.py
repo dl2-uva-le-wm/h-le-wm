@@ -31,7 +31,7 @@ def check_env() -> None:
 
 
 def check_baseline() -> None:
-    cmd = [sys.executable, str(REPO_ROOT / "scripts" / "check_baseline_integrity.py")]
+    cmd = [sys.executable, str(REPO_ROOT / "scripts" / "tools" / "check_baseline_integrity.py")]
     result = subprocess.run(cmd, cwd=str(REPO_ROOT), text=True, capture_output=True, check=False)
     if result.stdout:
         print(result.stdout, end="")

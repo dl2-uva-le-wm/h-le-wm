@@ -22,7 +22,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/render_hi_decoder_diagnostic_stories.py" ]]; then
+        if [[ -f "${p}/scripts/diagnostics/render_hi_decoder_diagnostic_stories.py" ]]; then
           echo "${p}"
           return 0
         fi
@@ -75,7 +75,7 @@ else
 fi
 
 cd "${REPO_ROOT}"
-python scripts/render_hi_decoder_diagnostic_stories.py \
+python scripts/diagnostics/render_hi_decoder_diagnostic_stories.py \
   --probe-run-dir "${PROBE_RUN_DIR}" \
   --teacher-artifact "${TEACHER_ARTIFACT}" \
   --generated-artifact "${GENERATED_ARTIFACT}" \

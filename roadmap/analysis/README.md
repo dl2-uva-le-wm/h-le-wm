@@ -50,8 +50,8 @@ Commit:
 
 Files introduced in that step:
 
-- [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
-- [scripts/run_hi_diagnostic.py](/gpfs/home2/scur0200/main/scripts/run_hi_diagnostic.py)
+- [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
+- [scripts/diagnostics/run_hi_diagnostic.py](/gpfs/home2/scur0200/main/scripts/diagnostics/run_hi_diagnostic.py)
 - [jobs/eval/hi/diagnostics/run_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/diagnostics/run_diagnostics_matrix.sh)
 - [jobs/eval/hi/diagnostics/submit_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/diagnostics/submit_diagnostics_matrix.sh)
 - [jobs/eval/hi/diagnostics/checkpoints_diagnostics.txt](/gpfs/home2/scur0200/main/jobs/eval/hi/diagnostics/checkpoints_diagnostics.txt)
@@ -73,8 +73,8 @@ Commit:
 
 Files introduced in that step:
 
-- [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
-- [scripts/run_hi_acting_diagnostic.py](/gpfs/home2/scur0200/main/scripts/run_hi_acting_diagnostic.py)
+- [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
+- [scripts/diagnostics/run_hi_acting_diagnostic.py](/gpfs/home2/scur0200/main/scripts/diagnostics/run_hi_acting_diagnostic.py)
 - [jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh)
 - [jobs/eval/hi/acting_diagnostics/submit_acting_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/acting_diagnostics/submit_acting_diagnostics_matrix.sh)
 - [jobs/eval/hi/acting_diagnostics/checkpoints_acting.txt](/gpfs/home2/scur0200/main/jobs/eval/hi/acting_diagnostics/checkpoints_acting.txt)
@@ -100,7 +100,7 @@ Files introduced in that step:
 
 - [jobs/eval/hi/paper_diagnostics/submit_hope2_paper_diagnostics.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/submit_hope2_paper_diagnostics.sh)
 - [jobs/eval/hi/paper_diagnostics/run_render_hope2_paper_diagnostics.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_render_hope2_paper_diagnostics.sh)
-- [scripts/render_hi_paper_diagnostics.py](/gpfs/home2/scur0200/main/scripts/render_hi_paper_diagnostics.py)
+- [scripts/diagnostics/render_hi_paper_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/render_hi_paper_diagnostics.py)
 
 The current `paper_diagnostics` directory later accumulated extra helpers for decoder/story figures:
 
@@ -108,8 +108,8 @@ The current `paper_diagnostics` directory later accumulated extra helpers for de
 - [jobs/eval/hi/paper_diagnostics/run_compute_hope2_decoder_story_artifacts.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_compute_hope2_decoder_story_artifacts.sh)
 - [jobs/eval/hi/paper_diagnostics/run_render_hope2_decoder_story_figures.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_render_hope2_decoder_story_figures.sh)
 - [jobs/eval/hi/paper_diagnostics/run_render_hope2_story_figures.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_render_hope2_story_figures.sh)
-- [scripts/render_hi_decoder_diagnostic_stories.py](/gpfs/home2/scur0200/main/scripts/render_hi_decoder_diagnostic_stories.py)
-- [scripts/render_hi_story_figures.py](/gpfs/home2/scur0200/main/scripts/render_hi_story_figures.py)
+- [scripts/diagnostics/render_hi_decoder_diagnostic_stories.py](/gpfs/home2/scur0200/main/scripts/diagnostics/render_hi_decoder_diagnostic_stories.py)
+- [scripts/diagnostics/render_hi_story_figures.py](/gpfs/home2/scur0200/main/scripts/diagnostics/render_hi_story_figures.py)
 
 Important distinction:
 
@@ -153,7 +153,7 @@ With `frame_skip = 5`, this becomes:
 - `d25 -> 5` high-level tokens
 - `d50 -> 10` high-level tokens
 
-The token partition is computed by `partition_total` in [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py).
+The token partition is computed by `partition_total` in [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py).
 
 Examples:
 
@@ -208,7 +208,7 @@ All diagnostics normalize raw actions with a `StandardScaler` fit on the full no
 
 This happens in:
 
-- `build_action_scaler` in [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
+- `build_action_scaler` in [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
 
 ### Valid-start sampling
 
@@ -260,8 +260,8 @@ There are eight actual diagnostics, split into an offline family and an acting f
 
 Entry points:
 
-- [scripts/run_hi_diagnostic.py](/gpfs/home2/scur0200/main/scripts/run_hi_diagnostic.py)
-- [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
+- [scripts/diagnostics/run_hi_diagnostic.py](/gpfs/home2/scur0200/main/scripts/diagnostics/run_hi_diagnostic.py)
+- [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
 - [jobs/eval/hi/diagnostics/run_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/diagnostics/run_diagnostics_matrix.sh)
 
 Summary TSV outputs:
@@ -275,7 +275,7 @@ Summary TSV outputs:
 
 Code path:
 
-- `run_macro_action_manifold_diagnostic` in [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
+- `run_macro_action_manifold_diagnostic` in [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
 
 Question it answers:
 
@@ -318,7 +318,7 @@ Important caveat:
 
 Code path:
 
-- `run_high_level_teacher_vs_open_loop_diagnostic` in [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
+- `run_high_level_teacher_vs_open_loop_diagnostic` in [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
 
 Question it answers:
 
@@ -371,7 +371,7 @@ Important caveat:
 
 Code path:
 
-- `run_dataset_subgoal_reachability_diagnostic` in [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
+- `run_dataset_subgoal_reachability_diagnostic` in [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
 
 Question it answers:
 
@@ -407,7 +407,7 @@ Important caveat:
 
 Code path:
 
-- `run_generated_subgoal_reachability_diagnostic` in [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
+- `run_generated_subgoal_reachability_diagnostic` in [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
 
 Question it answers:
 
@@ -444,8 +444,8 @@ What a bad result means:
 
 Entry points:
 
-- [scripts/run_hi_acting_diagnostic.py](/gpfs/home2/scur0200/main/scripts/run_hi_acting_diagnostic.py)
-- [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
+- [scripts/diagnostics/run_hi_acting_diagnostic.py](/gpfs/home2/scur0200/main/scripts/diagnostics/run_hi_acting_diagnostic.py)
+- [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
 - [jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh)
 
 Summary TSV outputs:
@@ -459,7 +459,7 @@ Summary TSV outputs:
 
 Code path:
 
-- `run_oracle_subgoal_acting` in [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
+- `run_oracle_subgoal_acting` in [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
 
 Question it answers:
 
@@ -495,7 +495,7 @@ What a bad result means:
 
 Code path:
 
-- `run_low_level_reality_gap` in [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
+- `run_low_level_reality_gap` in [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
 
 Question it answers:
 
@@ -532,7 +532,7 @@ What a bad result means:
 
 Code path:
 
-- `run_generated_subgoal_acting` in [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
+- `run_generated_subgoal_acting` in [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
 
 Question it answers:
 
@@ -576,7 +576,7 @@ What a bad result means:
 
 Code path:
 
-- `run_online_hierarchical_logging` in [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
+- `run_online_hierarchical_logging` in [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
 
 Question it answers:
 
@@ -627,7 +627,7 @@ The helper functions are:
 - `action_token_summary`
 - `macro_action_summary`
 
-in [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py).
+in [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py).
 
 So if you are looking for a ninth diagnostic, it does not exist as a standalone matrix row.
 
@@ -678,7 +678,7 @@ Files:
 
 - [submit_hope2_paper_diagnostics.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/submit_hope2_paper_diagnostics.sh)
 - [run_render_hope2_paper_diagnostics.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_render_hope2_paper_diagnostics.sh)
-- [scripts/render_hi_paper_diagnostics.py](/gpfs/home2/scur0200/main/scripts/render_hi_paper_diagnostics.py)
+- [scripts/diagnostics/render_hi_paper_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/render_hi_paper_diagnostics.py)
 
 These scripts read:
 
@@ -714,9 +714,9 @@ for the hope2 paper setting and saves rich `.json` and `.npz` artifacts for figu
 Files:
 
 - [run_render_hope2_decoder_story_figures.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_render_hope2_decoder_story_figures.sh)
-- [scripts/render_hi_decoder_diagnostic_stories.py](/gpfs/home2/scur0200/main/scripts/render_hi_decoder_diagnostic_stories.py)
+- [scripts/diagnostics/render_hi_decoder_diagnostic_stories.py](/gpfs/home2/scur0200/main/scripts/diagnostics/render_hi_decoder_diagnostic_stories.py)
 - [run_render_hope2_story_figures.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/paper_diagnostics/run_render_hope2_story_figures.sh)
-- [scripts/render_hi_story_figures.py](/gpfs/home2/scur0200/main/scripts/render_hi_story_figures.py)
+- [scripts/diagnostics/render_hi_story_figures.py](/gpfs/home2/scur0200/main/scripts/diagnostics/render_hi_story_figures.py)
 
 These are decoder-based visualization layers that turn saved latents into image panels.
 
@@ -806,8 +806,8 @@ In other words:
 
 Canonical code:
 
-- [scripts/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_diagnostics.py)
-- [scripts/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/hi_acting_diagnostics.py)
+- [scripts/diagnostics/hi_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_diagnostics.py)
+- [scripts/diagnostics/hi_acting_diagnostics.py](/gpfs/home2/scur0200/main/scripts/diagnostics/hi_acting_diagnostics.py)
 - [jobs/eval/hi/diagnostics/run_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/diagnostics/run_diagnostics_matrix.sh)
 - [jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh](/gpfs/home2/scur0200/main/jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh)
 

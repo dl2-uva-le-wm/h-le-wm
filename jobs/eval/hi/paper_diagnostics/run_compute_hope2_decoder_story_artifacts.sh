@@ -23,7 +23,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/run_hi_acting_diagnostic.py" ]]; then
+        if [[ -f "${p}/scripts/diagnostics/run_hi_acting_diagnostic.py" ]]; then
           echo "${p}"
           return 0
         fi
@@ -90,7 +90,7 @@ COMMON_ARGS=(
 
 cd "${REPO_ROOT}"
 
-python scripts/run_hi_acting_diagnostic.py \
+python scripts/diagnostics/run_hi_acting_diagnostic.py \
   "${COMMON_ARGS[@]}" \
   --experiment-kind generated_subgoal_acting \
   --high-horizon 2 \
@@ -100,7 +100,7 @@ python scripts/run_hi_acting_diagnostic.py \
   --save-npz "${OUTPUT_DIR}/generated_subgoal_acting_d50_hh2_lh2_lrh1.npz" \
   --append-tsv "${OUTPUT_DIR}/summary_generated_subgoal_acting.tsv"
 
-python scripts/run_hi_acting_diagnostic.py \
+python scripts/diagnostics/run_hi_acting_diagnostic.py \
   "${COMMON_ARGS[@]}" \
   --experiment-kind online_hierarchical_logging \
   --high-horizon 2 \

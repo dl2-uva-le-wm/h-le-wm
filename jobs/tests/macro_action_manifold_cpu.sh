@@ -40,7 +40,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/test_macro_action_manifold.py" && -f "${p}/h_le_wm/eval/hierarchical.py" ]]; then
+        if [[ -f "${p}/scripts/diagnostics/test_macro_action_manifold.py" && -f "${p}/h_le_wm/eval/hierarchical.py" ]]; then
           echo "${p}"
           return 0
         fi
@@ -168,7 +168,7 @@ export CUDA_VISIBLE_DEVICES=""
 export MUJOCO_GL="${MUJOCO_GL:-osmesa}"
 
 CMD=(
-  python scripts/test_macro_action_manifold.py
+  python scripts/diagnostics/test_macro_action_manifold.py
   --policy "${POLICY}"
   --dataset-name "${DATASET_NAME}"
   --img-size "${IMG_SIZE}"
@@ -195,4 +195,3 @@ echo
 echo ""
 echo "Diagnostic finished."
 echo "JSON summary: ${JSON_PATH}"
-

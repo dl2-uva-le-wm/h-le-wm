@@ -20,7 +20,7 @@ requirements:
 command:
   argv:
     - python
-    - scripts/render_hi_story_figures.py
+    - scripts/diagnostics/render_hi_story_figures.py
     - --probe-run-dir
     - "{phase_b_dir}"
     - --probe-ckpt

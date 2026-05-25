@@ -29,5 +29,5 @@ This commit is used as the paper-era frozen baseline.
    - `git -C third_party/lewm checkout <new_commit>`
 2. Update this file (`Pinned Commit`, title/date, rationale).
 3. Run integrity + smoke checks:
-   - `python scripts/check_baseline_integrity.py --allow-pointer-update`
+   - `python scripts/tools/check_baseline_integrity.py --allow-pointer-update`
 4. Include baseline bump rationale in PR notes.

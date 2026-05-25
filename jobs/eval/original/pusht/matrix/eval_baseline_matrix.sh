@@ -248,7 +248,7 @@ fi
 
 if [[ ! -f "${CKPT_OBJECT_PATH}" ]]; then
   echo "Checkpoint object not found. Converting from Hugging Face..."
-  python scripts/convert_hf_weights_to_object_ckpt.py     --hf-url "${HF_URL}"     --run-name "${POLICY}"
+  python scripts/tools/convert_hf_weights_to_object_ckpt.py     --hf-url "${HF_URL}"     --run-name "${POLICY}"
 fi
 
 CMD=(

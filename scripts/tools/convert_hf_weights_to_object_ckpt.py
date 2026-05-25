@@ -127,7 +127,7 @@ def _instantiate_model_with_compat(cfg_obj: dict[str, Any]) -> torch.nn.Module:
         if not needs_fallback:
             raise
 
-        repo_root = Path(__file__).resolve().parents[1]
+        repo_root = Path(__file__).resolve().parents[2]
         local_lewm_dir = repo_root / "third_party" / "lewm"
         if not local_lewm_dir.exists():
             raise RuntimeError(

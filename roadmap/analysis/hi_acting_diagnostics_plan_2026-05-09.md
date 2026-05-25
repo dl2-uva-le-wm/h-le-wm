@@ -159,8 +159,8 @@ Decision rule:
 
 Add a second suite parallel to the offline diagnostics:
 
-- `scripts/hi_acting_diagnostics.py`
-- `scripts/run_hi_acting_diagnostic.py`
+- `scripts/diagnostics/hi_acting_diagnostics.py`
+- `scripts/diagnostics/run_hi_acting_diagnostic.py`
 - `jobs/eval/hi/acting_diagnostics/checkpoints_acting.txt`
 - `jobs/eval/hi/acting_diagnostics/run_acting_diagnostics_matrix.sh`
 - `jobs/eval/hi/acting_diagnostics/submit_acting_diagnostics_matrix.sh`

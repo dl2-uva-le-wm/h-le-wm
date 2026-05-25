@@ -29,7 +29,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/run_decoder_probe_report.py" && -f "${p}/scripts/decoder_probe_notebook_utils.py" ]]; then
+        if [[ -f "${p}/scripts/diagnostics/run_decoder_probe_report.py" && -f "${p}/scripts/diagnostics/decoder_probe_notebook_utils.py" ]]; then
           echo "${p}"
           return 0
         fi
@@ -114,7 +114,7 @@ PY2
 fi
 
 CMD=(
-  python scripts/run_decoder_probe_report.py
+  python scripts/diagnostics/run_decoder_probe_report.py
   --output-dir "${OUTPUT_DIR}"
   --cache-dir "${CACHE_DIR}"
   --phase-b-epoch "${PHASE_B_EPOCH}"

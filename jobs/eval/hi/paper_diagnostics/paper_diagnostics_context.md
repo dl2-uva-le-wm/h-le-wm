@@ -390,7 +390,7 @@ Recurring stderr warnings:
 - `gymnasium` passive-env-checker warning that some returned observations are not within the observation space.
 - `torch` warning that nested tensors are still prototype-stage.
 - decoder-story render stderr also shows `torch.cuda` warning `Can't initialize NVML`.
-- decoder-story render stderr also shows Matplotlib `tight_layout` warning from `scripts/render_hi_decoder_diagnostic_stories.py`.
+- decoder-story render stderr also shows Matplotlib `tight_layout` warning from `scripts/diagnostics/render_hi_decoder_diagnostic_stories.py`.
 
 ## Short Interpretation Snapshot
 

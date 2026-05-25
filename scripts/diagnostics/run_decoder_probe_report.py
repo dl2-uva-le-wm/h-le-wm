@@ -12,11 +12,11 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 
 import pandas as pd
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.decoder_probe_notebook_utils import (
+from scripts.diagnostics.decoder_probe_notebook_utils import (
     DEFAULT_ENV_DUMP,
     DEFAULT_HI_CKPT,
     DEFAULT_SHARED_CACHE,

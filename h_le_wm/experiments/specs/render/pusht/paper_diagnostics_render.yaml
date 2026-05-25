@@ -13,7 +13,7 @@ outputs:
 command:
   argv:
     - python
-    - scripts/render_hi_paper_diagnostics.py
+    - scripts/diagnostics/render_hi_paper_diagnostics.py
     - --offline-log-root
     - "{offline_root}"
     - --acting-log-root

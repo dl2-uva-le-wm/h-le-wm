@@ -17,7 +17,7 @@ resolve_repo_root() {
     [[ -z "${c}" ]] && continue
     for p in "${c}" "${c}/.." "${c}/../.." "${c}/../../.."; do
       if p="$(cd "${p}" >/dev/null 2>&1 && pwd)"; then
-        if [[ -f "${p}/scripts/render_hi_paper_diagnostics.py" ]]; then
+        if [[ -f "${p}/scripts/diagnostics/render_hi_paper_diagnostics.py" ]]; then
           echo "${p}"
           return 0
         fi
@@ -57,6 +57,6 @@ BASELINE_MD="${BASELINE_MD:-${REPO_ROOT}/jobs/eval/original/pusht/baseline_matri
 
 mkdir -p "${OUTPUT_DIR}"
 cd "${REPO_ROOT}"
-python scripts/render_hi_paper_diagnostics.py   --offline-log-root "${OFFLINE_LOG_ROOT}"   --acting-log-root "${ACTING_LOG_ROOT}"   --output-dir "${OUTPUT_DIR}"   --matrix-csv "${MATRIX_CSV}"   --baseline-md "${BASELINE_MD}"
+python scripts/diagnostics/render_hi_paper_diagnostics.py   --offline-log-root "${OFFLINE_LOG_ROOT}"   --acting-log-root "${ACTING_LOG_ROOT}"   --output-dir "${OUTPUT_DIR}"   --matrix-csv "${MATRIX_CSV}"   --baseline-md "${BASELINE_MD}"
 
 echo "Report directory: ${OUTPUT_DIR}"

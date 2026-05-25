@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 BASELINE_SUBMODULE = REPO_ROOT / "third_party" / "lewm"
 LOCK_FILE = REPO_ROOT / "BASELINE_LOCK.md"
 

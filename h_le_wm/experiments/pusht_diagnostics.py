@@ -81,7 +81,7 @@ def run_offline(args: argparse.Namespace) -> None:
         stem = output_stem(cfg)
         argv = [
             sys.executable,
-            "scripts/run_hi_diagnostic.py",
+            "scripts/diagnostics/run_hi_diagnostic.py",
             "--policy", args.policy,
             "--experiment-kind", str(cfg["kind"]),
             "--dataset-name", "pusht_expert_train",
@@ -112,7 +112,7 @@ def run_acting(args: argparse.Namespace) -> None:
         stem = output_stem(cfg)
         argv = [
             sys.executable,
-            "scripts/run_hi_acting_diagnostic.py",
+            "scripts/diagnostics/run_hi_acting_diagnostic.py",
             "--policy", args.policy,
             "--experiment-kind", str(cfg["kind"]),
             "--dataset-name", "pusht_expert_train",
