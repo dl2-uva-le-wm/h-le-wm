@@ -268,33 +268,69 @@ def analyse_subgoals(
     fig.tight_layout()
     savefig(fig, out_dir / "subgoal_offsets.png")
 
-    best_off_counts = rec_df["best_offset"].value_counts().sort_index()
-    fig2, ax2 = plt.subplots(figsize=(7, 3))
-    ax2.bar(best_off_counts.index, best_off_counts.values, color="purple", edgecolor="white")
-    ax2.axvline(replan_interval, color="firebrick", lw=2, ls="--",
-                label=f"replan_interval={replan_interval}")
-    ax2.set_xlabel("Best-matching temporal offset")
-    ax2.set_ylabel("Count")
-    ax2.set_title("Distribution of best-matching offset across all subgoals")
-    ax2.legend()
-    fig2.tight_layout()
-    savefig(fig2, out_dir / "subgoal_best_offset_hist.png")
+    def _plot_best_offset_hist(data: pd.DataFrame, title: str, path: Path) -> None:
+        counts = data["best_offset"].value_counts().sort_index()
+        fig2, ax2 = plt.subplots(figsize=(7, 3))
+        ax2.bar(counts.index, counts.values, color="purple", edgecolor="white")
+        ax2.axvline(replan_interval, color="firebrick", lw=2, ls="--",
+                    label=f"replan_interval={replan_interval}")
+        ax2.set_xlabel("Best-matching temporal offset")
+        ax2.set_ylabel("Count")
+        ax2.set_title(title)
+        ax2.legend()
+        fig2.tight_layout()
+        savefig(fig2, path)
 
-    print(f"[subgoal] mean best offset = {rec_df['best_offset'].mean():.2f}  "
+    # All subgoal records (includes stale subgoals between replan boundaries)
+    _plot_best_offset_hist(
+        rec_df,
+        "Best-matching offset — all subgoal records",
+        out_dir / "subgoal_best_offset_hist.png",
+    )
+    print(f"[subgoal] all records  — mean best offset = {rec_df['best_offset'].mean():.2f}  "
           f"(expected {replan_interval})")
+
+    # Replan-only records: z_subgoal was freshly computed at this step.
+    # These are the only records where offset=replan_interval is expected.
+    rep_df = rec_df[rec_df["replanned"] == True]  # noqa: E712
+    if not rep_df.empty:
+        _plot_best_offset_hist(
+            rep_df,
+            "Best-matching offset — replan steps only",
+            out_dir / "subgoal_best_offset_replan_only_hist.png",
+        )
+        print(f"[subgoal] replan-only  — mean best offset = {rep_df['best_offset'].mean():.2f}  "
+              f"(expected {replan_interval}), n={len(rep_df)}")
 
 
 # ── Extension 4: Fréchet distance ─────────────────────────────────────────────
 
-def _frechet(X: np.ndarray, Y: np.ndarray, eps: float = 1e-6) -> float:
-    """Fréchet distance between two multivariate Gaussians fit on X and Y."""
+def _frechet(X: np.ndarray, Y: np.ndarray, pca_dim: int | None = None) -> float:
+    """
+    Fréchet distance between two multivariate Gaussians fit on X and Y.
+
+    pca_dim: if set, project to this many PCA dims before computing FD.
+             Required when n_samples < n_dims (avoids rank-deficient covariance).
+    """
+    if pca_dim is not None and pca_dim < X.shape[1]:
+        from sklearn.decomposition import PCA
+        pca = PCA(n_components=pca_dim, random_state=42)
+        pca.fit(np.concatenate([X, Y], axis=0))
+        X, Y = pca.transform(X), pca.transform(Y)
+
     mu_x, mu_y = X.mean(0), Y.mean(0)
-    # Regularise to avoid singular covariance with few samples
-    reg = eps * np.eye(X.shape[1])
+    # Regularise with a fraction of the mean eigenvalue scale so the regulariser
+    # is proportional to the data variance rather than a fixed tiny constant.
+    n, D = X.shape
+    eps_scale = max(np.trace(np.cov(X, rowvar=False)) / D * 1e-3, 1e-6)
+    reg = eps_scale * np.eye(D)
     C_x = np.cov(X, rowvar=False) + reg
     C_y = np.cov(Y, rowvar=False) + reg
-    diff     = mu_x - mu_y
-    covmean  = sqrtm(C_x @ C_y).real
+    diff    = mu_x - mu_y
+    covmean = sqrtm(C_x @ C_y)
+    if np.iscomplexobj(covmean):
+        # Imaginary residual indicates numerical noise; discard it.
+        covmean = covmean.real
     return float(diff @ diff + np.trace(C_x + C_y - 2 * covmean))
 
 
@@ -302,11 +338,16 @@ def analyse_frechet(
     df: pd.DataFrame,
     lat_cols: list[str],
     out_dir: Path,
+    per_ep_pca_dim: int = 20,
 ) -> pd.DataFrame:
     """
     Per-episode and global Fréchet distance between expert and model latent clouds.
     Large FD = model occupies a different region of latent space = distribution shift.
+
+    per_ep_pca_dim: PCA dim used for per-episode FD (n_samples << n_dims otherwise).
+                    Set 0 to disable PCA (not recommended for short episodes).
     """
+    pca_dim = per_ep_pca_dim if per_ep_pca_dim > 0 else None
     records = []
     for traj_id, g in df.groupby("trajectory_id"):
         E = g[g.source == "expert"][lat_cols].values
@@ -314,7 +355,7 @@ def analyse_frechet(
         if len(E) < 4 or len(M) < 4:
             continue
         try:
-            fd = _frechet(E, M)
+            fd = _frechet(E, M, pca_dim=pca_dim)
         except Exception as exc:
             warnings.warn(f"traj {traj_id}: Fréchet failed: {exc}")
             fd = np.nan
@@ -532,6 +573,8 @@ def parse_args() -> argparse.Namespace:
                    help="High-level replan interval in env steps (default 5)")
     p.add_argument("--dtw-pca-dim", type=int, default=20,
                    help="PCA dim before DTW (0 = skip DTW)")
+    p.add_argument("--frechet-pca-dim", type=int, default=20,
+                   help="PCA dim for per-episode Fréchet (0 = no PCA, unreliable for short eps)")
     p.add_argument("--skip-dtw",    action="store_true",
                    help="Skip DTW (saves time if dtaidistance not installed)")
     p.add_argument("--skip-frechet", action="store_true")
@@ -562,7 +605,8 @@ def main() -> None:
 
     if not args.skip_frechet:
         print("\n=== Extension 4: Fréchet distance ===")
-        fd_df = analyse_frechet(df, lat_cols, out_dir)
+        fd_df = analyse_frechet(df, lat_cols, out_dir,
+                                per_ep_pca_dim=args.frechet_pca_dim)
 
     if not args.skip_dtw and args.dtw_pca_dim > 0:
         print("\n=== Extension 5: DTW distance ===")

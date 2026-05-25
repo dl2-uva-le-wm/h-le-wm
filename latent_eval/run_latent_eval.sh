@@ -8,17 +8,19 @@
 #   bash run_latent_eval.sh [optional overrides]
 #
 # Optional environment variables:
-#   CHECKPOINT      path to the .ckpt file (default: auto-detected)
-#   DATASET_NAME    HDF5 dataset name       (default: pusht_expert_train)
-#   CACHE_DIR       STABLEWM cache dir      (default: auto)
-#   NUM_EVAL        number of trajectories  (default: 50)
-#   GOAL_OFFSET     goal offset steps       (default: 25)
-#   EVAL_BUDGET     steps per episode       (default: 50)
-#   SEED            random seed             (default: 42)
-#   DEVICE          auto | cuda | cpu       (default: auto)
-#   OUTPUT_DIR      where to save results   (default: ./results)
-#   HIGH_SAMPLES    CEM high-level samples  (default: 300)
-#   LOW_SAMPLES     CEM low-level  samples  (default: 200)
+#   CHECKPOINT       path to the .ckpt file (default: auto-detected)
+#   DATASET_NAME     HDF5 dataset name       (default: pusht_expert_train)
+#   CACHE_DIR        STABLEWM cache dir      (default: auto)
+#   NUM_EVAL         number of trajectories  (default: 50)
+#   GOAL_OFFSET      goal offset steps       (default: 25)
+#   EVAL_BUDGET      steps per episode       (default: 50)
+#   SEED             random seed             (default: 42)
+#   DEVICE           auto | cuda | cpu       (default: auto)
+#   OUTPUT_DIR       where to save results   (default: ./results)
+#   HIGH_SAMPLES     CEM high-level samples  (default: 300)
+#   LOW_SAMPLES      CEM low-level  samples  (default: 200)
+#   RECORD_SUBGOALS  record subgoals csv     (default: 1)
+#   SKIP_ANALYSIS    skip analyse_latents.py (default: 0)
 #
 # Examples:
 #   bash run_latent_eval.sh
@@ -42,6 +44,8 @@ DEVICE="${DEVICE:-auto}"
 OUTPUT_DIR="${OUTPUT_DIR:-${SCRIPT_DIR}/results}"
 HIGH_SAMPLES="${HIGH_SAMPLES:-300}"
 LOW_SAMPLES="${LOW_SAMPLES:-200}"
+RECORD_SUBGOALS="${RECORD_SUBGOALS:-1}"
+SKIP_ANALYSIS="${SKIP_ANALYSIS:-0}"
 
 # ── validate checkpoint ───────────────────────────────────────────────────────
 if [[ ! -f "${CHECKPOINT}" ]]; then
@@ -63,6 +67,7 @@ echo " seed         : ${SEED}"
 echo " device       : ${DEVICE}"
 echo " output       : ${OUTPUT_DIR}"
 echo " CEM high/low : ${HIGH_SAMPLES} / ${LOW_SAMPLES}"
+echo " record subgoals: ${RECORD_SUBGOALS}"
 echo "════════════════════════════════════════"
 echo ""
 
@@ -81,6 +86,9 @@ ARGS=(
 )
 if [[ -n "${CACHE_DIR}" ]]; then
     ARGS+=(--cache-dir "${CACHE_DIR}")
+fi
+if [[ "${RECORD_SUBGOALS}" == "1" ]]; then
+    ARGS+=(--record-subgoals)
 fi
 
 # ── run ───────────────────────────────────────────────────────────────────────
@@ -108,4 +116,27 @@ echo "Python  : ${PYTHON}"
 "${PYTHON}" latent_eval/latent_eval.py "${ARGS[@]}"
 
 echo ""
-echo "Done. Results in: ${OUTPUT_DIR}"
+echo "Done. Latents saved to: ${OUTPUT_DIR}"
+
+# ── analysis ──────────────────────────────────────────────────────────────────
+if [[ "${SKIP_ANALYSIS}" != "1" ]]; then
+    echo ""
+    echo "════════════════════════════════════════"
+    echo " Running analyse_latents.py"
+    echo "════════════════════════════════════════"
+
+    ANALYSIS_ARGS=(
+        --csv          "${OUTPUT_DIR}/latent_trajectories.csv"
+        --output-dir   "${OUTPUT_DIR}/analysis"
+        --replan-interval 5
+        --dtw-pca-dim  20
+        --frechet-pca-dim 20
+    )
+    if [[ "${RECORD_SUBGOALS}" == "1" ]]; then
+        ANALYSIS_ARGS+=(--subgoal-csv "${OUTPUT_DIR}/subgoal_records.csv")
+    fi
+
+    "${PYTHON}" latent_eval/analyse_latents.py "${ANALYSIS_ARGS[@]}"
+    echo ""
+    echo "Analysis done. Results in: ${OUTPUT_DIR}/analysis"
+fi

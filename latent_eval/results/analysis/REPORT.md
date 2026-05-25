@@ -2,24 +2,26 @@
 
 **Dataset:** 4,884 rows · 192-dim latents · 50 trajectories  
 **Replan interval:** 5 steps  
-**PCA for DTW:** 20 components (59.2% variance)
+**PCA for DTW / per-episode Fréchet:** 20 components (59.2% variance)  
+**Checkpoint:** `hi_lewm_p2_train_hope2_22253175` (best continuous frozen P2; 84% at d=25)  
+**Expert latents:** ViT-tiny encoder on dataset frames. **Model latents:** same encoder on live rollout frames.
 
 ---
 
 ## Extension 1: Per-step Drift
 
-**Metric:** cosine similarity and L2 distance between expert[t] and model[t] at each timestep.
+**Metric:** cosine similarity and L2 distance between `expert[t]` and `model[t]` at each timestep.
 
 | Statistic | Cosine similarity | L2 distance |
 |-----------|:-----------------:|:-----------:|
-| Mean      | −0.005            | 19.86       |
-| Std       | 0.008             | 0.11        |
-| Min       | −0.018            | 19.56       |
-| Max       | 0.009             | 20.03       |
+| Mean      | ≈ 0.000           | 19.80       |
+| Std       | 0.083             | 1.13        |
+| Min       | −0.220            | 13.58       |
+| Max       | +0.430            | 22.43       |
 
-**Key finding:** Cosine similarity hovers at ~0 across all timesteps (range −0.018 to +0.009). Near-zero cosine means the model and expert latent vectors are approximately **orthogonal** — they occupy entirely different orientations in latent space. L2 distance is constant at ≈20 with negligible variance, indicating the model does not drift *toward or away* from the expert trajectory over time — it maintains a fixed, large separation throughout the episode.
+**Key finding:** The mean cosine similarity is essentially zero across all timesteps, meaning expert and model latent vectors are on average **orthogonal** — occupying entirely different orientations in latent space. The non-trivial standard deviation (0.083) and range (−0.22 to +0.43) show per-step variation: individual timesteps occasionally produce moderate alignment, but the average is structurally near zero. L2 distance stays ≈ 20 throughout episodes (std = 1.13) — the separation does not grow or shrink with time.
 
-**Interpretation:** The separation is not a transient effect that grows or shrinks — it is a structural, episode-long decoupling. The model is not visiting the same latent region as the expert at any point in the trajectory.
+**Interpretation:** The model is not gradually diverging from the expert trajectory — it is decoupled from the start. This is not a compounding prediction error: it is a structural, episode-wide displacement in latent space.
 
 ---
 
@@ -30,55 +32,65 @@
 | Source | Mean velocity | Std  | Max  |
 |--------|:-------------:|:----:|:----:|
 | Expert | 1.456         | 0.851| 6.15 |
-| Model  | 0.882         | 0.667| 6.77 |
+| Model  | 1.015         | 0.770| 7.82 |
 
-**Model is ~39% slower than expert** in latent space on average.
+**Model is ~30% slower than expert** in latent space on average.
 
 **Replan-boundary check (t mod 5 == 0):**
 
 | Step type     | Model velocity | Expert velocity |
 |---------------|:--------------:|:---------------:|
-| Replan steps  | 0.760          | 1.482           |
-| Other steps   | 0.910          | 1.450           |
+| Replan steps  | 0.933          | 1.482           |
+| Other steps   | 1.034          | 1.451           |
 
-Counterintuitively, model velocity is *lower* at replan boundaries than at intermediate steps. CEM replanning should produce spikes (replan churn) if the new goal differs from the old one — the absence of spikes suggests either the model's latent representation changes smoothly despite replanning, or the CEM solutions are stable across replan events (low plan diversity).
-
-Expert velocity shows no periodic structure (1.482 vs 1.450), consistent with continuous expert demonstrations without discrete replan events.
+Model velocity is lower at replan boundaries than at intermediate steps — the opposite of what CEM-induced churn would produce. If CEM replanning produced diverse new subgoals, there would be spikes at `t mod 5 == 0`. The absence of spikes indicates CEM solutions are stable across replan events (low plan diversity), or the latent representation changes smoothly despite replanning. Expert velocity shows no periodic structure (1.482 vs 1.451), consistent with continuous demonstrations without discrete replan events.
 
 ---
 
 ## Extension 3: Subgoal Temporal Alignment
 
-**Metric:** for each recorded subgoal z_sub at timestep t, find the temporal offset k ∈ {1..9} that minimises `‖z_sub − expert[t+k]‖`.
+**Metric:** for each recorded subgoal `z_sub` at timestep `t`, find the temporal offset `k ∈ {1..9}` that minimises `‖z_sub − expert[t+k]‖`.
+
+### All subgoal records (n = 2,334)
 
 | Statistic | Best offset |
 |-----------|:-----------:|
-| Mean      | 4.73        |
-| Std       | 3.30        |
+| Mean      | 4.75        |
+| Std       | 3.32        |
 | Median    | 4.0         |
-
-**Distribution of best-matching offsets:**
 
 | Offset | Count | % of total |
 |--------|------:|----------:|
-| 1      | 714   | 30.6%     |
-| 2      | 188   | 8.1%      |
-| 3      | 154   | 6.6%      |
-| 4      | 140   | 6.0%      |
-| **5 (expected)** | **135** | **5.8%** |
-| 6      | 125   | 5.4%      |
-| 7      | 124   | 5.3%      |
+| 1      | 716   | **30.7%** |
+| 2      | 196   | 8.4%      |
+| 3      | 153   | 6.6%      |
+| 4      | 135   | 5.8%      |
+| **5 (expected)** | **123** | **5.3%** |
+| 6      | 117   | 5.0%      |
+| 7      | 121   | 5.2%      |
 | 8      | 146   | 6.3%      |
-| 9      | 608   | 26.1%     |
+| 9      | 627   | **26.9%** |
 
-**Key finding:** The distribution is strongly U-shaped, not peaked at the expected offset of 5. ~30.6% of subgoals align best at offset=1 (immediate next step) and ~26.1% at offset=9 (maximum checked). Only 5.8% align best at offset=5.
+### Replan-only records (n = 479, freshly computed subgoals)
 
-The mean of 4.73 ≈ 5 is misleading — it arises from averaging a bimodal distribution, not from concentration at the expected value.
+| Offset | Count | % of replan |
+|--------|------:|:-----------:|
+| 1      | 141   | **29.4%**   |
+| 2      | 39    | 8.1%        |
+| 3      | 27    | 5.6%        |
+| 4      | 33    | 6.9%        |
+| **5 (expected)** | **23** | **4.8%** |
+| 6      | 20    | 4.2%        |
+| 7      | 24    | 5.0%        |
+| 8      | 33    | 6.9%        |
+| 9      | 139   | **29.0%**   |
+
+**Key finding:** Both all-records and replan-only distributions are strongly **U-shaped**, not peaked at the expected offset of 5. The mean of ≈ 4.75–4.91 ≈ 5 is misleading — it arises from averaging a bimodal distribution, not from concentration at the expected value.
 
 **Interpretation:**
-- The large offset=1 mass suggests many subgoals collapse to the trivially nearest expert state (degenerate, likely because the latent subgoal is far from all expert states and the nearest-neighbor at any offset is the immediate next step).
-- The large offset=9 mass suggests a separate mode where subgoals point ahead beyond the replan horizon.
-- The correct temporal framing (offset=5) is not reliably achieved.
+- **Offset=1 mass (≈30%):** Many subgoals collapse to the trivially nearest expert state. The subgoal is so far off the expert manifold that the closest expert state at any offset is the immediate next step — a degenerate result.
+- **Offset=9 mass (≈27%):** A separate mode where subgoals point beyond the replan horizon, suggesting the high-level model overshoots in temporal lookahead.
+- The correct temporal framing (offset=5) is reliably achieved in fewer than 5% of replan events.
 
 ---
 
@@ -86,17 +98,17 @@ The mean of 4.73 ≈ 5 is misleading — it arises from averaging a bimodal dist
 
 **Metric:** FD between Gaussian fits of expert and model latent clouds (distribution-level shift).
 
-| Scope       | FD value |
-|-------------|:--------:|
-| Global      | 202.7    |
-| Per-episode mean | 390.9 |
-| Per-episode std  | 31.3  |
-| Per-episode min  | 274.9 |
-| Per-episode max  | 460.4 |
+| Scope            | FD value |
+|------------------|:--------:|
+| Global           | 186.89   |
+| Per-episode mean | 385.99   |
+| Per-episode std  | 36.45    |
+| Per-episode min  | 243.12   |
+| Per-episode max  | 456.40   |
 
-**Key finding:** FD values are very large. The global FD (202.7) is lower than the per-episode mean (390.9) because pooling all trajectories widens both distributions, increasing overlap. Per-episode FD is consistently high and has low spread (std=31.3 on a mean of 390.9), meaning the distributional shift is **systematic across all episodes**, not an artefact of outlier trajectories.
+**Key finding:** FD values are very large. Global FD (186.89) is lower than per-episode mean (385.99) because pooling all trajectories widens both distributions, increasing overlap. Per-episode FD is consistently large — standard deviation (36.45) is small relative to the mean (385.99), confirming the distributional shift is **systematic across all episodes**, not an artefact of outlier trajectories.
 
-**Interpretation:** Expert and model latent clouds occupy substantially different regions of the 192-dim space. This confirms the drift analysis — the model has not learned to reproduce the expert's latent distribution, not even approximately.
+**Interpretation:** Expert and model latent clouds occupy substantially different regions of the 192-dim space. The model has not learned to reproduce the expert's latent distribution, not even approximately.
 
 ---
 
@@ -106,13 +118,13 @@ The mean of 4.73 ≈ 5 is misleading — it arises from averaging a bimodal dist
 
 | Metric       | Mean   | Std   | Min   | Max    |
 |--------------|:------:|:-----:|:-----:|:------:|
-| DTW          | 108.44 | 10.97 | 78.78 | 131.29 |
-| Aligned L2   | 106.09 | 13.19 | 69.71 | 131.29 |
-| DTW/L2 ratio | 1.028  | 0.077 | 1.000 | 1.357  |
+| DTW          | 105.48 | —     | —     | —      |
+| Aligned L2   | 103.42 | —     | —     | —      |
+| DTW/L2 ratio | 1.025  | 0.067 | 1.000 | 1.338  |
 
-**Key finding:** The DTW/L2 ratio has median=1.0 and mean=1.028. DTW distance ≥ aligned L2 in virtually all episodes (75th percentile of ratio = 1.0 exactly). DTW being no smaller than L2 means **temporal re-alignment provides no benefit**.
+**Key finding:** DTW/L2 ratio has median = 1.0 and mean = 1.025. DTW distance ≥ aligned L2 in virtually all episodes. Temporal re-alignment provides **no benefit**.
 
-For a model suffering purely from a temporal offset (correct manifold, wrong phase), DTW ≪ L2 — DTW would "warp" the time axis and collapse the distance. The absence of this effect means the model's deviation from expert is **not a temporal offset problem** — it is a manifold problem: the model is in the wrong region of latent space, regardless of time axis alignment.
+For a model suffering purely from a temporal offset (correct manifold, wrong phase), DTW ≪ L2 — warping the time axis would collapse the distance. The absence of this effect means the deviation is **not a temporal offset problem** — the model is in the wrong region of latent space regardless of time-axis alignment.
 
 ---
 
@@ -120,22 +132,26 @@ For a model suffering purely from a temporal offset (correct manifold, wrong pha
 
 | Extension | Finding | Implication |
 |-----------|---------|-------------|
-| 1: Drift | Cosine ≈ 0, L2 ≈ 20, constant across time | Structural latent decoupling — not transient |
-| 2: Velocity | Model 39% slower; no replan spikes | Low latent dynamics; CEM plans are temporally stable |
-| 3: Subgoals | U-shaped offset distribution; mean ≈ 5 by coincidence | Subgoal framing unreliable; not consistently at horizon |
-| 4: Fréchet | Global FD=202.7, per-episode ≈391 | Large, systematic distributional shift |
-| 5: DTW | DTW ≈ L2 (ratio ≈ 1.03) | Problem is not temporal offset — it is manifold shift |
+| 1: Drift | Cosine mean ≈ 0 (std=0.083), L2 ≈ 19.80 (std=1.13), flat across time | Structural latent decoupling — not transient, not compounding |
+| 2: Velocity | Model 30% slower; velocity lower at replan steps | Low latent dynamics; CEM plans are temporally stable |
+| 3: Subgoals | U-shaped offset distribution; only 5.3% at expected offset=5 | Subgoal framing unreliable; CEM subgoals predominantly off-manifold |
+| 4: Fréchet | Global FD=186.89, per-episode mean=386 ± 36 | Large, systematic distributional shift — all episodes |
+| 5: DTW | DTW ≈ L2 (ratio mean=1.025) | Problem is manifold shift, not temporal offset |
 
 **Overall diagnosis:**  
-The model's latent trajectories are not on the expert's latent manifold. This is not a timing/phase issue (DTW provides no gain) and not a growing divergence (L2 is flat over time). The model inhabits a different, slower-moving region of latent space throughout every episode. Possible causes:
+The model's latent trajectories are not on the expert's latent manifold. This is not a timing/phase issue (DTW provides no gain), not a growing divergence (L2 variance is small over time), and not confined to outlier episodes (Fréchet std is small relative to mean). The model inhabits a different, slower-moving region of latent space throughout every episode.
 
-1. **Encoder not shared or fine-tuned:** if the model's observation encoder differs from the one used to record expert latents, representations are incomparable.
-2. **Distribution shift in observations:** the model's rollout observations differ from expert demonstrations (different camera angles, randomisation, etc.), producing different encoder outputs.
-3. **Latent collapse / mode averaging:** the model's policy outputs average or low-variance latents, reducing both velocity and FD separation.
+The subgoal analysis directly links to the behavioural failure: CEM-generated subgoals cluster at offset=1 (degenerate, off-manifold collapse) or offset=9 (beyond the replan horizon), with only ~5% correctly targeting the 5-step lookahead. This is consistent with the CEM exploitation hypothesis established by the open-loop error analysis (Open CEM errors of 0.0108 vs teacher errors of 0.1177 at d=25) — the optimizer finds adversarial states that appear optimal to the model but are unreachable in reality.
+
+**Possible root causes:**
+1. **Encoder not shared or fine-tuned:** if the model's observation encoder differs from the one used to record expert latents, representations are incomparable by construction.
+2. **Observation distribution shift:** the agent's rollout observations differ from expert demonstrations (visual differences, goal-conditioning artefacts), producing different encoder outputs even with the same weights.
+3. **Latent collapse / mode averaging:** the model's policy outputs low-variance latents that average over expert modes, reducing both velocity and increasing Fréchet separation.
 4. **Goal conditioning mismatch:** subgoals sampled from a different distribution than the encoder's training distribution push the model into off-manifold regions.
 
 **Recommended next steps:**
 - Verify the same encoder checkpoint is used for both expert and model latent extraction.
-- Visualise 2D UMAP/PCA projections of expert vs model clouds (install `umap-learn` — currently only PCA is available).
+- Visualise 2D UMAP/PCA projections of expert vs model clouds to confirm the manifold gap is visible in low-dimensional projection.
 - Check per-step observation images for expert vs model to rule out observation distribution shift.
-- Investigate whether subgoal offset=1 mass correlates with specific trajectory types (success vs failure, early vs late in episode).
+- Investigate whether the offset=1 subgoal mass correlates with specific trajectory types (success vs failure, early vs late in episode).
+- Re-run subgoal offset analysis using constrained CEM (snapped to VQ codebook) to verify whether manifold constraints shift the distribution toward offset=5.
