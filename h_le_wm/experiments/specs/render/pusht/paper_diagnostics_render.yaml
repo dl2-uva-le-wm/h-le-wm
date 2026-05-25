@@ -10,6 +10,13 @@ outputs:
   root_kind: repro
   root_name: pusht_paper_diagnostics_render
   completion_file: "{output_root}/COMPLETE"
+  expected_paths:
+    - "{output_root}/manifest.json"
+    - "{output_root}/figures/teacher_vs_open_loop.png"
+    - "{output_root}/tables/teacher_vs_open_loop.csv"
+    - "{output_root}/tables/oracle_subgoal_acting.csv"
+    - "{output_root}/tables/generated_subgoal_acting.csv"
+    - "{output_root}/tables/online_hierarchical_logging.csv"
 command:
   argv:
     - python

@@ -5,6 +5,8 @@ outputs:
   root_kind: repro
   root_name: pusht_smoke
   completion_file: "{output_root}/COMPLETE"
+  expected_paths:
+    - "{output_root}/hi_pusht_smoke_results.txt"
 requirements:
   checkpoints:
     - "{run_root}/pusht_smoke/pusht_smoke_epoch_1_object.ckpt"

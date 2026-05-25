@@ -14,6 +14,10 @@ outputs:
   root_kind: repro
   root_name: pusht_story_figures
   completion_file: "{output_root}/COMPLETE"
+  expected_paths:
+    - "{output_root}/manifest.json"
+    - "{output_root}/tables/story_tables.md"
+    - "{output_root}/tables/failure_decomposition.csv"
 requirements:
   checkpoints:
     - "{run_root}/pusht_probe_phase_b/pusht_probe_phase_b_probe.pt"

@@ -19,6 +19,14 @@ specs:
     kind: workflow
     operation: smoke
     path: h_le_wm/experiments/specs/smoke/pusht.yaml
+  - name: train/pusht/hierarchical_default
+    kind: command
+    operation: train
+    path: h_le_wm/experiments/specs/train/pusht/hierarchical_default.yaml
+  - name: train/cube/hierarchical_default
+    kind: command
+    operation: train
+    path: h_le_wm/experiments/specs/train/cube/hierarchical_default.yaml
   - name: diagnostics/pusht/offline
     kind: command
     operation: diagnostics
@@ -51,3 +59,7 @@ specs:
     kind: workflow
     operation: workflow
     path: h_le_wm/experiments/specs/workflow/paper_reproduction.yaml
+  - name: paper/from_scratch
+    kind: workflow
+    operation: workflow
+    path: h_le_wm/experiments/specs/workflow/paper_from_scratch.yaml

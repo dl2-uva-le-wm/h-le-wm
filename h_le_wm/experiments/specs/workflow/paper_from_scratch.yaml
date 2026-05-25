@@ -1,0 +1,9 @@
+name: paper/from_scratch
+kind: workflow
+operation: workflow
+steps:
+  - train/pusht/hierarchical_default
+  - train/cube/hierarchical_default
+  - probe/pusht/phase_a/train
+  - probe/pusht/phase_b/train
+  - paper/reproduction

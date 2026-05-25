@@ -1,12 +1,12 @@
-name: smoke/pusht/train
+name: train/pusht/hierarchical_default
 kind: command
 operation: train
 outputs:
   root_kind: runs
-  root_name: pusht_smoke
-  completion_file: "{output_root}/TRAIN_COMPLETE"
+  root_name: pusht_hierarchical_default
+  completion_file: "{output_root}/COMPLETE"
   expected_paths:
-    - "{output_root}/pusht_smoke_epoch_1_object.ckpt"
+    - "{output_root}/pusht_hierarchical_default_epoch_15_object.ckpt"
 requirements:
   checkpoints:
     - "{stablewm_home}/pusht/lewm_object.ckpt"
@@ -16,18 +16,12 @@ command:
     - -m
     - h_le_wm.train.hierarchical
     - data=hi_pusht
-    - output_model_name=pusht_smoke
-    - subdir=runs/pusht_smoke
-    - trainer.max_epochs=1
+    - output_model_name=pusht_hierarchical_default
+    - subdir=runs/pusht_hierarchical_default
+    - trainer.max_epochs=15
     - trainer.devices=1
     - trainer.accelerator=gpu
-    - trainer.limit_train_batches=2
-    - trainer.limit_val_batches=1
-    - loader.batch_size=8
-    - loader.num_workers=1
-    - loader.prefetch_factor=2
-    - loader.persistent_workers=False
-    - loader.pin_memory=True
+    - wm.high_level.latent_action_dim=32
     - wandb.enabled=False
     - pretrained_low_level.checkpoint.selection_mode=explicit_path
     - pretrained_low_level.checkpoint.path={stablewm_home}/pusht/lewm_object.ckpt

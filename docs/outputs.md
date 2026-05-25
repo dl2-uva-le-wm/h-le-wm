@@ -10,8 +10,8 @@ The canonical output contract is split in two:
 - `STABLEWM_HOME/runs/pusht_smoke`
 - `STABLEWM_HOME/runs/pusht_probe_phase_a`
 - `STABLEWM_HOME/runs/pusht_probe_phase_b`
-- `STABLEWM_HOME/runs/pusht_hierarchical_hope2`
-- `STABLEWM_HOME/runs/cube_hierarchical_hope2`
+- `STABLEWM_HOME/runs/pusht_hierarchical_default`
+- `STABLEWM_HOME/runs/cube_hierarchical_default`
 
 ## Canonical repro roots
 
@@ -33,4 +33,8 @@ The canonical output contract is split in two:
 - Diagnostics write per-run `.json` and `.npz` artifacts plus summary `.tsv` files under their deterministic repro root
 - Render specs write image and table artifacts plus a manifest under their deterministic repro root
 
-The public surface should be navigated through named specs and these stable roots, not through `jobs/` history or cluster-specific output names.
+## Navigation rules
+
+- Prefer named specs, named checkpoints, and these stable roots over ad hoc files.
+- Reader-facing workflows should treat `runs/` as checkpoint-producing roots and `repro/` as derived-artifact roots.
+- Use `python -m h_le_wm.validate outputs --spec <name>` to verify completion markers and deterministic output artifacts for a public spec or workflow.

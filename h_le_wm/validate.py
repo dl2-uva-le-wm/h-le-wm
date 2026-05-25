@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from h_le_wm.checkpoints import KNOWN_TIERS, iter_registry_entries, resolve_checkpoint_target
-from h_le_wm.experiments.run import context_for_spec, load_yaml, resolve_spec_path
+from h_le_wm.experiments.run import completion_path, context_for_spec, load_yaml, resolve_spec_path
 from h_le_wm.paths import REPO_ROOT, stablewm_home
 
 
@@ -89,6 +89,72 @@ def check_registered_checkpoints(*, tier: str | None, checkpoint_names: list[str
         print(f"[ok] registry:{entry['name']} -> {path}")
 
 
+def iter_expected_output_paths(spec_ref: str, *, recursive: bool = True) -> list[tuple[str, Path]]:
+    pending: list[str] = [spec_ref]
+    seen_specs: set[Path] = set()
+    seen_paths: set[Path] = set()
+    expected: list[tuple[str, Path]] = []
+
+    while pending:
+        current_ref = pending.pop(0)
+        spec_path = resolve_spec_path(current_ref)
+        if spec_path in seen_specs:
+            continue
+        seen_specs.add(spec_path)
+
+        spec = load_yaml(spec_path)
+        context = context_for_spec(spec)
+        spec_name = str(spec.get("name", current_ref))
+
+        done = completion_path(spec, context)
+        if done is not None and done not in seen_paths:
+            expected.append((f"{spec_name}:completion", done))
+            seen_paths.add(done)
+
+        outputs = spec.get("outputs", {})
+        if isinstance(outputs, dict):
+            for key in ("raw_csv", "summary_csv"):
+                raw = outputs.get(key)
+                if not raw:
+                    continue
+                path = Path(str(raw).format(**context))
+                if not path.is_absolute():
+                    path = (REPO_ROOT / path).resolve()
+                if path not in seen_paths:
+                    expected.append((f"{spec_name}:{key}", path))
+                    seen_paths.add(path)
+
+            raw_expected = outputs.get("expected_paths", [])
+            if raw_expected:
+                if not isinstance(raw_expected, list):
+                    raise ValueError(f"Spec '{spec_name}' outputs.expected_paths must be a list")
+                for index, raw in enumerate(raw_expected, start=1):
+                    path = Path(str(raw).format(**context))
+                    if not path.is_absolute():
+                        path = (REPO_ROOT / path).resolve()
+                    if path not in seen_paths:
+                        expected.append((f"{spec_name}:expected_paths[{index}]", path))
+                        seen_paths.add(path)
+
+        if recursive and str(spec.get("kind", "")).strip() == "workflow":
+            steps = spec.get("steps", [])
+            if not isinstance(steps, list):
+                raise ValueError(f"Workflow spec '{spec_name}' must define a list of steps")
+            for step in steps:
+                if not isinstance(step, str):
+                    raise ValueError(f"Workflow spec '{spec_name}' has a non-string step")
+                pending.append(step)
+
+    return expected
+
+
+def check_spec_outputs(spec_name: str) -> None:
+    for label, path in iter_expected_output_paths(spec_name):
+        if not path.exists():
+            raise FileNotFoundError(f"Missing expected output '{label}': {path}")
+        print(f"[ok] {label} -> {path}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Validate the H-LeWM paper-ready workspace.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -103,6 +169,9 @@ def build_parser() -> argparse.ArgumentParser:
     checkpoints.add_argument("--tier", choices=KNOWN_TIERS, default="required-now")
     checkpoints.add_argument("--checkpoint", action="append", default=[])
     checkpoints.add_argument("--spec", action="append", default=[])
+
+    outputs = sub.add_parser("outputs", help="Check expected output artifacts for a first-class spec.")
+    outputs.add_argument("--spec", required=True)
 
     preflight = sub.add_parser("preflight", help="Run the non-expensive paper preflight checks.")
     preflight.add_argument("--datasets", default="pusht,cube")
@@ -127,6 +196,9 @@ def main() -> int:
         check_registered_checkpoints(tier=args.tier or None, checkpoint_names=list(args.checkpoint))
         if args.spec:
             check_spec_checkpoints(list(args.spec))
+        return 0
+    if args.command == "outputs":
+        check_spec_outputs(str(args.spec))
         return 0
     if args.command == "preflight":
         check_env()

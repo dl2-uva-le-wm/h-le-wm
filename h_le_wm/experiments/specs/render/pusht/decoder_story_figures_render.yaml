@@ -11,6 +11,11 @@ outputs:
   root_kind: repro
   root_name: pusht_decoder_story_figures
   completion_file: "{output_root}/COMPLETE"
+  expected_paths:
+    - "{output_root}/manifest.json"
+    - "{output_root}/teacher_vs_open_loop"
+    - "{output_root}/generated_subgoal_acting"
+    - "{output_root}/online_hierarchical_logging"
 requirements:
   checkpoints:
     - "{run_root}/pusht_probe_phase_b/pusht_probe_phase_b_probe.pt"

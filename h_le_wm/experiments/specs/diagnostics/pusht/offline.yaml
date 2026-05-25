@@ -5,9 +5,12 @@ outputs:
   root_kind: repro
   root_name: pusht_offline_diagnostics
   completion_file: "{output_root}/COMPLETE"
+  expected_paths:
+    - "{output_root}/summary_teacher_vs_open_loop.tsv"
+    - "{output_root}/teacher_vs_open_loop_d50_hh2_lh2.npz"
 requirements:
   checkpoints:
-    - "{run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt"
+    - "{run_root}/pusht_hierarchical_default/pusht_hierarchical_default_epoch_15_object.ckpt"
 command:
   argv:
     - python
@@ -15,7 +18,7 @@ command:
     - h_le_wm.experiments.pusht_diagnostics
     - offline
     - --policy
-    - runs/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15
+    - runs/pusht_hierarchical_default/pusht_hierarchical_default_epoch_15
     - --output-root
     - "{output_root}"
     - --cache-dir

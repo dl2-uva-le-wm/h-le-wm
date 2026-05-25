@@ -5,9 +5,11 @@ outputs:
   root_kind: runs
   root_name: pusht_probe_phase_b
   completion_file: "{output_root}/COMPLETE"
+  expected_paths:
+    - "{output_root}/pusht_probe_phase_b_probe.pt"
 requirements:
   checkpoints:
-    - "{run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt"
+    - "{run_root}/pusht_hierarchical_default/pusht_hierarchical_default_epoch_15_object.ckpt"
     - "{run_root}/pusht_probe_phase_a/pusht_probe_phase_a_probe.pt"
 command:
   argv:
@@ -22,5 +24,5 @@ command:
     - trainer.accelerator=gpu
     - wandb.enabled=False
     - probe.mode=pred_exposed
-    - probe.checkpoint.path={run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt
+    - probe.checkpoint.path={run_root}/pusht_hierarchical_default/pusht_hierarchical_default_epoch_15_object.ckpt
     - probe.init_decoder_checkpoint={run_root}/pusht_probe_phase_a/pusht_probe_phase_a_probe.pt

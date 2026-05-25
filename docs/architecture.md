@@ -4,7 +4,7 @@
 
 - `third_party/lewm/` is the frozen upstream baseline boundary
 - `h_le_wm/` is the canonical repo-owned namespace
-- `jobs/` and `roadmap/` remain source material and internal history, not the public surface
+- historical launchers and notes are not part of the public surface
 
 ## Package layout
 
@@ -34,12 +34,23 @@ The documented interface is:
 - `python -m h_le_wm.probe.train`
 - `python -m h_le_wm.probe.eval`
 
-Small wrapper scripts under `scripts/` exist for paper-facing setup, matrices, smoke, diagnostics, probe training, render flows, and paper reproduction.
+Small wrapper scripts under `scripts/` exist for paper-facing setup, matrices, smoke, canonical training, diagnostics, probe training, render flows, and paper workflows.
+
+## Public wrappers
+
+- Dataset setup: `scripts/setup_paper_datasets.sh`
+- Baseline checkpoint setup: `scripts/setup_baseline_checkpoints.sh`
+- Smoke: `scripts/run_pusht_smoke.sh`
+- Canonical training: `scripts/train_pusht_hierarchical_default.sh`, `scripts/train_cube_hierarchical_default.sh`
+- Matrix evaluation: `scripts/run_pusht_baseline_matrix.sh`, `scripts/run_pusht_hierarchical_matrix.sh`, `scripts/run_cube_baseline_matrix.sh`, `scripts/run_cube_hierarchical_matrix.sh`
+- Diagnostics and renders: `scripts/run_pusht_offline_diagnostics.sh`, `scripts/run_pusht_acting_diagnostics.sh`, `scripts/render_pusht_paper_diagnostics.sh`, `scripts/render_pusht_decoder_story_figures.sh`, `scripts/render_pusht_story_figures.sh`
+- Probe training: `scripts/train_pusht_probe_phase_a.sh`, `scripts/train_pusht_probe_phase_b.sh`
+- Paper workflows: `scripts/run_paper_reproduction.sh`, `scripts/run_paper_from_scratch.sh`
 
 ## Experiment system
 
 - The public seam is `h_le_wm/experiments/index.yaml` plus `python -m h_le_wm.experiments.run --spec ...`
-- Public specs are curated names such as `smoke/pusht`, `diagnostics/pusht/offline`, `render/pusht/story_figures`, and `paper/reproduction`
+- Public specs are curated names such as `smoke/pusht`, `train/pusht/hierarchical_default`, `diagnostics/pusht/offline`, `render/pusht/story_figures`, `paper/reproduction`, and `paper/from_scratch`
 - Command specs shell out to existing package modules or heavyweight render scripts
 - Workflow specs compose first-class flows without exposing raw ad hoc paths
 
@@ -58,7 +69,8 @@ Small wrapper scripts under `scripts/` exist for paper-facing setup, matrices, s
 - Stage supported-first-class hierarchical and probe bundles for reader-facing reproduction
 - Run `scripts/validate_preflight.sh`
 - Run `scripts/run_pusht_smoke.sh` for the small GPU smoke path
-- Run `scripts/run_paper_reproduction.sh` for the full first-class matrix, diagnostics, and render graph
+- Run `scripts/run_paper_reproduction.sh` for checkpoint-driven paper reproduction
+- Run `scripts/run_paper_from_scratch.sh` to retrain the canonical hierarchical and probe bundles before rerunning the paper graph
 
 ## Root layout
 

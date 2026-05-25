@@ -30,12 +30,15 @@ CANONICAL_SURFACE_PATHS = [
     ROOT / "scripts" / "run_cube_hierarchical_matrix.sh",
     ROOT / "scripts" / "run_pusht_offline_diagnostics.sh",
     ROOT / "scripts" / "run_pusht_acting_diagnostics.sh",
+    ROOT / "scripts" / "train_pusht_hierarchical_default.sh",
+    ROOT / "scripts" / "train_cube_hierarchical_default.sh",
     ROOT / "scripts" / "train_pusht_probe_phase_a.sh",
     ROOT / "scripts" / "train_pusht_probe_phase_b.sh",
     ROOT / "scripts" / "render_pusht_paper_diagnostics.sh",
     ROOT / "scripts" / "render_pusht_decoder_story_figures.sh",
     ROOT / "scripts" / "render_pusht_story_figures.sh",
     ROOT / "scripts" / "run_paper_reproduction.sh",
+    ROOT / "scripts" / "run_paper_from_scratch.sh",
 ]
 
 ROOT_CONFIG_RE = re.compile(r"(^|[^A-Za-z0-9_./-])config/")
@@ -51,6 +54,13 @@ def test_readme_links_all_required_docs():
 
     for path in DOC_PATHS:
         assert path.name in readme, path.name
+
+
+def test_readme_keeps_reader_surface_out_of_historical_jobs():
+    readme = (ROOT / "README.md").read_text()
+
+    assert "jobs/" not in readme
+    assert "docs/reproduction.md" in readme
 
 
 def test_canonical_surface_avoids_root_config_paths():

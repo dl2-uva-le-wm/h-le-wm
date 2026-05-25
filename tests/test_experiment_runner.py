@@ -30,6 +30,8 @@ PUBLIC_SPEC_NAMES = {
     "matrix/cube/baseline",
     "matrix/cube/hierarchical",
     "smoke/pusht",
+    "train/pusht/hierarchical_default",
+    "train/cube/hierarchical_default",
     "diagnostics/pusht/offline",
     "diagnostics/pusht/acting",
     "probe/pusht/phase_a/train",
@@ -38,6 +40,7 @@ PUBLIC_SPEC_NAMES = {
     "render/pusht/decoder_story_figures",
     "render/pusht/story_figures",
     "paper/reproduction",
+    "paper/from_scratch",
 }
 
 
@@ -69,8 +72,15 @@ def test_load_index_maps_names_to_repo_relative_paths():
     assert index["matrix/pusht/baseline"] == "h_le_wm/experiments/specs/matrix/pusht/baseline.yaml"
     assert index["matrix/cube/hierarchical"] == "h_le_wm/experiments/specs/matrix/cube/hierarchical.yaml"
     assert index["smoke/pusht"] == "h_le_wm/experiments/specs/smoke/pusht.yaml"
+    assert index["train/pusht/hierarchical_default"] == (
+        "h_le_wm/experiments/specs/train/pusht/hierarchical_default.yaml"
+    )
+    assert index["train/cube/hierarchical_default"] == (
+        "h_le_wm/experiments/specs/train/cube/hierarchical_default.yaml"
+    )
     assert index["render/pusht/story_figures"] == "h_le_wm/experiments/specs/render/pusht/story_figures.yaml"
     assert index["paper/reproduction"] == "h_le_wm/experiments/specs/workflow/paper_reproduction.yaml"
+    assert index["paper/from_scratch"] == "h_le_wm/experiments/specs/workflow/paper_from_scratch.yaml"
 
 
 def test_resolve_spec_path_uses_registered_names():
@@ -148,7 +158,7 @@ def test_build_hierarchical_matrix_command_uses_deterministic_output_root(monkey
         context=context,
     )
 
-    expected_root = tmp_path / "stablewm" / "repro" / "matrix__cube__hierarchical" / "hope2" / "seed_042" / "row_001"
+    expected_root = tmp_path / "stablewm" / "repro" / "matrix__cube__hierarchical" / "default" / "seed_042" / "row_001"
     assert result_path == expected_root / "hi_cube_results.txt"
     assert manifest_path == expected_root / "hi_cube_results_episodes.tsv"
     assert argv[:3] == [sys.executable, "-m", "h_le_wm.eval.hierarchical"]
@@ -170,6 +180,31 @@ def test_smoke_spec_dry_run_prints_train_and_eval_commands(monkeypatch: pytest.M
     assert "wandb.enabled=False" in output
     assert "-m h_le_wm.eval.hierarchical" in output
     assert f"+output.root_dir={stablewm_home / 'repro' / 'pusht_smoke'}" in output
+
+
+def test_canonical_train_specs_dry_run_use_stable_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    stablewm_home = tmp_path / "stablewm"
+    monkeypatch.setenv("STABLEWM_HOME", str(stablewm_home))
+
+    pusht = _run_cli(
+        "--spec", "train/pusht/hierarchical_default", "--dry-run", env={"STABLEWM_HOME": str(stablewm_home)}
+    )
+    cube = _run_cli(
+        "--spec", "train/cube/hierarchical_default", "--dry-run", env={"STABLEWM_HOME": str(stablewm_home)}
+    )
+
+    pusht_output = pusht.stdout + pusht.stderr
+    cube_output = cube.stdout + cube.stderr
+    assert pusht.returncode == 0, pusht_output
+    assert cube.returncode == 0, cube_output
+    assert "-m h_le_wm.train.hierarchical" in pusht_output
+    assert "subdir=runs/pusht_hierarchical_default" in pusht_output
+    assert f"pretrained_low_level.checkpoint.path={stablewm_home / 'pusht' / 'lewm_object.ckpt'}" in pusht_output
+    assert "trainer.accelerator=gpu" in pusht_output
+    assert "-m h_le_wm.train.hierarchical" in cube_output
+    assert "data=hi_ogb" in cube_output
+    assert "subdir=runs/cube_hierarchical_default" in cube_output
+    assert f"pretrained_low_level.checkpoint.path={stablewm_home / 'cube' / 'lewm_object.ckpt'}" in cube_output
 
 
 def test_offline_and_acting_diagnostics_dry_runs_use_canonical_outputs(
@@ -242,3 +277,21 @@ def test_render_and_reproduction_dry_runs_reference_canonical_surface(
     assert "-m h_le_wm.eval.baseline_manifest" in reproduction_output
     assert "-m h_le_wm.eval.hierarchical" in reproduction_output
     assert "scripts/diagnostics/render_hi_story_figures.py" in reproduction_output
+
+
+def test_from_scratch_workflow_dry_run_reuses_public_graph(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    stablewm_home = tmp_path / "stablewm"
+    monkeypatch.setenv("STABLEWM_HOME", str(stablewm_home))
+
+    result = _run_cli("--spec", "paper/from_scratch", "--dry-run", env={"STABLEWM_HOME": str(stablewm_home)})
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    assert "subdir=runs/pusht_hierarchical_default" in output
+    assert "subdir=runs/cube_hierarchical_default" in output
+    assert "subdir=runs/pusht_probe_phase_a" in output
+    assert "subdir=runs/pusht_probe_phase_b" in output
+    assert "scripts/diagnostics/render_hi_story_figures.py" in output
+    assert output.index("subdir=runs/pusht_hierarchical_default") < output.index("subdir=runs/pusht_probe_phase_a")
+    assert output.index("subdir=runs/pusht_probe_phase_a") < output.index("subdir=runs/pusht_probe_phase_b")
+    assert output.index("subdir=runs/pusht_probe_phase_b") < output.index("scripts/diagnostics/render_hi_story_figures.py")
