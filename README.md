@@ -1,148 +1,128 @@
 # h-le-wm
 
-Hierarchical LeWorldModel workspace with a **frozen upstream baseline** and local hierarchical extensions.
+Paper-ready H-LeWM workspace with a frozen upstream baseline in `third_party/lewm` and a canonical repo-owned namespace in `h_le_wm/`.
 
-## Repo Model
+## Quickstart
 
-This repo is intentionally split:
-
-- Baseline LeWM (read-only): `third_party/lewm` (git submodule, pinned commit)
-- Hierarchical code (editable): root `hi_*` files + `config/*/hi_*.yaml`
-
-Root wrappers keep the CLI simple:
-
-- `python train.py ...` -> runs baseline training in `third_party/lewm`
-- `python eval.py ...` -> runs baseline evaluation in `third_party/lewm`
-- `python hi_train.py ...` -> runs hierarchical training (local)
-- `python hi_eval.py ...` -> runs hierarchical evaluation (local configs)
-
-## Setup
+Clone the repo and initialize the pinned upstream baseline:
 
 ```bash
 git clone https://github.com/NiccoloCase/h-le-wm.git
 cd h-le-wm
 git submodule update --init --recursive
-
-uv venv --python=3.10
-source .venv/bin/activate
-uv pip install stable-worldmodel[train,env]
 ```
 
-## Datasets
-
-Use the helper script (recommended):
+Create the canonical environment:
 
 ```bash
-source scripts/setup_datasets.sh --datasets pusht,tworooms,reacher,cube
+conda env create -f environment.yml
+conda activate lewm
 ```
 
-Or set a custom data root:
+Or use the GPU-focused environment:
 
 ```bash
-source scripts/setup_datasets.sh --home /absolute/path/to/stablewm_data --datasets pusht
+conda env create -f environment-gpu.yml
+conda activate lewm-gpu
 ```
 
-## Baseline Commands (Frozen Upstream)
-
-Train baseline LeWM:
+Stage the paper datasets and the required-now baseline checkpoints under `STABLEWM_HOME`:
 
 ```bash
-python train.py data=pusht
+source scripts/setup_paper_datasets.sh
+bash scripts/setup_baseline_checkpoints.sh \
+  --checkpoint baseline/pusht/lewm=/absolute/path/to/pusht_lewm_object.ckpt \
+  --checkpoint baseline/cube/lewm=/absolute/path/to/cube_lewm_object.ckpt
 ```
 
-Evaluate baseline LeWM:
+Run the non-expensive paper preflight:
 
 ```bash
-python eval.py --config-name=pusht policy=pusht/lewm
+bash scripts/validate_preflight.sh
 ```
 
-You can pass any Hydra overrides through wrappers exactly as usual.
+## Canonical Commands
 
-## Hierarchical Commands
-
-### Train
-
-Default (3 levels, `hi_lewm` config):
+The documented interface is package-first:
 
 ```bash
-python hi_train.py
+python -m h_le_wm.validate preflight
+python -m h_le_wm.experiments.run --spec smoke/pusht --dry-run
+python -m h_le_wm.experiments.run --spec paper/reproduction --dry-run
+python -m h_le_wm.train.hierarchical --help
+python -m h_le_wm.eval.hierarchical --help
+python -m h_le_wm.probe.train --help
+python -m h_le_wm.probe.eval --help
 ```
 
-2-level run (lighter):
+The supported Python entrypoints are the package modules under `h_le_wm/`.
+
+## Reader Paths
+
+Install + preflight:
 
 ```bash
-python hi_train.py wm.num_levels=2 wm.k1=0 wm.k2=20 data=hi_pusht output_model_name=hi_lewm_l2
+source scripts/setup_paper_datasets.sh
+bash scripts/setup_baseline_checkpoints.sh \
+  --checkpoint baseline/pusht/lewm=/absolute/path/to/pusht_lewm_object.ckpt \
+  --checkpoint baseline/cube/lewm=/absolute/path/to/cube_lewm_object.ckpt
+bash scripts/validate_preflight.sh
 ```
 
-3-level run:
+PushT smoke:
 
 ```bash
-python hi_train.py wm.num_levels=3 wm.k1=6 wm.k2=15 data=hi_pusht output_model_name=hi_lewm_l3
+bash scripts/run_pusht_smoke.sh --dry-run
 ```
 
-2-level semantics are `L3 -> L1` (L2 removed). `k2` is required; `k1` is ignored.
-
-### Evaluate
-
-PushT:
+Full paper reproduction:
 
 ```bash
-python hi_eval.py --config-name=hi_pusht policy=pusht/hi_lewm
+bash scripts/setup_baseline_checkpoints.sh \
+  --checkpoint baseline/pusht/lewm=/absolute/path/to/pusht_lewm_object.ckpt \
+  --checkpoint baseline/cube/lewm=/absolute/path/to/cube_lewm_object.ckpt \
+  --checkpoint hierarchical/pusht/hope2_epoch15=/absolute/path/to/pusht_hope2_epoch15_object.ckpt \
+  --checkpoint hierarchical/cube/hope2_epoch15=/absolute/path/to/cube_hope2_epoch15_object.ckpt \
+  --checkpoint probe/pusht/phase_a=/absolute/path/to/pusht_probe_phase_a_probe.pt \
+  --checkpoint probe/pusht/phase_b=/absolute/path/to/pusht_probe_phase_b_probe.pt
+python -m h_le_wm.validate checkpoints --tier supported-first-class
+bash scripts/run_paper_reproduction.sh --dry-run
 ```
 
-TwoRoom:
+## Public Surface
+
+Reader-facing setup covers:
+
+- datasets: `pusht`, `cube`
+- required-now checkpoints:
+  - `baseline/pusht/lewm` for smoke and preflight
+  - `baseline/cube/lewm` for preflight
+- supported-first-class checkpoint registry:
+  - the required-now baseline checkpoints above
+  - canonical hierarchical PushT and Cube HOPE2 checkpoints
+  - canonical PushT decoder-probe Phase A and Phase B bundles
+- canonical specs:
+  - matrix: `matrix/pusht/*`, `matrix/cube/*`
+  - smoke: `smoke/pusht`
+  - diagnostics: `diagnostics/pusht/offline`, `diagnostics/pusht/acting`
+  - probe training: `probe/pusht/phase_a/train`, `probe/pusht/phase_b/train`
+  - renders: `render/pusht/*`
+  - workflow: `paper/reproduction`
+
+List the named checkpoint slots at any time with:
 
 ```bash
-python hi_eval.py --config-name=hi_tworoom policy=tworoom/hi_lewm
+python -m h_le_wm.checkpoints list
 ```
 
-Reacher:
+## Docs
 
-```bash
-python hi_eval.py --config-name=hi_reacher policy=reacher/hi_lewm
-```
-
-Example 2-level eval command:
-
-```bash
-python hi_eval.py --config-name=hi_pusht policy=pusht/hi_lewm wm.num_levels=2
-```
-
-## Integrity and Safety
-
-Check baseline isolation:
-
-```bash
-python scripts/check_baseline_integrity.py
-```
-
-What it verifies:
-
-- submodule exists and is configured
-- submodule HEAD matches locked hash in `BASELINE_LOCK.md`
-- submodule has no local tracked changes
-- baseline-owned files are not reintroduced at repo root
-
-See lock/pinning policy in `BASELINE_LOCK.md`.
-
-## Updating Baseline (Explicit Only)
-
-Only do this intentionally:
-
-```bash
-git -C third_party/lewm fetch origin
-git -C third_party/lewm checkout <new_commit>
-python scripts/check_baseline_integrity.py --allow-pointer-update
-```
-
-Then update `BASELINE_LOCK.md` with the new hash + rationale.
-
-## Handy Wrapper Smoke (No Real Run)
-
-```bash
-LEWM_WRAPPER_DRY_RUN=1 python train.py data=pusht
-LEWM_WRAPPER_DRY_RUN=1 python eval.py --config-name=pusht
-LEWM_WRAPPER_DRY_RUN=1 python hi_eval.py --config-name=hi_pusht
-```
-
-These commands print delegated baseline calls without launching training/evaluation.
+- [Install](docs/install.md)
+- [Datasets](docs/datasets.md)
+- [Reproduction](docs/reproduction.md)
+- [Hardware](docs/hardware.md)
+- [Experiments](docs/experiments.md)
+- [Checkpoints](docs/checkpoints.md)
+- [Outputs](docs/outputs.md)
+- [Architecture](docs/architecture.md)
+- [Architecture Variants](docs/architecture_variants.md)

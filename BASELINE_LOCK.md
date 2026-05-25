@@ -19,8 +19,8 @@ This commit is used as the paper-era frozen baseline.
 
 - Do not edit files inside `third_party/lewm` for feature development.
 - Baseline upgrades must happen only by moving the submodule pointer in a dedicated PR.
-- Root-level baseline wrappers (`train.py`, `eval.py`) delegate execution to this pinned submodule.
-- Hierarchical development stays in root-level `hi_*` code and hierarchical config files.
+- Baseline delegation lives under `h_le_wm/baseline/`, with canonical CLI entrypoints in `h_le_wm/train/baseline.py` and `h_le_wm/eval/baseline.py`.
+- Hierarchical development lives under `h_le_wm/` and its package-scoped config files.
 
 ## Update Procedure (Explicit Baseline Bump)
 
@@ -31,4 +31,3 @@ This commit is used as the paper-era frozen baseline.
 3. Run integrity + smoke checks:
    - `python scripts/check_baseline_integrity.py --allow-pointer-update`
 4. Include baseline bump rationale in PR notes.
-
