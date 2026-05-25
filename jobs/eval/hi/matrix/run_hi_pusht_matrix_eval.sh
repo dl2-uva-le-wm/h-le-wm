@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Shared PushT hierarchical eval launcher for matrix jobs.
 #

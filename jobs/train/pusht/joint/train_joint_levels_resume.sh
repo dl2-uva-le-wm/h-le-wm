@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius training resume job:
 # - Resume an existing joint P1+P2 run in place from its latest weights ckpt

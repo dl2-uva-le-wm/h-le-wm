@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius job: Train hierarchical PushT P2 only (new implementation).
 # Usage (from this folder):

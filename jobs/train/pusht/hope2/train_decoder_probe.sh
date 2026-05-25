@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius training job for the frozen HOPE2 decoder probe:
 # - Read dataset + frozen HOPE2 object checkpoint from node-local TMPDIR

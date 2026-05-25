@@ -9,25 +9,6 @@
 # - Prefer sourcing so STABLEWM_HOME is exported in your current shell.
 # - If executed (not sourced), downloads still work, but export will not persist.
 
-# Detect whether the script is sourced (bash/zsh).
-_IS_SOURCED=0
-if [[ -n "${BASH_VERSION:-}" ]]; then
-  [[ "${BASH_SOURCE[0]}" != "$0" ]] && _IS_SOURCED=1
-elif [[ -n "${ZSH_VERSION:-}" ]]; then
-  case $ZSH_EVAL_CONTEXT in *:file) _IS_SOURCED=1 ;; esac
-fi
-
-_die() {
-  echo "$1" >&2
-  return 1
-}
-
-_abort() {
-  _die "$1"
-  return 1
-}
-
-# Works when sourced from bash or zsh.
 if [[ -n "${BASH_VERSION:-}" ]]; then
   _THIS_FILE="${BASH_SOURCE[0]}"
 elif [[ -n "${ZSH_VERSION:-}" ]]; then
@@ -47,7 +28,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --home)
       if [[ $# -lt 2 ]]; then
-        _abort "Missing value for --home"
+        echo "Missing value for --home" >&2
         return 1 2>/dev/null || exit 1
       fi
       HOME_DIR="$2"
@@ -55,7 +36,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --datasets)
       if [[ $# -lt 2 ]]; then
-        _abort "Missing value for --datasets"
+        echo "Missing value for --datasets" >&2
         return 1 2>/dev/null || exit 1
       fi
       DATASETS="$2"
@@ -72,7 +53,7 @@ USAGE
       return 0 2>/dev/null || exit 0
       ;;
     *)
-      _abort "Unknown argument: $1"
+      echo "Unknown argument: $1" >&2
       return 1 2>/dev/null || exit 1
       ;;
   esac
@@ -126,7 +107,7 @@ else
   for item in "${dataset_items[@]}"; do
     repo="$(normalize_dataset "$item")"
     if [[ -z "$repo" || "$repo" == "all" ]]; then
-      _abort "Unsupported dataset key: '$item'. Use: pusht,tworooms,cube,reacher,all"
+      echo "Unsupported dataset key: '$item'. Use: pusht,tworooms,cube,reacher,all" >&2
       return 1 2>/dev/null || exit 1
     fi
     REPOS+=("$repo")
@@ -184,7 +165,7 @@ download_file() {
   local url="https://huggingface.co/datasets/${repo}/resolve/main/${relpath}?download=true"
   echo "[download] $repo/$relpath"
   curl -L --fail --progress-bar "$url" -o "$out_path" || {
-    _abort "Download failed: $url"
+    echo "Download failed: $url" >&2
     return 1
   }
 }
@@ -200,7 +181,7 @@ extract_if_needed() {
       else
         echo "[extract] $path -> $target"
         zstd -d --rm -f "$path" -o "$target" || {
-          _abort "zstd extract failed: $path"
+          echo "zstd extract failed: $path" >&2
           return 1
         }
       fi
@@ -210,27 +191,27 @@ extract_if_needed() {
       if [[ ! -f "$tar_path" ]]; then
         echo "[extract] $path -> $tar_path"
         zstd -d --rm -f "$path" -o "$tar_path" || {
-          _abort "zstd extract failed: $path"
+          echo "zstd extract failed: $path" >&2
           return 1
         }
       fi
       echo "[untar] $tar_path"
       tar -xf "$tar_path" -C "$STABLEWM_HOME" || {
-        _abort "tar extract failed: $tar_path"
+        echo "tar extract failed: $tar_path" >&2
         return 1
       }
       ;;
     *.tar)
       echo "[untar] $path"
       tar -xf "$path" -C "$STABLEWM_HOME" || {
-        _abort "tar extract failed: $path"
+        echo "tar extract failed: $path" >&2
         return 1
       }
       ;;
     *.tar.gz|*.tgz)
       echo "[untar] $path"
       tar -xzf "$path" -C "$STABLEWM_HOME" || {
-        _abort "tar extract failed: $path"
+        echo "tar extract failed: $path" >&2
         return 1
       }
       ;;
@@ -241,7 +222,7 @@ for repo in "${REPOS[@]}"; do
   echo ""
   echo "==> Scanning ${repo}"
   files_text="$(fetch_repo_files "$repo")" || {
-    _abort "Failed to list files for ${repo}"
+    echo "Failed to list files for ${repo}" >&2
     return 1 2>/dev/null || exit 1
   }
   files=()
@@ -250,7 +231,7 @@ for repo in "${REPOS[@]}"; do
   done <<< "$files_text"
 
   if [[ ${#files[@]} -eq 0 ]]; then
-    _abort "No dataset payload files found in ${repo}"
+    echo "No dataset payload files found in ${repo}" >&2
     return 1 2>/dev/null || exit 1
   fi
 

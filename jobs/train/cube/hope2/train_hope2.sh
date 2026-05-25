@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius training job for hope2 on OGBench Cube:
 # - Read dataset + pretrained checkpoint from node-local TMPDIR (scratch-node)

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Array-driven baseline LeWM sweep for PushT.
 #

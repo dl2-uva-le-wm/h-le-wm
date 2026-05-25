@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # CPU-only decoder-probe analysis/export job.
 # Reproduces the notebook workflow headlessly and writes a structured report

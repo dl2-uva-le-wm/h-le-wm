@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Submit the full hope hierarchical matrix sweep.
 #

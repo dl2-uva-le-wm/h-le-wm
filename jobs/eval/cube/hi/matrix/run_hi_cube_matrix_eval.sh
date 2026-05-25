@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Shared Cube hierarchical eval launcher for matrix jobs.
 #

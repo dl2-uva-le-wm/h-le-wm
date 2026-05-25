@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Convenience wrapper for Phase A of the frozen HOPE2 decoder probe.
 # Trains the decoder only on true waypoint latents.

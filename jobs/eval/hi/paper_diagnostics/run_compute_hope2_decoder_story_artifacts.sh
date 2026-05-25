@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #SBATCH --partition=rome
 #SBATCH --gpus=0

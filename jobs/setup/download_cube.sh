@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius job: set STABLEWM_HOME and download the Cube dataset.
 # Usage:

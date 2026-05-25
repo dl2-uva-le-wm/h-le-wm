@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Snellius job: download/generate ogbench/cube_double_expert.h5 dataset.
 #

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius training job:
 # - Read dataset + pretrained checkpoint from node-local TMPDIR (scratch-node)

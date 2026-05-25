@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Convenience wrapper for Phase B of the frozen HOPE2 decoder probe.
 # Initializes from a Phase A decoder checkpoint and exposes the decoder to

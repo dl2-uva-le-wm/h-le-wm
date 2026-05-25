@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
 #SBATCH --job-name=orig_eval_pusht

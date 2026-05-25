@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Array-driven acting diagnostics matrix for hierarchical PushT checkpoints.
 

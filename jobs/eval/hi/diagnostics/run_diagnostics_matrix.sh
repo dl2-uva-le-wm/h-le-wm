@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Array-driven offline diagnostics matrix for hierarchical PushT checkpoints.
 

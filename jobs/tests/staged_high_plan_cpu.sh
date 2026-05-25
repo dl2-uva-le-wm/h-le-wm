@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # CPU diagnostic job: solve the high-level plan once, keep the full staged
 # rollout, and let only the low-level planner replan under each fixed stage

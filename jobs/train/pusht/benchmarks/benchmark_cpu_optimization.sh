@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius single benchmark: P2 training with node-local storage on scratch-node.
 # This is equivalent to the "Run B" (node-local) path from benchmark_ab_io.sh.

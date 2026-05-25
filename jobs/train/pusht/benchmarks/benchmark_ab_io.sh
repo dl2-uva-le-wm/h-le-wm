@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius A/B benchmark: compare shared scratch vs node-local TMPDIR dataset I/O.
 # Usage:

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius CPU diagnostic job:
 # Compare true dataset macro-actions vs CEM macro-actions for one-step high-level prediction,

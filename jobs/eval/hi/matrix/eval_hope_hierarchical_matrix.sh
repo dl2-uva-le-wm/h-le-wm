@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Array-driven hope hierarchical matrix sweep for PushT checkpoints.
 #

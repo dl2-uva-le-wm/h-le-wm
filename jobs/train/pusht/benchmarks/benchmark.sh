@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius short benchmark: hierarchical PushT P2 only.
 # Usage (from this folder):

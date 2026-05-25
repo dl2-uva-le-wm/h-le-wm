@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #SBATCH --partition=fat_genoa
 #SBATCH --job-name=hi_dec_story_render

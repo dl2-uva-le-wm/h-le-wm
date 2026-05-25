@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Submit the original single-cube baseline matrix sweep as one Slurm array.
 #

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Submit the original PushT baseline matrix sweep as one Slurm array.
 #

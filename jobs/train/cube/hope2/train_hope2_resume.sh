@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Snellius resume job for HOPE2 on OGBench Cube:
 # - Resume an existing run in place from its latest weights checkpoint
