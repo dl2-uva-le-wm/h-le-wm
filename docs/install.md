@@ -28,3 +28,10 @@ Validate the installed surface with:
 ```bash
 python -m h_le_wm.validate env
 ```
+
+## Environment choices
+
+- `environment.yml`
+  Minimal developer and validation environment.
+- `environment-gpu.yml`
+  Reproduction-oriented environment for training, evaluation, diagnostics, and render flows.

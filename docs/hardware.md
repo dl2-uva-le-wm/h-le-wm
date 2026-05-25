@@ -20,6 +20,12 @@ macOS and ad hoc local setups remain best-effort developer environments, not par
 - small `num_eval`
 - `wandb` disabled by default
 
+## Command choices
+
+- Use `environment.yml` for Tier 0 validation and doc inspection.
+- Use `environment-gpu.yml` for the smoke path, matrix evaluation, diagnostics, renders, and full reproduction.
+- Use `bash scripts/run_pusht_smoke.sh --dry-run` to inspect the smallest GPU-backed workflow before running it.
+
 ## Full paper path
 
 The first-class matrix, diagnostics, and render surfaces assume the supported CUDA platform above. The repo documents one canonical environment and one canonical checkpoint/output contract rather than multiple hardware variants.

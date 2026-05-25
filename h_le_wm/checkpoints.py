@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import subprocess
 from pathlib import Path
+import sys
 from typing import Iterable, Sequence
 
 import yaml
@@ -12,6 +14,10 @@ from h_le_wm.paths import REPO_ROOT, stablewm_home
 
 REGISTRY_PATH = REPO_ROOT / "h_le_wm" / "checkpoint_registry.yaml"
 KNOWN_TIERS = ("required-now", "supported-first-class", "optional-later")
+HF_BASELINE_SOURCES = {
+    "baseline/pusht/lewm": "https://huggingface.co/quentinll/lewm-pusht",
+    "baseline/cube/lewm": "https://huggingface.co/quentinll/lewm-cube",
+}
 
 
 def _load_registry_document(*, path: Path = REGISTRY_PATH) -> dict:
@@ -172,6 +178,88 @@ def stage_checkpoints(
     return staged
 
 
+def _hf_run_name_for_entry(entry: dict[str, object]) -> str:
+    relpath = Path(str(entry["relpath"]))
+    if relpath.suffix != ".ckpt":
+        raise ValueError(f"Hugging Face baseline fetch only supports .ckpt targets, got: {relpath}")
+    run_name = str(relpath.with_suffix(""))
+    if run_name.endswith("_object"):
+        run_name = run_name[: -len("_object")]
+    return run_name
+
+
+def fetch_hf_baselines(
+    *,
+    names: Sequence[str] | None = None,
+    force: bool,
+    dry_run: bool,
+    allow_non_strict: bool,
+    home: Path | None = None,
+    path: Path = REGISTRY_PATH,
+) -> list[Path]:
+    base = stablewm_home() if home is None else home.expanduser().resolve()
+    selected_names = list(names or HF_BASELINE_SOURCES.keys())
+    fetched: list[Path] = []
+    converter = REPO_ROOT / "scripts" / "tools" / "convert_hf_weights_to_object_ckpt.py"
+
+    for name in selected_names:
+        entry = resolve_registry_entry(name, path=path)
+        hf_url = HF_BASELINE_SOURCES.get(name)
+        if hf_url is None:
+            raise KeyError(
+                f"Checkpoint '{name}' does not have an official Hugging Face baseline source configured."
+            )
+        target = resolve_checkpoint_target(entry, home=base)
+        if target.exists() and dry_run and not force:
+            print(f"[skip] existing target would be reused: {target}")
+            fetched.append(target)
+            continue
+        if target.exists() and not force:
+            raise FileExistsError(
+                f"Checkpoint target already exists: {target}\n"
+                "Use --force to replace it."
+            )
+
+        run_name = _hf_run_name_for_entry(entry)
+        argv = [
+            sys.executable,
+            str(converter),
+            "--hf-url",
+            hf_url,
+            "--run-name",
+            run_name,
+            "--cache-dir",
+            str(base),
+        ]
+        if allow_non_strict:
+            argv.append("--allow-non-strict")
+
+        print(f"[fetch] {name}: {hf_url} -> {target}")
+        print(" ".join(argv))
+        if dry_run:
+            fetched.append(target)
+            continue
+
+        proc = subprocess.run(
+            argv,
+            cwd=str(REPO_ROOT),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if proc.stdout:
+            print(proc.stdout, end="")
+        if proc.stderr:
+            print(proc.stderr, end="", file=sys.stderr)
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"Hugging Face baseline fetch failed for '{name}' with exit code {proc.returncode}"
+            )
+        fetched.append(target)
+
+    return fetched
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Inspect or stage canonical H-LeWM checkpoints.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -189,6 +277,21 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--home", default="")
     stage.add_argument("--force", action="store_true")
     stage.add_argument("--dry-run", action="store_true")
+
+    fetch = sub.add_parser(
+        "fetch-baselines",
+        help="Download official Hugging Face baseline models and convert them into canonical object checkpoints.",
+    )
+    fetch.add_argument(
+        "--checkpoint",
+        action="append",
+        default=[],
+        help="Optional checkpoint name to fetch. Repeat as needed. Defaults to all supported official baselines.",
+    )
+    fetch.add_argument("--home", default="")
+    fetch.add_argument("--force", action="store_true")
+    fetch.add_argument("--dry-run", action="store_true")
+    fetch.add_argument("--allow-non-strict", action="store_true")
     return parser
 
 
@@ -214,6 +317,16 @@ def main() -> int:
             args.checkpoint,
             force=bool(args.force),
             dry_run=bool(args.dry_run),
+            home=home,
+        )
+        return 0
+    if args.command == "fetch-baselines":
+        home = Path(args.home).expanduser().resolve() if args.home else None
+        fetch_hf_baselines(
+            names=list(args.checkpoint),
+            force=bool(args.force),
+            dry_run=bool(args.dry_run),
+            allow_non_strict=bool(args.allow_non_strict),
             home=home,
         )
         return 0

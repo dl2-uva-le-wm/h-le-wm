@@ -24,6 +24,37 @@ DEFAULT_HOME="${ROOT_DIR}/data/stablewm"
 HOME_DIR="${DEFAULT_HOME}"
 DATASETS="all"
 
+resolve_python_bin() {
+  local candidate
+  for candidate in "${PYTHON:-}" python3 python; do
+    if [[ -n "$candidate" ]] && command -v "$candidate" >/dev/null 2>&1; then
+      command -v "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+require_command() {
+  local name="$1"
+  if ! command -v "$name" >/dev/null 2>&1; then
+    echo "Missing required command: $name" >&2
+    return 1
+  fi
+}
+
+ensure_zstd_support() {
+  if command -v zstd >/dev/null 2>&1; then
+    return 0
+  fi
+
+  "$PYTHON_BIN" - <<'PY' >/dev/null 2>&1
+import importlib.util
+import sys
+raise SystemExit(0 if importlib.util.find_spec("zstandard") is not None else 1)
+PY
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --home)
@@ -58,6 +89,18 @@ USAGE
       ;;
   esac
 done
+
+PYTHON_BIN="$(resolve_python_bin)" || {
+  echo "Could not find a usable Python interpreter. Set \$PYTHON or install python/python3." >&2
+  return 1 2>/dev/null || exit 1
+}
+
+require_command curl || return 1 2>/dev/null || exit 1
+require_command tar || return 1 2>/dev/null || exit 1
+ensure_zstd_support || {
+  echo "Missing zstd support: install the 'zstd' CLI or the Python 'zstandard' package." >&2
+  return 1 2>/dev/null || exit 1
+}
 
 # Export for this shell session (persists only when sourced).
 export STABLEWM_HOME="${HOME_DIR}"
@@ -116,7 +159,7 @@ fi
 
 fetch_repo_files() {
   local repo="$1"
-  REPO="$repo" python3 - <<'PY'
+  REPO="$repo" "$PYTHON_BIN" - <<'PY'
 import json
 import os
 import sys
@@ -170,6 +213,39 @@ download_file() {
   }
 }
 
+extract_zstd_file() {
+  local source_path="$1"
+  local target_path="$2"
+
+  if command -v zstd >/dev/null 2>&1; then
+    zstd -d --rm -f "$source_path" -o "$target_path" || {
+      echo "zstd extract failed: $source_path" >&2
+      return 1
+    }
+    return 0
+  fi
+
+  "$PYTHON_BIN" - "$source_path" "$target_path" <<'PY'
+import os
+import sys
+
+try:
+    import zstandard as zstd
+except ModuleNotFoundError:
+    print(
+        "Missing zstd support: install the 'zstd' CLI or the Python 'zstandard' package.",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+
+source_path, target_path = sys.argv[1], sys.argv[2]
+with open(source_path, "rb") as src, open(target_path, "wb") as dst:
+    dctx = zstd.ZstdDecompressor()
+    dctx.copy_stream(src, dst)
+os.remove(source_path)
+PY
+}
+
 extract_if_needed() {
   local path="$1"
 
@@ -180,20 +256,14 @@ extract_if_needed() {
         echo "[skip] extracted exists: $target"
       else
         echo "[extract] $path -> $target"
-        zstd -d --rm -f "$path" -o "$target" || {
-          echo "zstd extract failed: $path" >&2
-          return 1
-        }
+        extract_zstd_file "$path" "$target" || return 1
       fi
       ;;
     *.tar.zst)
       local tar_path="${path%.zst}"
       if [[ ! -f "$tar_path" ]]; then
         echo "[extract] $path -> $tar_path"
-        zstd -d --rm -f "$path" -o "$tar_path" || {
-          echo "zstd extract failed: $path" >&2
-          return 1
-        }
+        extract_zstd_file "$path" "$tar_path" || return 1
       fi
       echo "[untar] $tar_path"
       tar -xf "$tar_path" -C "$STABLEWM_HOME" || {

@@ -15,4 +15,11 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
 fi
 
 set -euo pipefail
-exec python -m h_le_wm.checkpoints stage "$@"
+subcommand="stage"
+case "${1:-}" in
+  list|stage|fetch-baselines)
+    subcommand="$1"
+    shift
+    ;;
+esac
+exec python -m h_le_wm.checkpoints "$subcommand" "$@"

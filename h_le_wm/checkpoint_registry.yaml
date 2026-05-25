@@ -11,13 +11,13 @@ checkpoints:
       - required-now
       - supported-first-class
     description: Baseline flat Cube object checkpoint required for the paper setup path.
-  - name: hierarchical/pusht/hope2_epoch15
-    relpath: runs/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt
+  - name: hierarchical/pusht/default_epoch15
+    relpath: runs/pusht_hierarchical_default/pusht_hierarchical_default_epoch_15_object.ckpt
     tiers:
       - supported-first-class
     description: Canonical PushT hierarchical HOPE2 checkpoint consumed by the first-class matrix surface.
-  - name: hierarchical/cube/hope2_epoch15
-    relpath: runs/cube_hierarchical_hope2/cube_hierarchical_hope2_epoch_15_object.ckpt
+  - name: hierarchical/cube/default_epoch15
+    relpath: runs/cube_hierarchical_default/cube_hierarchical_default_epoch_15_object.ckpt
     tiers:
       - supported-first-class
     description: Canonical Cube hierarchical HOPE2 checkpoint consumed by the first-class matrix surface.

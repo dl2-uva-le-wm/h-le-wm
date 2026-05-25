@@ -10,8 +10,8 @@ sweep_csv: h_le_wm/experiments/matrix/pusht/hierarchical_matrix.csv
 seeds:
   - 42
 checkpoints:
-  - slug: hope2
-    run_name: pusht_hierarchical_hope2
+  - slug: default
+    run_name: pusht_hierarchical_default
     checkpoint_epoch: 15
 summary:
   group_by:
@@ -35,7 +35,7 @@ summary:
   value_field: success_rate
 requirements:
   checkpoints:
-    - "{run_root}/pusht_hierarchical_hope2/pusht_hierarchical_hope2_epoch_15_object.ckpt"
+    - "{run_root}/pusht_hierarchical_default/pusht_hierarchical_default_epoch_15_object.ckpt"
 outputs:
   root_kind: repro
   raw_csv: "{output_root}/raw_rows.csv"
