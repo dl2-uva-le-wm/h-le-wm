@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import ast
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from copy import deepcopy
 
 import pytest
 import torch
 from torch import nn
-from torch.utils.data import default_collate
 
 pytest.importorskip("einops")
 
@@ -20,53 +17,19 @@ if str(ROOT) not in sys.path:
 from h_le_wm.models.jepa import HiJEPA
 from h_le_wm.models.latent_action import LatentActionEncoder
 from h_le_wm.models.vq import VQActionEncoder
+import h_le_wm.train.steps as train_steps
+import h_le_wm.train.waypoint_ops as waypoint_ops
 
 
-def _load_hi_train_functions():
-    """Load selected functions from the canonical hierarchical train module without importing heavy deps."""
-    src_path = Path(__file__).resolve().parents[1] / "h_le_wm" / "train" / "hierarchical.py"
-    source = src_path.read_text()
-    mod = ast.parse(source)
-
-    wanted = {
-        "gather_waypoint_embeddings",
-        "build_action_chunks",
-        "build_action_chunks_batched",
-        "is_p2_frozen_optimization_enabled",
-        "encode_macro_actions_with_aux",
-        "add_macro_action_aux_losses",
-        "build_macro_action_encoder",
-        "build_p2_frozen_waypoint_collate",
-        "hi_lejepa_forward",
-        "hi_lejepa_forward_p2_frozen",
-        "clone_projection_head",
-    }
-    chunks = []
-    for node in mod.body:
-        if isinstance(node, ast.FunctionDef) and node.name in wanted:
-            chunks.append(ast.get_source_segment(source, node))
-
-    ns = {
-        "torch": torch,
-        "deepcopy": deepcopy,
-        "default_collate": default_collate,
-        "LatentActionEncoder": LatentActionEncoder,
-        "VQActionEncoder": VQActionEncoder,
-    }
-    exec("\n\n".join(chunks), ns)
-    return ns
-
-
-_HI_NS = _load_hi_train_functions()
-GATHER_WAYPOINT_EMBEDDINGS = _HI_NS["gather_waypoint_embeddings"]
-BUILD_ACTION_CHUNKS = _HI_NS["build_action_chunks"]
-BUILD_ACTION_CHUNKS_BATCHED = _HI_NS["build_action_chunks_batched"]
-HI_LEJEPA_FORWARD = _HI_NS["hi_lejepa_forward"]
-HI_LEJEPA_FORWARD_P2_FROZEN = _HI_NS["hi_lejepa_forward_p2_frozen"]
-IS_P2_FROZEN_OPT_ENABLED = _HI_NS["is_p2_frozen_optimization_enabled"]
-BUILD_MACRO_ACTION_ENCODER = _HI_NS["build_macro_action_encoder"]
-BUILD_P2_FROZEN_WAYPOINT_COLLATE = _HI_NS["build_p2_frozen_waypoint_collate"]
-CLONE_PROJECTION_HEAD = _HI_NS["clone_projection_head"]
+GATHER_WAYPOINT_EMBEDDINGS = waypoint_ops.gather_waypoint_embeddings
+BUILD_ACTION_CHUNKS = waypoint_ops.build_action_chunks
+BUILD_ACTION_CHUNKS_BATCHED = waypoint_ops.build_action_chunks_batched
+HI_LEJEPA_FORWARD = train_steps.hi_lejepa_forward
+HI_LEJEPA_FORWARD_P2_FROZEN = train_steps.hi_lejepa_forward_p2_frozen
+IS_P2_FROZEN_OPT_ENABLED = train_steps.is_p2_frozen_optimization_enabled
+BUILD_MACRO_ACTION_ENCODER = train_steps.build_macro_action_encoder
+BUILD_P2_FROZEN_WAYPOINT_COLLATE = waypoint_ops.build_p2_frozen_waypoint_collate
+CLONE_PROJECTION_HEAD = train_steps.clone_projection_head
 
 
 class Node(dict):
@@ -320,7 +283,7 @@ def test_build_action_chunks_batched_rejects_non_positive_lengths():
 
 
 def test_hi_lejepa_forward_fast_path_shapes_and_single_macro_encode():
-    HI_LEJEPA_FORWARD.__globals__["sample_waypoints"] = _sample_waypoints_stub
+    train_steps.sample_waypoints = _sample_waypoints_stub
 
     model = DummyModel(embed_dim=8, latent_dim=5)
     module = DummyModule(model)
@@ -348,7 +311,7 @@ def test_hi_lejepa_forward_fast_path_shapes_and_single_macro_encode():
 
 
 def test_hi_lejepa_forward_sigreg_guard_uses_full_sequence_encode():
-    HI_LEJEPA_FORWARD.__globals__["sample_waypoints"] = _sample_waypoints_stub
+    train_steps.sample_waypoints = _sample_waypoints_stub
 
     model = DummyModel(embed_dim=8, latent_dim=5)
     module = DummyModule(model)
@@ -367,7 +330,7 @@ def test_hi_lejepa_forward_sigreg_guard_uses_full_sequence_encode():
 
 
 def test_hi_lejepa_forward_smoke_multiple_steps_logs_metrics():
-    HI_LEJEPA_FORWARD.__globals__["sample_waypoints"] = _sample_waypoints_stub
+    train_steps.sample_waypoints = _sample_waypoints_stub
 
     model = DummyModel(embed_dim=8, latent_dim=5)
     module = DummyModule(model)
@@ -385,7 +348,7 @@ def test_hi_lejepa_forward_smoke_multiple_steps_logs_metrics():
 
 
 def test_hi_lejepa_forward_accumulates_vq_aux_losses():
-    HI_LEJEPA_FORWARD.__globals__["sample_waypoints"] = _sample_waypoints_stub
+    train_steps.sample_waypoints = _sample_waypoints_stub
 
     model = DummyVQModel(embed_dim=8, latent_dim=5)
     module = DummyModule(model)
@@ -448,7 +411,7 @@ def test_is_p2_frozen_optimization_enabled_matches_expected_modes():
 
 
 def test_build_p2_frozen_waypoint_collate_slices_pixels_and_attaches_waypoints():
-    BUILD_P2_FROZEN_WAYPOINT_COLLATE.__globals__["sample_waypoints"] = _sample_waypoints_stub
+    waypoint_ops.sample_waypoints = _sample_waypoints_stub
 
     cfg = _make_cfg(train_low_level=False, sigreg_weight=0.0)
     calls = {"n": 0}

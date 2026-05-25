@@ -29,7 +29,7 @@ from h_le_wm.probe.model import (
     save_panel,
     save_probe_bundle,
 )
-from h_le_wm.train.hierarchical import (
+from h_le_wm.train.waypoint_ops import (
     build_action_chunks_batched,
     build_p2_frozen_waypoint_collate,
 )

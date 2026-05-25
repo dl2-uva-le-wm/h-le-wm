@@ -21,7 +21,7 @@ from h_le_wm.probe.model import (
     make_comparison_panel,
     save_panel,
 )
-from h_le_wm.train.hierarchical import build_action_chunks_batched
+from h_le_wm.train.waypoint_ops import build_action_chunks_batched
 from h_le_wm.probe.train import build_dataset_and_loaders, validate_probe_config
 
 
